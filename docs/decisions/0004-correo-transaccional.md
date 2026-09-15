@@ -1,7 +1,7 @@
 # ADR-0004: Correo transaccional
 
 ## Status
-Propuesta — proveedor por elegir
+Aceptada — el proveedor de producción se elige al publicar
 
 ## Date
 2026-09-15

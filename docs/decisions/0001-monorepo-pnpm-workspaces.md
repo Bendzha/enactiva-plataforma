@@ -1,7 +1,7 @@
 # ADR-0001: Monorepo con pnpm workspaces
 
 ## Status
-Propuesta
+Aceptada
 
 ## Date
 2026-09-15
