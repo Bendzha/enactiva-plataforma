@@ -1,7 +1,7 @@
 # ADR-0003: Autenticación, permisos y scoping por empresa
 
 ## Status
-Propuesta
+Aceptada
 
 ## Date
 2026-09-15

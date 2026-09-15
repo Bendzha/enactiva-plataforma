@@ -1,5 +1,7 @@
 pnpm-lock.yaml
 **/dist
 **/coverage
+**/src/generated
+**/prisma/migrations
 docs/
 tasks/

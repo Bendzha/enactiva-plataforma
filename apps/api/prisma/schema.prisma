@@ -1,0 +1,153 @@
+// Modelo de datos — ADR-0002 (docs/decisions/0002-modelo-de-datos.md).
+// Cada slice migra solo las tablas que usa; este archivo crece slice a slice.
+
+generator client {
+  provider     = "prisma-client"
+  output       = "../src/generated/prisma"
+  moduleFormat = "esm"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ── Enums ────────────────────────────────────────────────────────────────────
+
+enum Rol {
+  ADMIN_ENACTIVA
+  RRHH
+  CAPACITADOR
+  ESTUDIANTE
+}
+
+enum NivelAdmin {
+  PRINCIPAL
+  OPERATIVO
+}
+
+enum EstadoEmpresa {
+  ONBOARDING_PENDIENTE
+  ACTIVA
+}
+
+enum EstadoUsuario {
+  INVITADO
+  ACTIVO
+  SUSPENDIDO
+  ANONIMIZADO
+}
+
+enum TipoToken {
+  REFRESH
+  INVITACION
+  RESET_PASSWORD
+}
+
+enum AccionAuditoria {
+  LOGIN
+  LOGIN_FALLIDO
+  LEER
+  CREAR
+  ACTUALIZAR
+  ELIMINAR
+  EXPORTAR
+  ANONIMIZAR
+}
+
+// ── Organización e identidad ─────────────────────────────────────────────────
+
+model Empresa {
+  id            String        @id @default(uuid(7)) @db.Uuid
+  nombre        String
+  rubro         String
+  estado        EstadoEmpresa @default(ONBOARDING_PENDIENTE)
+  activadaAt    DateTime?     @map("activada_at") @db.Timestamptz(3)
+  activadaPorId String?       @map("activada_por_id") @db.Uuid
+  creadaPorId   String        @map("creada_por_id") @db.Uuid
+  createdAt     DateTime      @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt     DateTime      @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  activadaPor Usuario?  @relation("EmpresaActivadaPor", fields: [activadaPorId], references: [id], onDelete: Restrict)
+  creadaPor   Usuario   @relation("EmpresaCreadaPor", fields: [creadaPorId], references: [id], onDelete: Restrict)
+  usuarios    Usuario[] @relation("UsuariosDeEmpresa")
+
+  @@map("empresa")
+}
+
+/// Invariantes de aplicación (ADR-0002):
+/// - nivelAdmin no nulo ⇔ el usuario tiene el rol ADMIN_ENACTIVA.
+/// - empresaId nulo ⇔ usuario del equipo ENACTIVA.
+/// - email se guarda en minúsculas; queda nulo al anonimizar.
+model Usuario {
+  id            String        @id @default(uuid(7)) @db.Uuid
+  empresaId     String?       @map("empresa_id") @db.Uuid
+  email         String?       @unique
+  passwordHash  String?       @map("password_hash")
+  nombre        String?
+  apellido      String?
+  cargo         String?
+  estado        EstadoUsuario @default(INVITADO)
+  nivelAdmin    NivelAdmin?   @map("nivel_admin")
+  anonimizadoAt DateTime?     @map("anonimizado_at") @db.Timestamptz(3)
+  createdAt     DateTime      @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt     DateTime      @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  empresa           Empresa?      @relation("UsuariosDeEmpresa", fields: [empresaId], references: [id], onDelete: Restrict)
+  roles             UsuarioRol[]
+  tokens            TokenAcceso[]
+  empresasCreadas   Empresa[]     @relation("EmpresaCreadaPor")
+  empresasActivadas Empresa[]     @relation("EmpresaActivadaPor")
+
+  @@index([empresaId])
+  @@map("usuario")
+}
+
+model UsuarioRol {
+  usuarioId String   @map("usuario_id") @db.Uuid
+  rol       Rol
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  usuario Usuario @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+
+  @@id([usuarioId, rol])
+  @@map("usuario_rol")
+}
+
+/// Tokens de refresh, invitación y reseteo. Solo se guarda el hash, nunca el token.
+model TokenAcceso {
+  id         String    @id @default(uuid(7)) @db.Uuid
+  usuarioId  String    @map("usuario_id") @db.Uuid
+  tipo       TipoToken
+  tokenHash  String    @unique @map("token_hash")
+  expiraAt   DateTime  @map("expira_at") @db.Timestamptz(3)
+  usadoAt    DateTime? @map("usado_at") @db.Timestamptz(3)
+  revocadoAt DateTime? @map("revocado_at") @db.Timestamptz(3)
+  createdAt  DateTime  @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  usuario Usuario @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+
+  @@index([usuarioId, tipo])
+  @@map("token_acceso")
+}
+
+// ── Cumplimiento Ley 21.719 ──────────────────────────────────────────────────
+
+/// Append-only: un trigger en la base rechaza UPDATE y DELETE.
+/// Sin FK a propósito: debe sobrevivir a la anonimización de usuarios.
+/// Nunca guarda valores de datos personales, solo nombres de campos.
+model RegistroAuditoria {
+  id                BigInt          @id @default(autoincrement())
+  actorId           String?         @map("actor_id") @db.Uuid
+  actorRol          Rol?            @map("actor_rol")
+  empresaId         String?         @map("empresa_id") @db.Uuid
+  accion            AccionAuditoria
+  entidad           String
+  entidadId         String?         @map("entidad_id")
+  camposModificados String[]        @map("campos_modificados")
+  ip                String?
+  createdAt         DateTime        @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  @@index([empresaId, createdAt])
+  @@index([actorId, createdAt])
+  @@map("registro_auditoria")
+}

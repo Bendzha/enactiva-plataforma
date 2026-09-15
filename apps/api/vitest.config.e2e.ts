@@ -6,5 +6,8 @@ export default defineConfig({
     globals: true,
     root: './',
     include: ['test/**/*.e2e-spec.ts'],
+    setupFiles: ['dotenv/config'],
+    // Los e2e comparten la misma base de datos: se ejecutan de a un archivo.
+    fileParallelism: false,
   },
 });

@@ -21,8 +21,19 @@ docker compose down           # los detiene (los datos se conservan)
 docker compose down -v        # los detiene y BORRA la base de datos local
 ```
 
-- **Postgres 18:** usuario `enactiva`, contraseña `enactiva`, base `plataforma` (solo desarrollo; ver `.env.example`).
+- **Postgres 18:** usuario `enactiva`, contraseña `enactiva`, base `plataforma` (solo desarrollo; ver `apps/api/.env.example`).
 - **Mailpit:** captura los correos que envía la API. Bandeja en http://localhost:8025. Ningún correo sale a internet.
+
+## Base de datos
+
+```bash
+cp apps/api/.env.example apps/api/.env   # completar SEED_ADMIN_EMAIL y SEED_ADMIN_PASSWORD
+pnpm --filter api db:migrate             # aplica las migraciones pendientes
+pnpm --filter api db:seed                # crea el Admin Principal (idempotente)
+pnpm --filter api db:reset               # BORRA la base local y la recrea desde cero
+```
+
+El registro de auditoría es append-only: la base rechaza cualquier UPDATE o DELETE sobre él.
 
 ## Comandos
 

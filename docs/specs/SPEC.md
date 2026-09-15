@@ -100,8 +100,9 @@ tasks/          plan.md (slices y tareas)
 corepack enable                                # pnpm vía corepack (Node 24 LTS)
 pnpm install
 docker compose up -d                           # Postgres + Mailpit
-pnpm --filter api prisma migrate dev
-pnpm --filter api prisma db seed
+cp apps/api/.env.example apps/api/.env         # completar variables del seed
+pnpm --filter api db:migrate
+pnpm --filter api db:seed
 pnpm dev                                       # api + web en paralelo
 pnpm lint && pnpm typecheck && pnpm test
 ```

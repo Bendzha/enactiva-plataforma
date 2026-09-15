@@ -1,7 +1,7 @@
 # ADR-0005: Vitest en lugar de Jest
 
 ## Status
-Propuesta
+Aceptada
 
 ## Date
 2026-09-15
