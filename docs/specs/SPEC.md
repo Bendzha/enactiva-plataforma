@@ -127,9 +127,9 @@ export class EmpresasController {
 ```
 
 ## 8. Estrategia de testing
-- **Backend:** Jest (unitario) para reglas de dominio — cálculo de logro, delta, score de matching — con cobertura alta en esas funciones; Supertest (e2e) contra Postgres real para cada endpoint.
+- **Backend:** Vitest (unitario, ver ADR-0005) para reglas de dominio — cálculo de logro, delta, score de matching — con cobertura alta en esas funciones; Supertest (e2e) contra Postgres real para cada endpoint.
 - **Obligatorio en e2e:** por cada endpoint, casos 401 (sin token), 403 (rol sin permiso) y **acceso cruzado entre empresas** (RRHH de A no ve datos de B).
-- **Frontend:** React Testing Library para formularios y flujos por rol.
+- **Frontend:** React Testing Library sobre Vitest para formularios y flujos por rol.
 - CI (GitHub Actions) corre lint, typecheck y tests en cada PR.
 
 ## 9. Límites
