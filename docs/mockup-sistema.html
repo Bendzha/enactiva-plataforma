@@ -1,0 +1,809 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ENACTIVA · Mockup del sistema</title>
+<style>
+  :root{
+    --navy:#00347A; --navy-dark:#00224F; --navy-light:#1a5bb8;
+    --ice:#EAF0FC; --sky:#DCE7FA;
+    --amber:#FFB627; --amber-dark:#E89A0C;
+    --ink:#12213D; --muted:#6B7690; --line:#E2E7F2;
+    --good:#1E9E6B; --good-bg:#E7F7EE;
+    --warn:#8A5A00; --warn-bg:#FFF3D6;
+    --hab-bg:#FFF1D6; --hab-ink:#8A5A00;
+    --cont-bg:#EAF0FC; --cont-ink:#00347A;
+    --act-bg:#E7F7EE; --act-ink:#1E9E6B;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  html,body{ height:100%; }
+  body{
+    font-family:-apple-system,'Segoe UI',Helvetica,Arial,sans-serif;
+    background:#EEF1F7; color:var(--ink); -webkit-font-smoothing:antialiased;
+  }
+
+  /* ============ SELECTOR DE ROL (solo demo) ============ */
+  .demo-switcher{
+    background:var(--navy-dark); padding:14px 24px; display:flex; align-items:center;
+    gap:14px; flex-wrap:wrap; position:sticky; top:0; z-index:40;
+    border-bottom:2px dashed rgba(255,182,39,.5);
+  }
+  .demo-switcher .lbl{ color:var(--sky); font-size:12.5px; font-weight:700; }
+  .demo-switcher .roles{ display:flex; gap:6px; flex-wrap:wrap; }
+  .role-btn{
+    background:rgba(255,255,255,.08); color:#fff; border:1px solid rgba(255,255,255,.18);
+    padding:7px 14px; border-radius:20px; font-size:12.5px; font-weight:700; cursor:pointer;
+    font-family:inherit; transition:background .15s, border-color .15s;
+  }
+  .role-btn:hover{ background:rgba(255,255,255,.16); }
+  .role-btn.active{ background:var(--amber); color:var(--navy-dark); border-color:var(--amber); }
+
+  .app{ display:none; }
+  .app.active{ display:block; animation:fadein .3s ease; }
+  @keyframes fadein{ from{opacity:0;} to{opacity:1;} }
+
+  /* ============ TOPBAR ============ */
+  .topbar{
+    height:64px; background:var(--navy); color:#fff;
+    display:flex; align-items:center; justify-content:space-between;
+    padding:0 28px; position:sticky; top:49px; z-index:60;
+  }
+  .brand{ display:flex; align-items:center; gap:10px; font-weight:800; font-size:16px; }
+  .brand .dot{ width:9px; height:9px; border-radius:50%; background:var(--amber); flex-shrink:0; }
+  .brand small{ font-weight:600; color:var(--sky); font-size:12px; margin-left:2px; }
+  .navtabs{ display:flex; gap:6px; }
+  .navtab{
+    padding:9px 16px; border-radius:20px; font-size:13.5px; font-weight:600;
+    color:var(--sky); cursor:pointer; border:none; background:transparent; font-family:inherit;
+    transition:background .15s, color .15s;
+  }
+  .navtab.active{ background:rgba(255,255,255,.14); color:#fff; }
+  .navtab:hover:not(.active){ background:rgba(255,255,255,.08); }
+  .userchip{ display:flex; align-items:center; gap:10px; }
+  .avatar{
+    width:34px; height:34px; border-radius:50%; background:var(--amber);
+    color:var(--navy-dark); font-weight:800; font-size:13px; flex-shrink:0;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .username{ font-size:13px; font-weight:600; }
+  .userrole{ font-size:10.5px; color:var(--sky); display:block; margin-top:-2px; }
+  .hamburger{ display:none; width:36px; height:36px; border-radius:10px; background:rgba(255,255,255,.12);
+    align-items:center; justify-content:center; font-size:17px; cursor:pointer; border:none; color:#fff;}
+
+  /* ============ LAYOUT ============ */
+  .wrap{ max-width:1180px; margin:0 auto; padding:30px 28px 100px; }
+  .view{ display:none; animation:viewin .28s ease; }
+  .view.active{ display:block; }
+  @keyframes viewin{ from{opacity:0; transform:translateY(6px);} to{opacity:1; transform:translateY(0);} }
+
+  .view-head{ display:flex; justify-content:space-between; align-items:flex-end; margin-bottom:22px; flex-wrap:wrap; gap:14px;}
+  .view-head h1{ font-size:25px; font-weight:800; }
+  .view-head p{ color:var(--muted); font-size:13.5px; margin-top:4px; }
+
+  .btn{
+    display:inline-flex; align-items:center; gap:8px; border:none; cursor:pointer;
+    background:var(--amber); color:var(--navy-dark); font-weight:700; font-size:13.5px;
+    padding:11px 20px; border-radius:12px; font-family:inherit; transition:transform .12s, box-shadow .12s;
+  }
+  .btn:hover{ box-shadow:0 6px 16px rgba(255,182,39,.4); transform:translateY(-1px);}
+  .btn-outline{ background:#fff; color:var(--navy); border:1.5px solid var(--navy); }
+  .btn-sm{ padding:8px 14px; font-size:12.5px; }
+
+  .kpis{ display:grid; grid-template-columns:repeat(3,1fr); gap:16px; margin-bottom:26px; }
+  .kpi{ background:#fff; border:1px solid var(--line); border-radius:14px; padding:20px; }
+  .kpi .num{ font-size:29px; font-weight:800; color:var(--navy); }
+  .kpi .num.good{ color:var(--good); }
+  .kpi .label{ font-size:12.5px; color:var(--muted); margin-top:4px; }
+
+  .grid{ display:grid; grid-template-columns:repeat(3,1fr); gap:16px; }
+  .grid.g2{ grid-template-columns:repeat(2,1fr); }
+  .card{
+    background:#fff; border:1px solid var(--line); border-radius:16px; padding:20px;
+    transition:box-shadow .18s, transform .18s, border-color .18s;
+  }
+  .card.clickable{ cursor:pointer; }
+  .card.clickable:hover{ box-shadow:0 10px 26px rgba(0,52,122,.12); transform:translateY(-2px); border-color:var(--navy-light); }
+  .card.new{ animation:pop .5s ease; }
+  @keyframes pop{ 0%{ transform:scale(.92); opacity:0; background:var(--ice);} 60%{transform:scale(1.01);} 100%{transform:scale(1); opacity:1;} }
+  .card-top{ display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:10px; gap:10px;}
+  .card h3{ font-size:15.5px; font-weight:700; }
+  .card .sub{ font-size:12.5px; color:var(--muted); margin-top:2px; }
+  .badge{ font-size:11px; font-weight:700; padding:4px 10px; border-radius:20px; white-space:nowrap; }
+  .badge.activa{ background:var(--good-bg); color:var(--good); }
+  .badge.pendiente{ background:var(--ice); color:var(--navy); }
+  .badge.hab{ background:var(--hab-bg); color:var(--hab-ink); }
+  .badge.cont{ background:var(--cont-bg); color:var(--cont-ink); }
+  .badge.act{ background:var(--act-bg); color:var(--act-ink); }
+  .card-stats{ display:flex; gap:16px; margin-top:14px; padding-top:14px; border-top:1px solid var(--line); }
+  .card-stats div{ font-size:11.5px; color:var(--muted); }
+  .card-stats b{ display:block; font-size:16px; color:var(--ink); font-weight:800; }
+
+  .addcard{
+    border:2px dashed var(--line); border-radius:16px; display:flex; align-items:center; justify-content:center;
+    flex-direction:column; gap:8px; color:var(--muted); font-weight:700; font-size:13.5px; cursor:pointer;
+    min-height:150px; transition:border-color .18s, color .18s;
+  }
+  .addcard:hover{ border-color:var(--amber-dark); color:var(--amber-dark); }
+  .addcard .plus{ font-size:24px; }
+
+  .bar-row{ display:flex; align-items:center; gap:14px; padding:12px 0; border-bottom:1px solid var(--line); }
+  .bar-row:last-child{ border-bottom:none; }
+  .bar-row .name{ width:150px; font-size:13.5px; font-weight:600; flex-shrink:0; }
+  .bar-track{ flex:1; height:10px; background:var(--ice); border-radius:6px; overflow:hidden; }
+  .bar-fill{ height:100%; background:var(--navy); border-radius:6px; width:0; transition:width .8s cubic-bezier(.2,.8,.2,1); }
+  .bar-fill.amber{ background:var(--amber-dark); }
+  .bar-row .val{ width:46px; text-align:right; font-weight:700; font-size:13px; color:var(--navy); }
+
+  .panel-block{ background:#fff; border:1px solid var(--line); border-radius:16px; padding:24px; margin-bottom:20px;}
+  .panel-block h2{ font-size:15.5px; margin-bottom:16px; }
+  .panel-block .desc{ font-size:12.5px; color:var(--muted); margin-top:-10px; margin-bottom:16px;}
+
+  .alert{ background:var(--warn-bg); border-radius:14px; padding:14px 16px; font-size:13px; color:var(--warn); margin-top:6px; }
+
+  .person-row{ display:flex; align-items:center; gap:12px; padding:11px 0; border-bottom:1px solid var(--line); }
+  .person-row:last-child{ border:none; }
+  .person-row .av{ width:36px; height:36px; border-radius:50%; background:var(--sky); color:var(--navy); font-weight:700; font-size:13px; display:flex; align-items:center; justify-content:center; flex-shrink:0;}
+  .person-row .info{ flex:1; font-size:13px; }
+  .person-row .info b{ display:block; font-size:13.5px; }
+  .person-row .info span{ color:var(--muted); font-size:11.5px; }
+  .person-row .right{ font-size:12.5px; font-weight:700; color:var(--navy); text-align:right; }
+
+  /* ============ MODAL ============ */
+  .overlay{
+    position:fixed; inset:0; background:rgba(10,20,50,.45); display:none;
+    align-items:center; justify-content:center; z-index:200; padding:20px;
+  }
+  .overlay.show{ display:flex; animation:fadein .2s ease; }
+  .modal{
+    background:#fff; border-radius:18px; width:100%; max-width:440px; padding:28px;
+    box-shadow:0 30px 70px rgba(0,20,60,.3); max-height:88vh; overflow-y:auto;
+  }
+  .modal h2{ font-size:19px; margin-bottom:6px; }
+  .modal .sub{ font-size:13px; color:var(--muted); margin-bottom:20px; }
+  .field{ margin-bottom:16px; }
+  .field label{ display:block; font-size:12.5px; font-weight:700; color:var(--navy); margin-bottom:6px; }
+  .field input, .field select, .field textarea{
+    width:100%; padding:11px 13px; border:1.5px solid var(--line); border-radius:10px;
+    font-size:14px; font-family:inherit; color:var(--ink); background:#fbfbfe;
+  }
+  .field textarea{ resize:vertical; min-height:70px; }
+  .field input:focus, .field select:focus, .field textarea:focus{ outline:none; border-color:var(--navy-light); }
+  .modal-actions{ display:flex; gap:10px; margin-top:22px; }
+  .modal-actions .btn-outline{ flex:1; text-align:center; justify-content:center; }
+  .modal-actions .btn{ flex:1; justify-content:center; }
+
+  /* ============ SLIDE-OVER DETAIL ============ */
+  .detail-overlay{ position:fixed; inset:0; background:rgba(10,20,50,.35); display:none; z-index:150; }
+  .detail-overlay.show{ display:block; animation:fadein .2s ease; }
+  .detail-panel{
+    position:fixed; top:0; right:0; height:100%; width:440px; max-width:92vw;
+    background:#fff; box-shadow:-20px 0 50px rgba(0,20,60,.2); z-index:160;
+    transform:translateX(100%); transition:transform .32s cubic-bezier(.2,.85,.3,1);
+    display:flex; flex-direction:column;
+  }
+  .detail-panel.show{ transform:translateX(0); }
+  .detail-head{ background:var(--navy); color:#fff; padding:24px 24px 20px; position:relative; flex-shrink:0;}
+  .detail-head .close{
+    position:absolute; top:18px; right:18px; width:32px; height:32px; border-radius:50%;
+    background:rgba(255,255,255,.15); border:none; color:#fff; font-size:16px; cursor:pointer;
+  }
+  .detail-head .eyebrow{ font-size:11.5px; color:var(--sky); font-weight:700; }
+  .detail-head h2{ font-size:20px; margin-top:6px; }
+  .detail-head .sub{ font-size:12.5px; color:var(--sky); margin-top:3px; }
+  .detail-body{ padding:22px 24px; overflow-y:auto; flex:1; }
+  .detail-section{ margin-bottom:22px; }
+  .detail-section h3{ font-size:12px; text-transform:uppercase; letter-spacing:.4px; color:var(--muted); margin-bottom:10px; font-weight:700; }
+  .mini-stat-row{ display:flex; gap:12px; }
+  .mini-stat{ flex:1; background:var(--ice); border-radius:12px; padding:14px; text-align:center; }
+  .mini-stat b{ display:block; font-size:19px; color:var(--navy); font-weight:800; }
+  .mini-stat span{ font-size:10.5px; color:var(--muted); }
+
+  .steps{ display:flex; flex-direction:column; gap:10px; }
+  .step{ display:flex; gap:12px; align-items:flex-start; padding:12px 14px; border-radius:12px; border-left:4px solid var(--line); background:var(--ice) }
+  .step.done{ border-left-color:var(--good); }
+  .step.current{ border-left-color:var(--amber-dark); }
+  .step .num{ width:26px; height:26px; border-radius:50%; background:#fff; display:flex; align-items:center; justify-content:center; font-weight:800; font-size:12px; color:var(--navy); flex-shrink:0; }
+  .step .txt b{ display:block; font-size:13.5px; }
+  .step .txt span{ font-size:11.5px; color:var(--muted); }
+
+  .rubric-row{ display:flex; justify-content:space-between; font-size:13px; padding:8px 0; border-bottom:1px solid var(--line); }
+  .rubric-row:last-child{ border:none; }
+  .rubric-row .w{ color:var(--muted); font-weight:600; }
+
+  /* ============ MATCH CARD (estudiante) ============ */
+  .match-wrap{ display:flex; flex-direction:column; align-items:center; padding:10px 0 30px; }
+  .match-card{
+    width:100%; max-width:340px; background:#fff; border:1px solid var(--line); border-radius:24px;
+    box-shadow:0 18px 40px rgba(0,52,122,.15); overflow:hidden; transition:transform .3s ease, opacity .3s ease;
+  }
+  .match-card.swiping-like{ transform:translateX(120%) rotate(12deg); opacity:0; }
+  .match-card.swiping-nope{ transform:translateX(-120%) rotate(-12deg); opacity:0; }
+  .match-photo{ height:180px; background:linear-gradient(135deg, var(--navy), var(--navy-light)); display:flex; align-items:center; justify-content:center; }
+  .match-photo .big-av{ width:88px; height:88px; border-radius:50%; background:#fff; color:var(--navy); font-weight:800; font-size:30px; display:flex; align-items:center; justify-content:center; }
+  .match-body{ padding:20px; }
+  .match-body h3{ font-size:18px; }
+  .match-body .role{ font-size:12.5px; color:var(--muted); margin:2px 0 12px; }
+  .match-badges{ display:flex; gap:6px; margin-bottom:12px; flex-wrap:wrap;}
+  .match-quote{ font-size:13px; color:var(--ink); background:var(--ice); padding:11px 13px; border-radius:12px; line-height:1.45; }
+  .match-meta{ display:flex; justify-content:space-between; margin-top:13px; font-size:11.5px; color:var(--muted); }
+  .match-actions{ display:flex; gap:24px; margin-top:24px; }
+  .match-actions button{ border:none; cursor:pointer; display:flex; align-items:center; justify-content:center; box-shadow:0 6px 14px rgba(0,0,0,.12); font-family:inherit; }
+  .match-nope{ width:54px; height:54px; border-radius:50%; background:#fff; border:2px solid #E23 !important; font-size:20px; color:#E23; }
+  .match-like{ width:64px; height:64px; border-radius:50%; background:var(--amber); font-size:24px; }
+  .match-info{ width:46px; height:46px; border-radius:50%; background:#fff; border:2px solid var(--navy) !important; font-size:16px; color:var(--navy); }
+  .match-hint{ margin-top:14px; font-size:11.5px; color:var(--muted); text-align:center; }
+  .match-empty{ text-align:center; padding:50px 20px; color:var(--muted); }
+  .match-empty .big{ font-size:40px; margin-bottom:10px; }
+
+  .chip-input{ display:flex; gap:8px; flex-wrap:wrap; margin-top:8px;}
+  .chip{ background:var(--ice); color:var(--navy); font-size:12px; font-weight:700; padding:6px 12px; border-radius:16px; }
+
+  .bottomnav{ display:none; }
+
+  /* ============ RESPONSIVE ============ */
+  @media (max-width: 760px){
+    .demo-switcher{ padding:10px 14px; top:0; }
+    .topbar{ padding:0 16px; top:66px; }
+    .navtabs{ display:none; }
+    .hamburger{ display:flex; }
+    .username, .userrole{ display:none; }
+    .wrap{ padding:18px 16px 90px; }
+    .view-head h1{ font-size:20px; }
+    .view-head{ flex-direction:column; align-items:stretch; }
+    .view-head .btn{ width:100%; justify-content:center; }
+    .kpis{ grid-template-columns:1fr 1fr; }
+    .grid, .grid.g2{ grid-template-columns:1fr; }
+    .detail-panel{ width:100%; max-width:100%; transform:translateY(100%); top:auto; bottom:0; height:90%; border-radius:20px 20px 0 0; }
+    .detail-panel.show{ transform:translateY(0); }
+    .modal{ max-width:100%; align-self:flex-end; border-radius:20px 20px 0 0; max-height:80vh; }
+    .overlay{ align-items:flex-end; padding:0; }
+    .bottomnav{
+      display:flex; position:fixed; bottom:0; left:0; right:0; height:66px; background:#fff;
+      border-top:1px solid var(--line); z-index:120; justify-content:space-around; align-items:center;
+    }
+    .bottomnav .bnitem{ display:flex; flex-direction:column; align-items:center; gap:3px; font-size:9.5px; color:var(--muted); font-weight:700; background:none; border:none; font-family:inherit; }
+    .bottomnav .bnitem.active{ color:var(--navy); }
+    .bottomnav .bnitem .ic{ font-size:17px; }
+    .bar-row .name{ width:96px; font-size:12px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="demo-switcher">
+  <span class="lbl">VISTA DE DEMOSTRACIÓN — iniciar sesión como:</span>
+  <div class="roles">
+    <button class="role-btn active" data-role="admin">Admin ENACTIVA</button>
+    <button class="role-btn" data-role="rrhh">RRHH Empresa</button>
+    <button class="role-btn" data-role="capacitador">Capacitador</button>
+    <button class="role-btn" data-role="estudiante">Estudiante</button>
+  </div>
+</div>
+
+<!-- Cada rol se define en las siguientes secciones -->
+
+<!-- ================================================================ -->
+<!-- ROL 1: ADMIN ENACTIVA -->
+<!-- ================================================================ -->
+<div class="app active" id="app-admin">
+  <div class="topbar">
+    <div class="brand"><span class="dot"></span> ENACTIVA <small>· Admin</small></div>
+    <div class="navtabs">
+      <button class="navtab active" data-app="admin" data-view="empresas">Empresas</button>
+      <button class="navtab" data-app="admin" data-view="metricas">Métricas</button>
+      <button class="navtab" data-app="admin" data-view="ajustes">Ajustes</button>
+    </div>
+    <div class="userchip">
+      <div><span class="username">Karina López</span><span class="userrole">Admin ENACTIVA</span></div>
+      <div class="avatar">KL</div>
+    </div>
+    <button class="hamburger">☰</button>
+  </div>
+
+  <div class="wrap">
+    <div class="view active" id="admin-view-empresas">
+      <div class="view-head">
+        <div><h1>Empresas piloto</h1><p>Todas las organizaciones activas en el piloto de ENACTIVA</p></div>
+        <button class="btn" id="openAddCompany">+ Agregar empresa</button>
+      </div>
+      <div class="kpis">
+        <div class="kpi"><div class="num" id="kpiEmpresas">4</div><div class="label">Empresas piloto</div></div>
+        <div class="kpi"><div class="num">126</div><div class="label">Personas activas</div></div>
+        <div class="kpi"><div class="num good">+41%</div><div class="label">Logro promedio global</div></div>
+      </div>
+      <div class="grid" id="companyGrid"></div>
+    </div>
+
+    <div class="view" id="admin-view-metricas">
+      <div class="view-head">
+        <div><h1>Métricas globales</h1><p>Logro promedio entre diagnóstico y monitoreo, por empresa</p></div>
+        <button class="btn btn-outline">⤓ Exportar reporte</button>
+      </div>
+      <div class="panel-block">
+        <h2>Logro por empresa</h2>
+        <div id="metricBars"></div>
+      </div>
+      <div class="panel-block">
+        <h2>Resumen del piloto</h2>
+        <div class="mini-stat-row">
+          <div class="mini-stat"><b>42</b><span>Capacitaciones activas</span></div>
+          <div class="mini-stat"><b>18</b><span>Capacitadores</span></div>
+          <div class="mini-stat"><b>+41%</b><span>Logro promedio</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="view" id="admin-view-ajustes">
+      <div class="view-head"><div><h1>Ajustes</h1><p>Configuración general de la plataforma</p></div></div>
+      <div class="panel-block">
+        <h2>Cuenta</h2>
+        <p style="color:var(--muted); font-size:13.5px;">Karina López Fuentealba · CEO y Directora Académica · ENACTIVA SpA</p>
+      </div>
+      <div class="panel-block">
+        <h2>Privacidad y datos</h2>
+        <p style="color:var(--muted); font-size:13.5px;">Exportación y eliminación de datos por usuario, registro de auditoría, política de privacidad — conforme a la Ley 21.719.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="bottomnav">
+    <button class="bnitem active" data-app="admin" data-view="empresas"><span class="ic">🏢</span>Empresas</button>
+    <button class="bnitem" data-app="admin" data-view="metricas"><span class="ic">📊</span>Métricas</button>
+    <button class="bnitem" data-app="admin" data-view="ajustes"><span class="ic">⚙️</span>Ajustes</button>
+  </div>
+
+  <div class="overlay" id="addOverlay">
+    <div class="modal">
+      <h2>Agregar nueva empresa</h2>
+      <div class="sub">Se sumará al piloto y quedará visible para todo el equipo ENACTIVA.</div>
+      <div class="field"><label>Nombre de la empresa</label><input type="text" id="newCompanyName" placeholder="Ej: Comercial Rioclaro Ltda."></div>
+      <div class="field"><label>Rubro</label>
+        <select id="newCompanyRubro"><option>Retail</option><option>Minería</option><option>Servicios TI</option><option>Manufactura</option><option>Salud</option></select>
+      </div>
+      <div class="field"><label>Contacto RRHH (email)</label><input type="text" id="newCompanyEmail" placeholder="contacto@empresa.cl"></div>
+      <div class="modal-actions">
+        <button class="btn btn-outline" id="cancelAdd">Cancelar</button>
+        <button class="btn" id="confirmAdd">Agregar empresa</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="detail-overlay" id="detailOverlay"></div>
+  <div class="detail-panel" id="detailPanel">
+    <div class="detail-head">
+      <button class="close" id="closeDetail">✕</button>
+      <div class="eyebrow">FICHA DE EMPRESA</div>
+      <h2 id="detailName">—</h2>
+      <div class="sub" id="detailRubro">—</div>
+    </div>
+    <div class="detail-body">
+      <div class="detail-section">
+        <h3>Resumen</h3>
+        <div class="mini-stat-row">
+          <div class="mini-stat"><b id="detailCapacitaciones">—</b><span>Capacitaciones activas</span></div>
+          <div class="mini-stat"><b id="detailLogro">—</b><span>Logro promedio</span></div>
+        </div>
+      </div>
+      <div class="detail-section">
+        <h3>Capacitadores destacados</h3>
+        <div id="detailTrainers"></div>
+      </div>
+      <div class="detail-section">
+        <h3>Estado del onboarding</h3>
+        <p id="detailStatus" style="font-size:13.5px; color:var(--muted);">—</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ================================================================ -->
+<!-- ROL 2: RRHH EMPRESA -->
+<!-- ================================================================ -->
+<div class="app" id="app-rrhh">
+  <div class="topbar">
+    <div class="brand"><span class="dot"></span> ENACTIVA <small>· Planta Norte S.A.</small></div>
+    <div class="navtabs">
+      <button class="navtab active" data-app="rrhh" data-view="dashboard">Dashboard</button>
+      <button class="navtab" data-app="rrhh" data-view="capacitaciones">Capacitaciones</button>
+      <button class="navtab" data-app="rrhh" data-view="ajustes">Ajustes</button>
+    </div>
+    <div class="userchip">
+      <div><span class="username">Marcela Ruiz</span><span class="userrole">RRHH · Planta Norte</span></div>
+      <div class="avatar">MR</div>
+    </div>
+    <button class="hamburger">☰</button>
+  </div>
+
+  <div class="wrap">
+    <div class="view active" id="rrhh-view-dashboard">
+      <div class="view-head">
+        <div><h1>Dashboard — RRHH</h1><p>Cómo está funcionando la capacitación interna en Planta Norte S.A.</p></div>
+        <button class="btn btn-outline">⤓ Exportar</button>
+      </div>
+      <div class="kpis">
+        <div class="kpi"><div class="num">18</div><div class="label">Capacitaciones activas</div></div>
+        <div class="kpi"><div class="num good">+34%</div><div class="label">Logro promedio</div></div>
+        <div class="kpi"><div class="num">32</div><div class="label">Colaboradores participando</div></div>
+      </div>
+
+      <div class="panel-block">
+        <h2>Logro por área <span style="font-weight:400; color:var(--muted); font-size:12px;">(diagnóstico → monitoreo)</span></h2>
+        <div class="bar-row"><div class="name">Operaciones</div><div class="bar-track"><div class="bar-fill" style="width:88%"></div></div><div class="val">88%</div></div>
+        <div class="bar-row"><div class="name">Finanzas</div><div class="bar-track"><div class="bar-fill" style="width:79%"></div></div><div class="val">79%</div></div>
+        <div class="bar-row"><div class="name">Innovación</div><div class="bar-track"><div class="bar-fill amber" style="width:62%"></div></div><div class="val">62%</div></div>
+      </div>
+
+      <div class="grid g2">
+        <div class="panel-block" style="margin-bottom:0;">
+          <h2>Personas que más enseñan</h2>
+          <div class="person-row"><div class="av">GO</div><div class="info"><b>Giovanni Ortiz</b><span>Innovación · 6 capacitaciones</span></div><div class="right">⭐ 4.8</div></div>
+          <div class="person-row"><div class="av">PM</div><div class="info"><b>Patricio Márquez</b><span>Operaciones · 4 capacitaciones</span></div><div class="right">⭐ 4.6</div></div>
+        </div>
+        <div class="panel-block" style="margin-bottom:0;">
+          <h2>Alerta</h2>
+          <div class="alert">💡 El área de Innovación tiene el logro más bajo — podría necesitar más capacitadores internos disponibles.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="view" id="rrhh-view-capacitaciones">
+      <div class="view-head"><div><h1>Capacitaciones activas</h1><p>Estado de cada capacitación en curso dentro de la empresa</p></div></div>
+      <div class="grid">
+        <div class="card"><div class="card-top"><h3>Liderazgo de equipos</h3><span class="badge activa">En curso</span></div><div class="sub">Capacitador: Giovanni Ortiz</div><div class="card-stats"><div><b>12</b>Estudiantes</div><div><b>68%</b>Avance</div></div></div>
+        <div class="card"><div class="card-top"><h3>Excel avanzado</h3><span class="badge activa">En curso</span></div><div class="sub">Capacitador: Patricio Márquez</div><div class="card-stats"><div><b>8</b>Estudiantes</div><div><b>91%</b>Avance</div></div></div>
+        <div class="card"><div class="card-top"><h3>Seguridad en planta</h3><span class="badge pendiente">Diagnóstico</span></div><div class="sub">Capacitador: Benjamín Arias</div><div class="card-stats"><div><b>15</b>Estudiantes</div><div><b>12%</b>Avance</div></div></div>
+      </div>
+    </div>
+
+    <div class="view" id="rrhh-view-ajustes">
+      <div class="view-head"><div><h1>Ajustes</h1><p>Configuración de la empresa</p></div></div>
+      <div class="panel-block"><h2>Empresa</h2><p style="color:var(--muted); font-size:13.5px;">Planta Norte S.A. · Minería · Contacto: Marcela Ruiz (RRHH)</p></div>
+    </div>
+  </div>
+
+  <div class="bottomnav">
+    <button class="bnitem active" data-app="rrhh" data-view="dashboard"><span class="ic">📊</span>Dashboard</button>
+    <button class="bnitem" data-app="rrhh" data-view="capacitaciones"><span class="ic">📚</span>Cursos</button>
+    <button class="bnitem" data-app="rrhh" data-view="ajustes"><span class="ic">⚙️</span>Ajustes</button>
+  </div>
+</div>
+
+<!-- ================================================================ -->
+<!-- ROL 3: CAPACITADOR -->
+<!-- ================================================================ -->
+<div class="app" id="app-capacitador">
+  <div class="topbar">
+    <div class="brand"><span class="dot"></span> ENACTIVA <small>· Capacitador</small></div>
+    <div class="navtabs">
+      <button class="navtab active" data-app="capacitador" data-view="cursos">Mis cursos</button>
+      <button class="navtab" data-app="capacitador" data-view="desempeno">Mi desempeño</button>
+    </div>
+    <div class="userchip">
+      <div><span class="username">Giovanni Ortiz</span><span class="userrole">Capacitador</span></div>
+      <div class="avatar">GO</div>
+    </div>
+    <button class="hamburger">☰</button>
+  </div>
+
+  <div class="wrap">
+    <div class="view active" id="capacitador-view-cursos">
+      <div class="view-head">
+        <div><h1>Mis cursos</h1><p>Cursos que dictas dentro de la plataforma</p></div>
+        <button class="btn">+ Crear curso</button>
+      </div>
+      <div class="grid">
+        <div class="card clickable" id="openCourseDetail">
+          <div class="card-top"><h3>Liderazgo de equipos</h3><span class="badge activa">En curso</span></div>
+          <div class="sub">Planta Norte S.A. · 12 estudiantes</div>
+          <div class="card-stats"><div><b>68%</b>Avance grupo</div><div><b>Etapa 2</b>Clase</div></div>
+        </div>
+        <div class="card">
+          <div class="card-top"><h3>Excel avanzado</h3><span class="badge activa">En curso</span></div>
+          <div class="sub">Planta Norte S.A. · 8 estudiantes</div>
+          <div class="card-stats"><div><b>91%</b>Avance grupo</div><div><b>Etapa 3</b>Monitoreo</div></div>
+        </div>
+        <div class="addcard"><div class="plus">+</div><div>Crear nuevo curso</div></div>
+      </div>
+    </div>
+
+    <div class="view" id="capacitador-view-desempeno">
+      <div class="view-head"><div><h1>Mi desempeño enseñando</h1><p>Tu impacto medido en las tres dimensiones y los tres momentos</p></div></div>
+
+      <div class="panel-block">
+        <h2>Tus 3 momentos de medición</h2>
+        <div class="bar-row"><div class="name">Diagnóstico</div><div class="bar-track"><div class="bar-fill" style="width:42%"></div></div><div class="val">42%</div></div>
+        <div class="bar-row"><div class="name">Intermedio</div><div class="bar-track"><div class="bar-fill amber" style="width:68%"></div></div><div class="val">68%</div></div>
+        <div class="bar-row"><div class="name">Monitoreo</div><div class="bar-track"><div class="bar-fill" style="width:88%"></div></div><div class="val">88%</div></div>
+      </div>
+
+      <div class="grid g2">
+        <div class="panel-block" style="margin-bottom:0;">
+          <h2>Por dimensión</h2>
+          <div style="display:flex; justify-content:space-around; text-align:center; padding:6px 0;">
+            <div><span class="badge hab">Habilidad</span><div style="font-weight:800; font-size:19px; margin-top:8px;">91%</div></div>
+            <div><span class="badge cont">Contenido</span><div style="font-weight:800; font-size:19px; margin-top:8px;">84%</div></div>
+            <div><span class="badge act">Actitud</span><div style="font-weight:800; font-size:19px; margin-top:8px;">79%</div></div>
+          </div>
+        </div>
+        <div class="panel-block" style="margin-bottom:0;">
+          <h2>Estudiante con brecha</h2>
+          <div class="person-row" style="border:none; padding-top:0;">
+            <div class="av">BA</div>
+            <div class="info"><b>Benjamín Arias</b><span>Le faltó 9% en "Facilita decisiones"</span></div>
+          </div>
+          <button class="btn btn-sm" style="width:100%; justify-content:center; margin-top:6px;">Agendar microclase</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="bottomnav">
+    <button class="bnitem active" data-app="capacitador" data-view="cursos"><span class="ic">📚</span>Cursos</button>
+    <button class="bnitem" data-app="capacitador" data-view="desempeno"><span class="ic">📊</span>Desempeño</button>
+  </div>
+
+  <div class="detail-overlay" id="courseDetailOverlay"></div>
+  <div class="detail-panel" id="courseDetailPanel">
+    <div class="detail-head">
+      <button class="close" id="closeCourseDetail">✕</button>
+      <div class="eyebrow">ESTRUCTURA DEL CURSO</div>
+      <h2>Liderazgo de equipos</h2>
+      <div class="sub">Planta Norte S.A. · 12 estudiantes</div>
+    </div>
+    <div class="detail-body">
+      <div class="detail-section">
+        <h3>Etapas (estructura estándar de la plataforma)</h3>
+        <div class="steps">
+          <div class="step done"><div class="num">✓</div><div class="txt"><b>Diagnóstico</b><span>Test inicial · 6 preguntas · Promedio grupo: 42%</span></div></div>
+          <div class="step current"><div class="num">2</div><div class="txt"><b>Clase / capacitación</b><span>3 sesiones · Contenido cargado por ti</span></div></div>
+          <div class="step"><div class="num">3</div><div class="txt"><b>Monitoreo y feedback</b><span>Se habilita al terminar la clase</span></div></div>
+        </div>
+      </div>
+      <div class="detail-section">
+        <h3>Rúbrica (editable, estructura fija)</h3>
+        <div class="rubric-row"><span>Reparte roles claramente</span><span class="w">Peso 30%</span></div>
+        <div class="rubric-row"><span>Facilita decisiones en grupo</span><span class="w">Peso 40%</span></div>
+        <div class="rubric-row"><span>Resuelve conflictos</span><span class="w">Peso 30%</span></div>
+      </div>
+      <div class="detail-section">
+        <h3>Dimensiones evaluadas</h3>
+        <div style="display:flex; gap:6px;">
+          <span class="badge hab">Habilidad</span><span class="badge act">Actitud</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ================================================================ -->
+<!-- ROL 4: ESTUDIANTE -->
+<!-- ================================================================ -->
+<div class="app" id="app-estudiante">
+  <div class="topbar">
+    <div class="brand"><span class="dot"></span> ENACTIVA <small>· Estudiante</small></div>
+    <div class="navtabs">
+      <button class="navtab" data-app="estudiante" data-view="perfil">Mi perfil</button>
+      <button class="navtab active" data-app="estudiante" data-view="buscar">Buscar</button>
+      <button class="navtab" data-app="estudiante" data-view="progreso">Progreso</button>
+    </div>
+    <div class="userchip">
+      <div><span class="username">Patricio Márquez</span><span class="userrole">Estudiante</span></div>
+      <div class="avatar">PM</div>
+    </div>
+    <button class="hamburger">☰</button>
+  </div>
+
+  <div class="wrap">
+    <div class="view" id="estudiante-view-perfil">
+      <div class="view-head"><div><h1>Mi perfil</h1><p>Área: Operaciones · Planta Norte</p></div></div>
+      <div style="display:flex; align-items:center; gap:14px; margin-bottom:24px;">
+        <div class="avatar" style="width:60px; height:60px; font-size:20px;">PM</div>
+        <div><div style="font-weight:700; font-size:16px;">Patricio Márquez</div><div style="font-size:12.5px; color:var(--muted);">Analista de Procesos · 3 años en la empresa</div></div>
+      </div>
+      <div class="grid g2">
+        <div class="panel-block" style="margin-bottom:0;">
+          <h2>Quiero enseñar</h2>
+          <div style="font-weight:700; font-size:14.5px;">Excel avanzado y automatización</div>
+          <div style="font-size:12px; color:var(--muted); margin:4px 0 10px;">Nivel alto · 4 personas capacitadas antes</div>
+          <div style="display:flex; gap:6px;"><span class="badge hab">Habilidad</span><span class="badge cont">Contenido</span></div>
+        </div>
+        <div class="panel-block" style="margin-bottom:0;">
+          <h2>Quiero aprender</h2>
+          <div style="font-weight:700; font-size:14.5px;">Liderazgo de equipos</div>
+          <div style="font-size:12px; color:var(--muted); margin:4px 0 10px;">Interés declarado hace 2 semanas</div>
+          <div style="display:flex; gap:6px;"><span class="badge act">Actitud</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="view active" id="estudiante-view-buscar">
+      <div class="view-head"><div><h1>Buscar capacitador</h1><p>Filtrando por: "Liderazgo de equipos"</p></div></div>
+      <div class="match-wrap" id="matchWrap"></div>
+    </div>
+
+    <div class="view" id="estudiante-view-progreso">
+      <div class="view-head"><div><h1>Mis capacitaciones</h1><p>Cursos en los que estás participando como estudiante</p></div></div>
+      <div class="grid">
+        <div class="card"><div class="card-top"><h3>Scrum para equipos técnicos</h3><span class="badge activa">En curso</span></div><div class="sub">Capacitador: Nicolás Saldivia</div><div class="card-stats"><div><b>62%</b>Avance</div><div><b>Etapa 2</b>Clase</div></div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="bottomnav">
+    <button class="bnitem" data-app="estudiante" data-view="perfil"><span class="ic">👤</span>Perfil</button>
+    <button class="bnitem active" data-app="estudiante" data-view="buscar"><span class="ic">🔎</span>Buscar</button>
+    <button class="bnitem" data-app="estudiante" data-view="progreso"><span class="ic">📊</span>Progreso</button>
+  </div>
+</div>
+
+<script>
+/* ============ NAVEGACIÓN GENERAL (roles + tabs) ============ */
+document.querySelectorAll('.role-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.role-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    document.querySelectorAll('.app').forEach(a => a.classList.remove('active'));
+    document.getElementById('app-' + btn.dataset.role).classList.add('active');
+    if (btn.dataset.role === 'admin') renderMetrics();
+    if (btn.dataset.role === 'estudiante') { renderMatch(); }
+    window.scrollTo({top:0});
+  });
+});
+
+document.querySelectorAll('.navtab, .bnitem').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const app = btn.dataset.app, view = btn.dataset.view;
+    document.querySelectorAll(`#app-${app} .navtab, #app-${app} .bnitem`).forEach(t => {
+      t.classList.toggle('active', t.dataset.view === view);
+    });
+    document.querySelectorAll(`#app-${app} .view`).forEach(v => v.classList.remove('active'));
+    document.getElementById(`${app}-view-${view}`).classList.add('active');
+    if (app === 'admin' && view === 'metricas') renderMetrics();
+  });
+});
+
+/* ============ ADMIN: empresas ============ */
+let companies = [
+  { name:"Planta Norte S.A.", rubro:"Minería", cap:18, logro:88, estado:"activa",
+    trainers:[["GO","Giovanni Ortiz","Innovación · 6 cursos"],["PM","Patricio Márquez","Operaciones · 4 cursos"]],
+    status:"Onboarding completado el 12 de agosto. Todos los capacitadores activos." },
+  { name:"Grupo Andesco", rubro:"Retail", cap:9, logro:79, estado:"activa",
+    trainers:[["BA","Benjamín Arias","Finanzas · 3 cursos"]],
+    status:"Onboarding completado el 3 de septiembre." },
+  { name:"TechService Ltda.", rubro:"Servicios TI", cap:0, logro:0, estado:"pendiente",
+    trainers:[], status:"Onboarding en curso — falta cargar el primer lote de colaboradores." },
+  { name:"Manufacturas Aconcagua", rubro:"Manufactura", cap:15, logro:62, estado:"activa",
+    trainers:[["NS","Nicolás Saldivia","Calidad · 5 cursos"]],
+    status:"Onboarding completado el 20 de julio." },
+];
+
+function renderCompanies(){
+  const grid = document.getElementById('companyGrid');
+  grid.innerHTML = '';
+  companies.forEach((c, i) => {
+    const card = document.createElement('div');
+    card.className = 'card clickable' + (c._new ? ' new' : '');
+    card.innerHTML = `
+      <div class="card-top"><div><h3>${c.name}</h3><div class="sub">${c.rubro}</div></div>
+      <span class="badge ${c.estado}">${c.estado === 'activa' ? 'Activa' : 'Pendiente'}</span></div>
+      <div class="card-stats"><div><b>${c.cap}</b>Capacitaciones</div><div><b>${c.logro || 0}%</b>Logro</div></div>`;
+    card.addEventListener('click', () => openDetail(i));
+    grid.appendChild(card);
+    c._new = false;
+  });
+  const addCard = document.createElement('div');
+  addCard.className = 'addcard';
+  addCard.innerHTML = `<div class="plus">+</div><div>Agregar empresa</div>`;
+  addCard.addEventListener('click', openAddModal);
+  grid.appendChild(addCard);
+  document.getElementById('kpiEmpresas').textContent = companies.length;
+}
+
+function renderMetrics(){
+  const el = document.getElementById('metricBars');
+  el.innerHTML = '';
+  companies.filter(c => c.estado === 'activa').forEach(c => {
+    const row = document.createElement('div');
+    row.className = 'bar-row';
+    row.innerHTML = `<div class="name">${c.name}</div><div class="bar-track"><div class="bar-fill" style="width:0%" data-w="${c.logro}%"></div></div><div class="val">${c.logro}%</div>`;
+    el.appendChild(row);
+  });
+  requestAnimationFrame(() => setTimeout(() => {
+    document.querySelectorAll('#metricBars .bar-fill').forEach(f => f.style.width = f.dataset.w);
+  }, 60));
+}
+
+function openDetail(i){
+  const c = companies[i];
+  document.getElementById('detailName').textContent = c.name;
+  document.getElementById('detailRubro').textContent = c.rubro;
+  document.getElementById('detailCapacitaciones').textContent = c.cap;
+  document.getElementById('detailLogro').textContent = (c.logro||0) + '%';
+  document.getElementById('detailStatus').textContent = c.status;
+  document.getElementById('detailTrainers').innerHTML = c.trainers.length ? c.trainers.map(t => `
+    <div class="person-row"><div class="av">${t[0]}</div><div class="info"><b>${t[1]}</b><span>${t[2]}</span></div></div>`).join('')
+    : '<p style="font-size:13px;color:var(--muted);">Aún no hay capacitadores activos.</p>';
+  document.getElementById('detailOverlay').classList.add('show');
+  document.getElementById('detailPanel').classList.add('show');
+}
+document.getElementById('closeDetail').addEventListener('click', () => {
+  document.getElementById('detailOverlay').classList.remove('show');
+  document.getElementById('detailPanel').classList.remove('show');
+});
+document.getElementById('detailOverlay').addEventListener('click', () => {
+  document.getElementById('detailOverlay').classList.remove('show');
+  document.getElementById('detailPanel').classList.remove('show');
+});
+
+function openAddModal(){ document.getElementById('addOverlay').classList.add('show'); }
+document.getElementById('openAddCompany').addEventListener('click', openAddModal);
+document.getElementById('cancelAdd').addEventListener('click', () => document.getElementById('addOverlay').classList.remove('show'));
+document.getElementById('confirmAdd').addEventListener('click', () => {
+  const name = document.getElementById('newCompanyName').value.trim() || 'Nueva empresa';
+  const rubro = document.getElementById('newCompanyRubro').value;
+  companies.push({ name, rubro, cap:0, logro:0, estado:'pendiente', trainers:[], status:'Onboarding recién iniciado.', _new:true });
+  renderCompanies();
+  document.getElementById('addOverlay').classList.remove('show');
+  document.getElementById('newCompanyName').value = '';
+  document.getElementById('newCompanyEmail').value = '';
+});
+renderCompanies();
+
+/* ============ CAPACITADOR: detalle de curso ============ */
+document.getElementById('openCourseDetail').addEventListener('click', () => {
+  document.getElementById('courseDetailOverlay').classList.add('show');
+  document.getElementById('courseDetailPanel').classList.add('show');
+});
+document.getElementById('closeCourseDetail').addEventListener('click', closeCourseDetail);
+document.getElementById('courseDetailOverlay').addEventListener('click', closeCourseDetail);
+function closeCourseDetail(){
+  document.getElementById('courseDetailOverlay').classList.remove('show');
+  document.getElementById('courseDetailPanel').classList.remove('show');
+}
+
+/* ============ ESTUDIANTE: matching estilo swipe ============ */
+const candidates = [
+  { av:"GO", name:"Giovanni Ortiz", role:"Coordinador de Proyectos · Área Innovación", badges:["act","hab"], quote:"Enseño cómo repartir roles y tomar decisiones rápido en equipos técnicos. 6 capacitaciones dictadas.", rating:"4.8", students:"12 personas" },
+  { av:"BA", name:"Benjamín Arias", role:"Analista Senior · Área Finanzas", badges:["cont","hab"], quote:"Puedo enseñar a estructurar reuniones de equipo y delegar responsabilidades con claridad.", rating:"4.6", students:"7 personas" },
+  { av:"NS", name:"Nicolás Saldivia", role:"Jefe de Calidad · Planta Norte", badges:["act"], quote:"Llevo 5 años liderando turnos rotativos — puedo mostrar cómo mantener a un equipo alineado bajo presión.", rating:"4.9", students:"15 personas" },
+];
+let matchIndex = 0;
+
+function renderMatch(){
+  const wrap = document.getElementById('matchWrap');
+  if (matchIndex >= candidates.length){
+    wrap.innerHTML = `<div class="match-empty"><div class="big">🎉</div>Ya revisaste todos los perfiles disponibles para "Liderazgo de equipos".<br>Vuelve más tarde por nuevas coincidencias.</div>`;
+    return;
+  }
+  const c = candidates[matchIndex];
+  wrap.innerHTML = `
+    <div class="match-card" id="matchCard">
+      <div class="match-photo"><div class="big-av">${c.av}</div></div>
+      <div class="match-body">
+        <h3>${c.name}</h3>
+        <div class="role">${c.role}</div>
+        <div class="match-badges">${c.badges.map(b => `<span class="badge ${b}">${b==='hab'?'Habilidad':b==='cont'?'Contenido':'Actitud'}</span>`).join('')}</div>
+        <div class="match-quote">"${c.quote}"</div>
+        <div class="match-meta"><span>⭐ ${c.rating} valoración</span><span>👥 ${c.students}</span></div>
+      </div>
+    </div>
+    <div class="match-actions">
+      <button class="match-nope" id="btnNope">✕</button>
+      <button class="match-like" id="btnLike">♥</button>
+      <button class="match-info" id="btnInfo">i</button>
+    </div>
+    <div class="match-hint">Desliza o toca ♥ para solicitar la capacitación</div>
+  `;
+  document.getElementById('btnLike').addEventListener('click', () => swipe('like'));
+  document.getElementById('btnNope').addEventListener('click', () => swipe('nope'));
+}
+function swipe(dir){
+  const card = document.getElementById('matchCard');
+  card.classList.add(dir === 'like' ? 'swiping-like' : 'swiping-nope');
+  setTimeout(() => { matchIndex++; renderMatch(); }, 280);
+}
+renderMatch();
+</script>
+</body>
+</html>
