@@ -1,0 +1,37 @@
+# Servicios de apoyo SOLO para desarrollo local (ADR-0001, ADR-0004).
+# Las credenciales son de desarrollo y coinciden con .env.example; nunca se usan fuera de local.
+name: enactiva-plataforma
+
+services:
+  postgres:
+    image: postgres:18-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: enactiva
+      POSTGRES_PASSWORD: enactiva
+      POSTGRES_DB: plataforma
+    ports:
+      - '127.0.0.1:5432:5432'
+    volumes:
+      # Desde Postgres 18 el volumen se monta en /var/lib/postgresql (no en .../data)
+      - postgres-data:/var/lib/postgresql
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U enactiva -d plataforma']
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  mailpit:
+    image: axllent/mailpit:v1.31
+    restart: unless-stopped
+    ports:
+      - '127.0.0.1:1025:1025' # SMTP que usa la API
+      - '127.0.0.1:8025:8025' # bandeja web: http://localhost:8025
+    healthcheck:
+      test: ['CMD', '/mailpit', 'readyz']
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+volumes:
+  postgres-data:
