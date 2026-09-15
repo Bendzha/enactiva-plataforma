@@ -12,6 +12,18 @@ Plataforma de capacitación entre pares para el piloto de ENACTIVA SpA — proye
 - pnpm 12, vía corepack: `corepack enable` (o `corepack pnpm <comando>` sin habilitarlo)
 - Docker Desktop (Postgres y Mailpit locales, desde T0.2)
 
+## Servicios locales (Docker)
+
+```bash
+docker compose up -d --wait   # Postgres (localhost:5432) y Mailpit
+docker compose ps             # estado de los servicios
+docker compose down           # los detiene (los datos se conservan)
+docker compose down -v        # los detiene y BORRA la base de datos local
+```
+
+- **Postgres 18:** usuario `enactiva`, contraseña `enactiva`, base `plataforma` (solo desarrollo; ver `.env.example`).
+- **Mailpit:** captura los correos que envía la API. Bandeja en http://localhost:8025. Ningún correo sale a internet.
+
 ## Comandos
 
 ```bash
