@@ -3,6 +3,13 @@
 **Referencias:** `docs/specs/SPEC.md`, `docs/decisions/0001`–`0004`.
 **Regla:** cada tarea deja el proyecto compilando y con tests en verde; una tarea ≈ un commit.
 
+## Estado (actualizado 2026-09-15)
+- ✅ T0.1, T0.2 y T0.3 mergeados en `main` (PR #1, #2, #3).
+- 🟡 T0.4 terminada en la rama `slice-0/t0.4-prisma`; falta mergear su PR.
+- ⏭️ Siguiente: **T0.5** (`packages/shared`: enums y esquema Zod de login).
+
+**Para retomar en un PC:** abrir Docker Desktop → `docker compose up -d --wait` → `pnpm install` → copiar `apps/api/.env.example` a `apps/api/.env` si no existe → `pnpm --filter api db:migrate` → `pnpm --filter api db:seed` → `pnpm --filter api test`.
+
 ---
 
 ## Slice 0 — Base mínima segura
