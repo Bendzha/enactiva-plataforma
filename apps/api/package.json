@@ -10,12 +10,23 @@
     "test": "vitest run && vitest run --config vitest.config.e2e.ts",
     "test:unit": "vitest run",
     "test:e2e": "vitest run --config vitest.config.e2e.ts",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "postinstall": "prisma generate",
+    "prisma:generate": "prisma generate",
+    "db:migrate": "prisma migrate dev",
+    "db:deploy": "prisma migrate deploy",
+    "db:seed": "prisma db seed",
+    "db:reset": "prisma migrate reset"
   },
   "dependencies": {
     "@nestjs/common": "^12.0.3",
     "@nestjs/core": "^12.0.3",
     "@nestjs/platform-express": "^12.0.3",
+    "@prisma/adapter-pg": "7.10.0",
+    "@prisma/client": "7.10.0",
+    "bcrypt": "^6.0.0",
+    "dotenv": "^17.4.2",
+    "pg": "^8.23.0",
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.2"
   },
@@ -23,11 +34,15 @@
     "@nestjs/cli": "^12.0.1",
     "@nestjs/schematics": "^12.0.2",
     "@nestjs/testing": "^12.0.3",
+    "@types/bcrypt": "^6.0.0",
     "@types/express": "^5.0.6",
     "@types/node": "^24.13.4",
+    "@types/pg": "^8.23.1",
     "@types/supertest": "^7.2.1",
+    "prisma": "7.10.0",
     "supertest": "^7.2.2",
     "tslib": "^2.8.1",
+    "tsx": "^4.23.13",
     "typescript": "~6.0.3",
     "vitest": "~4.1.11"
   }

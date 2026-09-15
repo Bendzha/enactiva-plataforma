@@ -1,5 +1,5 @@
 # Servicios de apoyo SOLO para desarrollo local (ADR-0001, ADR-0004).
-# Las credenciales son de desarrollo y coinciden con .env.example; nunca se usan fuera de local.
+# Las credenciales son de desarrollo y coinciden con apps/api/.env.example; nunca se usan fuera de local.
 name: enactiva-plataforma
 
 services:
