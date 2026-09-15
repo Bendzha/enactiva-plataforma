@@ -1,0 +1,14 @@
+node_modules/
+dist/
+coverage/
+*.log
+
+# Variables de entorno: nunca se versionan (solo .env.example)
+.env
+.env.*
+!.env.example
+
+# Archivos temporales de Office y del sistema
+~$*
+.DS_Store
+Thumbs.db
