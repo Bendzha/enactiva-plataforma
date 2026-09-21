@@ -7,7 +7,9 @@ import { permisosDe, type UsuarioSesion } from '@enactiva/shared';
  */
 export function destinoDe(usuario: UsuarioSesion | null): string {
   if (!usuario) return '/login';
-  return permisosDe(usuario.roles, usuario.nivelAdmin).has('empresas:listar')
-    ? '/empresas'
-    : '/inicio';
+
+  const permisos = permisosDe(usuario.roles, usuario.nivelAdmin);
+  if (permisos.has('empresas:listar')) return '/empresas';
+  if (permisos.has('personas:gestionar')) return '/personas';
+  return '/inicio';
 }

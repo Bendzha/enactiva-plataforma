@@ -7,6 +7,7 @@ import { EquipoPage } from '@/pages/EquipoPage';
 import { InicioPage } from '@/pages/InicioPage';
 import { LoginPage } from '@/pages/LoginPage';
 import { MetricasPage } from '@/pages/MetricasPage';
+import { PersonasPage } from '@/pages/PersonasPage';
 import { SinPermisoPage } from '@/pages/SinPermisoPage';
 
 export function App() {
@@ -38,6 +39,14 @@ export function App() {
           element={
             <RutaProtegida permiso="metricas-globales:ver">
               <MetricasPage />
+            </RutaProtegida>
+          }
+        />
+        <Route
+          path="/personas"
+          element={
+            <RutaProtegida permiso="personas:gestionar">
+              <PersonasPage />
             </RutaProtegida>
           }
         />

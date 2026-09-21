@@ -17,6 +17,16 @@ export const ADMIN_PRINCIPAL: UsuarioSesion = {
   empresaId: null,
 };
 
+export const RRHH_PLANTA: UsuarioSesion = {
+  id: 'u-rrhh',
+  email: 'marcela@planta-norte.cl',
+  nombre: 'Marcela',
+  apellido: 'Ruiz',
+  roles: ['RRHH'],
+  nivelAdmin: null,
+  empresaId: 'e-planta-norte',
+};
+
 export const ADMIN_OPERATIVO: UsuarioSesion = {
   ...ADMIN_PRINCIPAL,
   id: 'u-operativo',
