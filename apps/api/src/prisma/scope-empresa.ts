@@ -11,6 +11,7 @@ import type { PrismaClient } from '../generated/prisma/client.js';
 export const MODELOS_ACOTADOS: Record<string, 'empresaId' | 'id'> = {
   Usuario: 'empresaId',
   Empresa: 'id',
+  Area: 'empresaId',
 };
 
 const OPERACIONES_CON_WHERE = new Set([

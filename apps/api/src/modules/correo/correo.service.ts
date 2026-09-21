@@ -52,6 +52,17 @@ export class CorreoService {
     });
   }
 
+  async enviarInvitacionColaborador(datos: InvitacionRrhh): Promise<void> {
+    await this.enviarInvitacion({
+      para: datos.para,
+      asunto: `Te sumaron a la capacitación interna de ${datos.nombreEmpresa}`,
+      intro: `Te invitaron a participar en la capacitación interna de <strong>${escapar(datos.nombreEmpresa)}</strong>: podrás aprender de tus colegas y enseñar lo que sabes.`,
+      introTexto: `Te invitaron a participar en la capacitación interna de ${datos.nombreEmpresa}: podrás aprender de tus colegas y enseñar lo que sabes.`,
+      urlActivacion: datos.urlActivacion,
+      diasParaExpirar: datos.diasParaExpirar,
+    });
+  }
+
   async enviarInvitacionAdmin(datos: InvitacionAdmin): Promise<void> {
     await this.enviarInvitacion({
       para: datos.para,

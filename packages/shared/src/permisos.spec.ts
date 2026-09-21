@@ -19,10 +19,19 @@ describe('permisos del equipo ENACTIVA', () => {
     expect(permisos.has('admins:gestionar')).toBe(false);
   });
 
-  it('los roles de empresa no heredan permisos de administración', () => {
+  it('los roles de empresa no heredan permisos de administración del piloto', () => {
     for (const rol of ['RRHH', 'CAPACITADOR', 'ESTUDIANTE'] as const) {
-      expect(permisosDe([rol], null).size).toBe(0);
+      const permisos = permisosDe([rol], null);
+      expect(permisos.has('empresas:listar')).toBe(false);
+      expect(permisos.has('metricas-globales:ver')).toBe(false);
+      expect(permisos.has('admins:gestionar')).toBe(false);
     }
+  });
+
+  it('RRHH gestiona la gente de su empresa; capacitador y estudiante no', () => {
+    expect(permisosDe(['RRHH'], null).has('personas:gestionar')).toBe(true);
+    expect(permisosDe(['CAPACITADOR'], null).has('personas:gestionar')).toBe(false);
+    expect(permisosDe(['ESTUDIANTE'], null).has('personas:gestionar')).toBe(false);
   });
 
   it('un admin sin nivel asignado no recibe permisos', () => {

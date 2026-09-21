@@ -70,8 +70,26 @@ model Empresa {
   activadaPor Usuario?  @relation("EmpresaActivadaPor", fields: [activadaPorId], references: [id], onDelete: Restrict)
   creadaPor   Usuario   @relation("EmpresaCreadaPor", fields: [creadaPorId], references: [id], onDelete: Restrict)
   usuarios    Usuario[] @relation("UsuariosDeEmpresa")
+  areas       Area[]
 
   @@map("empresa")
+}
+
+/// Área o departamento dentro de una empresa (Operaciones, Finanzas…).
+/// El nombre normalizado evita duplicados por mayúsculas o tildes.
+model Area {
+  id                String   @id @default(uuid(7)) @db.Uuid
+  empresaId         String   @map("empresa_id") @db.Uuid
+  nombre            String
+  nombreNormalizado String   @map("nombre_normalizado")
+  createdAt         DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt         DateTime @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  empresa  Empresa   @relation(fields: [empresaId], references: [id], onDelete: Cascade)
+  usuarios Usuario[]
+
+  @@unique([empresaId, nombreNormalizado])
+  @@map("area")
 }
 
 /// Invariantes de aplicación (ADR-0002):
@@ -81,6 +99,7 @@ model Empresa {
 model Usuario {
   id            String        @id @default(uuid(7)) @db.Uuid
   empresaId     String?       @map("empresa_id") @db.Uuid
+  areaId        String?       @map("area_id") @db.Uuid
   email         String?       @unique
   passwordHash  String?       @map("password_hash")
   nombre        String?
@@ -93,11 +112,12 @@ model Usuario {
   updatedAt     DateTime      @updatedAt @map("updated_at") @db.Timestamptz(3)
 
   empresa           Empresa?          @relation("UsuariosDeEmpresa", fields: [empresaId], references: [id], onDelete: Restrict)
+  area              Area?             @relation(fields: [areaId], references: [id], onDelete: SetNull)
   roles             UsuarioRol[]
   tokens            TokenAcceso[]
   aceptaciones      AceptacionAviso[]
-  empresasCreadas   Empresa[]     @relation("EmpresaCreadaPor")
-  empresasActivadas Empresa[]     @relation("EmpresaActivadaPor")
+  empresasCreadas   Empresa[]         @relation("EmpresaCreadaPor")
+  empresasActivadas Empresa[]         @relation("EmpresaActivadaPor")
 
   @@index([empresaId])
   @@map("usuario")

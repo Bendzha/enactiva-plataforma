@@ -11,6 +11,8 @@ export const PERMISOS = [
   'invitaciones:gestionar',
   'metricas-globales:ver',
   'admins:gestionar',
+  /** RRHH: áreas y personas de su propia empresa. */
+  'personas:gestionar',
 ] as const;
 export type Permiso = (typeof PERMISOS)[number];
 
@@ -31,7 +33,9 @@ const PERMISOS_ADMIN_PRINCIPAL: readonly Permiso[] = [
 /** Permisos que da el rol por sí solo. Se completan cuando cada slice agregue sus endpoints. */
 const PERMISOS_POR_ROL: Record<Rol, readonly Permiso[]> = {
   ADMIN_ENACTIVA: [],
-  RRHH: [],
+  // Gestionar la gente de su empresa es de RRHH; el equipo de ENACTIVA administra el piloto,
+  // no el día a día de cada organización.
+  RRHH: ['personas:gestionar'],
   CAPACITADOR: [],
   ESTUDIANTE: [],
 };

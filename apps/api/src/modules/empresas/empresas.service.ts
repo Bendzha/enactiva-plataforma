@@ -17,6 +17,9 @@ interface ContactoConInvitacion {
   tokens: { expiraAt: Date }[];
 }
 
+/** Orden alfabético como lo espera una persona en español: ignora mayúsculas y tildes. */
+const COLACION_ES = new Intl.Collator('es', { sensitivity: 'base' });
+
 // Solo el equipo ENACTIVA llega a este módulo (permisos empresas:*), así que se usa el cliente
 // sin acotar: necesita ver y crear empresas de todo el piloto.
 @Injectable()
@@ -32,11 +35,13 @@ export class EmpresasService {
   /** Empresas del piloto con el número de personas activas en cada una. */
   async listar(): Promise<EmpresaResumen[]> {
     const empresas = await this.prisma.acotado.empresa.findMany({
-      orderBy: { nombre: 'asc' },
       include: {
         _count: { select: { usuarios: { where: { estado: 'ACTIVO' } } } },
       },
     });
+
+    // Se ordena en la aplicación: Postgres ordena por bytes y dejaría "Zeta" antes que "ácido".
+    empresas.sort((a, b) => COLACION_ES.compare(a.nombre, b.nombre));
 
     return empresas.map((empresa) => ({
       id: empresa.id,

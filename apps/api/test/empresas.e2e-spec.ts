@@ -136,8 +136,10 @@ describe('Listado de empresas (e2e)', () => {
       .set('Authorization', `Bearer ${tokenPrincipal}`)
       .expect(200);
 
+    // Orden en español: sin distinguir mayúsculas ni tildes.
+    const colacion = new Intl.Collator('es', { sensitivity: 'base' });
     const nombres = (res.body as EmpresaResumen[]).map((e) => e.nombre);
-    expect([...nombres].sort((a, b) => a.localeCompare(b))).toEqual(nombres);
+    expect([...nombres].sort((a, b) => colacion.compare(a, b))).toEqual(nombres);
   });
 
   it('el Admin Operativo también puede listarlas', async () => {
