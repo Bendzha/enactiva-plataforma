@@ -1,7 +1,14 @@
-import { Body, Controller, HttpCode, Post, Req, Res } from '@nestjs/common';
+import { Body, Controller, Get, HttpCode, Post, Req, Res } from '@nestjs/common';
 import { Throttle } from '@nestjs/throttler';
-import { loginSchema, type LoginInput, type RespuestaLogin } from '@enactiva/shared';
+import {
+  loginSchema,
+  type LoginInput,
+  type RespuestaLogin,
+  type UsuarioSesion,
+} from '@enactiva/shared';
 import type { Request, Response } from 'express';
+import { Publico, SoloSesion } from '../../common/decoradores.js';
+import { Sesion, type SesionActual } from '../../common/sesion.js';
 import { ZodValidationPipe } from '../../common/zod.pipe.js';
 import { env } from '../../config/env.js';
 import { COOKIE_REFRESH, COOKIE_REFRESH_PATH } from './auth.constantes.js';
@@ -12,6 +19,7 @@ export class AuthController {
   constructor(private readonly auth: AuthService) {}
 
   @Post('login')
+  @Publico()
   @HttpCode(200)
   @Throttle({ default: { limit: env().LOGIN_INTENTOS_POR_MINUTO, ttl: 60_000 } })
   async login(
@@ -25,6 +33,7 @@ export class AuthController {
   }
 
   @Post('refresh')
+  @Publico()
   @HttpCode(200)
   async refrescar(
     @Req() req: Request,
@@ -36,10 +45,18 @@ export class AuthController {
   }
 
   @Post('logout')
+  @Publico()
   @HttpCode(204)
   async logout(@Req() req: Request, @Res({ passthrough: true }) res: Response): Promise<void> {
     await this.auth.cerrarSesion(this.leerCookieRefresh(req));
     res.clearCookie(COOKIE_REFRESH, { path: COOKIE_REFRESH_PATH });
+  }
+
+  /** Perfil de la sesión actual, leído de la base: la web lo usa al recargar la página. */
+  @Get('yo')
+  @SoloSesion()
+  async yo(@Sesion() sesion: SesionActual): Promise<UsuarioSesion> {
+    return this.auth.perfil(sesion.usuarioId);
   }
 
   private leerCookieRefresh(req: Request): string | undefined {

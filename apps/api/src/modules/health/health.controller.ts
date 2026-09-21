@@ -1,4 +1,5 @@
 import { Controller, Get } from '@nestjs/common';
+import { Publico } from '../../common/decoradores.js';
 import { HealthService, type EstadoSalud } from './health.service.js';
 
 @Controller('health')
@@ -7,6 +8,7 @@ export class HealthController {
   constructor(private readonly health: HealthService) {}
 
   @Get()
+  @Publico()
   check(): EstadoSalud {
     return this.health.check();
   }
