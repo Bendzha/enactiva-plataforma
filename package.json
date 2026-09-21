@@ -12,8 +12,9 @@
     "lint": "eslint .",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "typecheck": "pnpm -r --if-present typecheck",
-    "test": "pnpm -r --if-present test"
+    "typecheck": "pnpm --filter @enactiva/shared build && pnpm -r --if-present typecheck",
+    "test": "pnpm --filter @enactiva/shared build && pnpm -r --if-present test",
+    "prepare": "pnpm --filter @enactiva/shared build"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",

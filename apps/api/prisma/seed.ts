@@ -1,12 +1,11 @@
 import 'dotenv/config';
 import { PrismaPg } from '@prisma/adapter-pg';
+import { LARGO_MINIMO_PASSWORD } from '@enactiva/shared';
 import { hashPassword } from '../src/common/password.js';
 import { PrismaClient } from '../src/generated/prisma/client.js';
 
 // Crea el Admin Principal inicial a partir de variables de entorno (nunca credenciales en el código).
 // Es idempotente: si el email ya existe, no modifica nada.
-
-const LARGO_MINIMO_PASSWORD = 12;
 
 async function main() {
   const email = process.env.SEED_ADMIN_EMAIL?.trim().toLowerCase();
