@@ -96,6 +96,8 @@ describe('Activación de cuenta desde el correo', () => {
         status: 200,
         cuerpo: { accessToken: 'token-de-prueba', usuario: MARCELA },
       },
+      'GET /personas': { status: 200, cuerpo: [] },
+      'GET /areas': { status: 200, cuerpo: [] },
     });
     const usuario = userEvent.setup();
     renderizar(<App />, { ruta: RUTA_ACTIVAR });
@@ -106,10 +108,11 @@ describe('Activación de cuenta desde el correo', () => {
     await usuario.click(screen.getByRole('checkbox'));
     await usuario.click(screen.getByRole('button', { name: 'Activar mi cuenta' }));
 
-    // RRHH no administra el piloto: llega a su propio inicio, no al panel de empresas.
+    // RRHH no administra el piloto: llega a su pantalla de Personas, no al panel de empresas.
     await waitFor(() => {
-      expect(screen.getByRole('heading', { name: /Hola, Marcela/ })).toBeInTheDocument();
+      expect(screen.getByRole('heading', { name: 'Personas' })).toBeInTheDocument();
     });
+    expect(screen.queryByRole('heading', { name: 'Empresas piloto' })).not.toBeInTheDocument();
     expect(api.veces('POST /invitaciones/aceptar')).toBe(1);
   });
 });

@@ -11,6 +11,7 @@ interface Pestana {
 }
 
 const PESTANAS: Pestana[] = [
+  { a: '/personas', texto: 'Personas', permiso: 'personas:gestionar' },
   { a: '/empresas', texto: 'Empresas', permiso: 'empresas:listar' },
   { a: '/metricas', texto: 'Métricas', permiso: 'metricas-globales:ver' },
   { a: '/equipo', texto: 'Equipo', permiso: 'admins:gestionar' },
