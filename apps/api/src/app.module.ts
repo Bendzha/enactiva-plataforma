@@ -6,6 +6,7 @@ import { AuthGuard } from './common/auth.guard.js';
 import { HealthModule } from './modules/health/health.module.js';
 import { AuditoriaModule } from './modules/auditoria/auditoria.module.js';
 import { AuthModule } from './modules/auth/auth.module.js';
+import { EmpresasModule } from './modules/empresas/empresas.module.js';
 import { PrismaModule } from './prisma/prisma.module.js';
 
 @Module({
@@ -17,6 +18,7 @@ import { PrismaModule } from './prisma/prisma.module.js';
     PrismaModule,
     AuditoriaModule,
     AuthModule,
+    EmpresasModule,
     HealthModule,
   ],
   providers: [
