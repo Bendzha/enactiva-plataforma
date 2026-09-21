@@ -57,3 +57,12 @@ Si Karina quiere restringir o ampliar lo que ve el Operativo, se cambia una lín
 - Detección de reuso de refresh tokens: si llega uno ya rotado, se revocan **todas** las sesiones abiertas de esa persona.
 - El login compara siempre contra un hash bcrypt ficticio cuando el email no existe, para no revelar qué correos están registrados.
 - Límite de intentos de login configurable con `LOGIN_INTENTOS_POR_MINUTO` (por defecto 5 por minuto y por IP).
+
+## Nota de implementación (T0.7 y T0.8, 2026-09-21)
+- **Guard global cerrado por defecto:** cada ruta declara `@Publico`, `@SoloSesion` o `@RequierePermiso(...)`. Una ruta sin declarar se rechaza con 403 y deja un error en el log: el olvido se nota de inmediato en vez de exponer datos.
+- **Scoping por empresa:** `PrismaService.acotado` es un cliente extendido que agrega el filtro de empresa a toda consulta sobre los modelos registrados en `MODELOS_ACOTADOS` (`apps/api/src/prisma/scope-empresa.ts`). El filtro se agrega dentro de un `AND`, para que `findUnique` conserve su campo único en el primer nivel.
+  - El rol `ADMIN_ENACTIVA` no se acota: ve todas las empresas del piloto.
+  - Una cuenta sin empresa y sin ese rol recibe 403.
+  - Fuera de una petición HTTP (sin sesión en el contexto) el cliente acotado **falla**, en vez de devolver datos de todas las empresas.
+  - `PrismaService` sin acotar queda para auth, auditoría y tareas del equipo ENACTIVA.
+- **Al agregar un modelo nuevo con `empresaId` hay que registrarlo en `MODELOS_ACOTADOS`**, o sus datos quedarán visibles entre empresas.
