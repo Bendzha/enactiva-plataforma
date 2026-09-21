@@ -30,27 +30,47 @@ interface RespuestaFalsa {
   cuerpo?: unknown;
 }
 
-/** Reemplaza fetch por un mapa de ruta -> respuesta, para no depender de la API real. */
-export function simularApi(rutas: Record<string, RespuestaFalsa>) {
+type Manejador = RespuestaFalsa | (() => RespuestaFalsa);
+
+/**
+ * Reemplaza fetch por un mapa de ruta -> respuesta, para no depender de la API real.
+ * Las claves pueden ser "/ruta" o "MÉTODO /ruta" (por ejemplo "POST /empresas").
+ */
+export function simularApi(rutas: Record<string, Manejador>) {
   const llamadas: string[] = [];
-  const fetchFalso = vi.fn(async (url: string | URL | Request) => {
+
+  const fetchFalso = vi.fn(async (url: string | URL | Request, opciones?: RequestInit) => {
     const ruta = new URL(String(url)).pathname;
-    llamadas.push(ruta);
-    const respuesta = rutas[ruta] ?? { status: 404 };
+    const metodo = (opciones?.method ?? 'GET').toUpperCase();
+    llamadas.push(`${metodo} ${ruta}`);
+
+    const manejador = rutas[`${metodo} ${ruta}`] ?? rutas[ruta] ?? { status: 404 };
+    const respuesta = typeof manejador === 'function' ? manejador() : manejador;
+
     return new Response(respuesta.cuerpo === undefined ? null : JSON.stringify(respuesta.cuerpo), {
       status: respuesta.status,
       headers: { 'Content-Type': 'application/json' },
     });
   });
+
   vi.stubGlobal('fetch', fetchFalso);
-  return { llamadas, fetchFalso };
+  return {
+    llamadas,
+    fetchFalso,
+    /** Cuántas veces se llamó a "MÉTODO /ruta". */
+    veces: (clave: string) => llamadas.filter((l) => l === clave).length,
+  };
 }
 
 /** Sesión ya iniciada: la API responde al refresh con este usuario. */
-export function simularSesionIniciada(usuario: UsuarioSesion) {
+export function simularSesionIniciada(
+  usuario: UsuarioSesion,
+  rutas: Record<string, Manejador> = {},
+) {
   return simularApi({
     '/auth/refresh': { status: 200, cuerpo: { accessToken: 'token-de-prueba', usuario } },
     '/auth/logout': { status: 204 },
+    ...rutas,
   });
 }
 
