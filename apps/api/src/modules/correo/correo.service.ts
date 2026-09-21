@@ -56,7 +56,8 @@ export class CorreoService {
     await this.enviarInvitacion({
       para: datos.para,
       asunto: 'Te invitaron al equipo de ENACTIVA en la plataforma',
-      intro: 'Te invitaron a administrar la plataforma junto al equipo de <strong>ENACTIVA</strong>.',
+      intro:
+        'Te invitaron a administrar la plataforma junto al equipo de <strong>ENACTIVA</strong>.',
       introTexto: 'Te invitaron a administrar la plataforma junto al equipo de ENACTIVA.',
       urlActivacion: datos.urlActivacion,
       diasParaExpirar: datos.diasParaExpirar,

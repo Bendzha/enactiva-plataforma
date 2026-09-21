@@ -5,9 +5,10 @@
 
 ## Estado (actualizado 2026-09-21)
 - ✅ **Slice 0 completo** (T0.1 a T0.10, PR #1 a #10).
-- ✅ Slice 1, API: T1.2 a T1.7 mergeadas (PR #11).
-- 🟡 Slice 1, web: T1.8 a T1.10 en la rama `slice-1/empresas-web`.
-- ⏭️ Siguiente: **Slice 2** (activación de cuentas y equipo ENACTIVA).
+- ✅ **Slice 1 completo**: T1.2 a T1.10 mergeadas (PR #11 y #12).
+- 🟡 Slice 2 (T2.1 a T2.5) en la rama `slice-2/activacion-cuentas`.
+- ⏭️ Siguiente: **MVP 1** — perfiles de interés, catálogo de temas, cursos con sus 3 etapas,
+  rúbrica y matching. Antes de empezar hay que cerrar las preguntas Q6 y Q7 de la SPEC.
 - 👀 La plataforma se abre en el navegador: ver "Levantar la plataforma en local" en el README.
 
 **Para retomar en un PC:** abrir Docker Desktop → `docker compose up -d --wait` → `pnpm install` → copiar `apps/api/.env.example` a `apps/api/.env` si no existe → `pnpm --filter api db:migrate` → `pnpm --filter api db:seed` → `pnpm --filter api test`.

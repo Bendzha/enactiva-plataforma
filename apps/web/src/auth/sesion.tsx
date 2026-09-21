@@ -1,5 +1,6 @@
 import {
   permisosDe,
+  type AceptarInvitacionInput,
   type Permiso,
   type RespuestaLogin,
   type UsuarioSesion,
@@ -19,7 +20,8 @@ interface ContextoSesion {
   usuario: UsuarioSesion | null;
   cargando: boolean;
   puede: (permiso: Permiso) => boolean;
-  iniciarSesion: (email: string, password: string) => Promise<void>;
+  iniciarSesion: (email: string, password: string) => Promise<UsuarioSesion>;
+  activarCuenta: (datos: AceptarInvitacionInput) => Promise<UsuarioSesion>;
   cerrarSesion: () => Promise<void>;
 }
 
@@ -51,6 +53,18 @@ export function SesionProvider({ children }: { children: ReactNode }) {
     });
     guardarToken(datos.accessToken);
     setUsuario(datos.usuario);
+    return datos.usuario;
+  }, []);
+
+  /** Activar una invitación deja la sesión iniciada: no hay que volver a escribir la contraseña. */
+  const activarCuenta = useCallback(async (entrada: AceptarInvitacionInput) => {
+    const datos = await pedir<RespuestaLogin>('/invitaciones/aceptar', {
+      method: 'POST',
+      body: JSON.stringify(entrada),
+    });
+    guardarToken(datos.accessToken);
+    setUsuario(datos.usuario);
+    return datos.usuario;
   }, []);
 
   const cerrarSesion = useCallback(async () => {
@@ -69,9 +83,10 @@ export function SesionProvider({ children }: { children: ReactNode }) {
       cargando,
       puede: (permiso: Permiso) => permisos.has(permiso),
       iniciarSesion,
+      activarCuenta,
       cerrarSesion,
     };
-  }, [usuario, cargando, iniciarSesion, cerrarSesion]);
+  }, [usuario, cargando, iniciarSesion, activarCuenta, cerrarSesion]);
 
   return <Contexto value={valor}>{children}</Contexto>;
 }
