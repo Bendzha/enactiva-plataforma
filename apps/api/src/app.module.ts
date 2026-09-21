@@ -8,6 +8,7 @@ import { AuditoriaModule } from './modules/auditoria/auditoria.module.js';
 import { CorreoModule } from './modules/correo/correo.module.js';
 import { AuthModule } from './modules/auth/auth.module.js';
 import { EmpresasModule } from './modules/empresas/empresas.module.js';
+import { InvitacionesModule } from './modules/invitaciones/invitaciones.module.js';
 import { PrismaModule } from './prisma/prisma.module.js';
 
 @Module({
@@ -21,6 +22,7 @@ import { PrismaModule } from './prisma/prisma.module.js';
     CorreoModule,
     AuthModule,
     EmpresasModule,
+    InvitacionesModule,
     HealthModule,
   ],
   providers: [

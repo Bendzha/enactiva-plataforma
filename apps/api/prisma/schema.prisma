@@ -92,9 +92,10 @@ model Usuario {
   createdAt     DateTime      @default(now()) @map("created_at") @db.Timestamptz(3)
   updatedAt     DateTime      @updatedAt @map("updated_at") @db.Timestamptz(3)
 
-  empresa           Empresa?      @relation("UsuariosDeEmpresa", fields: [empresaId], references: [id], onDelete: Restrict)
+  empresa           Empresa?          @relation("UsuariosDeEmpresa", fields: [empresaId], references: [id], onDelete: Restrict)
   roles             UsuarioRol[]
   tokens            TokenAcceso[]
+  aceptaciones      AceptacionAviso[]
   empresasCreadas   Empresa[]     @relation("EmpresaCreadaPor")
   empresasActivadas Empresa[]     @relation("EmpresaActivadaPor")
 
@@ -131,6 +132,21 @@ model TokenAcceso {
 }
 
 // ── Cumplimiento Ley 21.719 ──────────────────────────────────────────────────
+
+/// Constancia de que la persona aceptó el aviso de privacidad al activar su cuenta
+/// (Ley 21.719). Se guarda la versión del texto aceptado, no el texto.
+model AceptacionAviso {
+  id           String   @id @default(uuid(7)) @db.Uuid
+  usuarioId    String   @map("usuario_id") @db.Uuid
+  versionAviso String   @map("version_aviso")
+  aceptadoAt   DateTime @default(now()) @map("aceptado_at") @db.Timestamptz(3)
+  ip           String?
+
+  usuario Usuario @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+
+  @@index([usuarioId])
+  @@map("aceptacion_aviso")
+}
 
 /// Append-only: un trigger en la base rechaza UPDATE y DELETE.
 /// Sin FK a propósito: debe sobrevivir a la anonimización de usuarios.
