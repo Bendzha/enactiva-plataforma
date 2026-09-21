@@ -1,11 +1,21 @@
-import { ConflictException, Injectable, Logger } from '@nestjs/common';
+import { ConflictException, Injectable, Logger, NotFoundException } from '@nestjs/common';
 import type { CrearEmpresaInput, EmpresaDetalle, EmpresaResumen } from '@enactiva/shared';
 import type { SesionActual } from '../../common/sesion.js';
 import { generarToken, hashToken } from '../../common/tokens.js';
 import { env } from '../../config/env.js';
 import { PrismaService } from '../../prisma/prisma.service.js';
+import { AuditoriaService } from '../auditoria/auditoria.service.js';
 import { CorreoService } from '../correo/correo.service.js';
 import { INVITACION_TTL_DIAS } from './empresas.constantes.js';
+
+interface ContactoConInvitacion {
+  id: string;
+  email: string | null;
+  nombre: string | null;
+  apellido: string | null;
+  estado: 'INVITADO' | 'ACTIVO' | 'SUSPENDIDO' | 'ANONIMIZADO';
+  tokens: { expiraAt: Date }[];
+}
 
 // Solo el equipo ENACTIVA llega a este módulo (permisos empresas:*), así que se usa el cliente
 // sin acotar: necesita ver y crear empresas de todo el piloto.
@@ -16,6 +26,7 @@ export class EmpresasService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly correo: CorreoService,
+    private readonly auditoria: AuditoriaService,
   ) {}
 
   /** Empresas del piloto con el número de personas activas en cada una. */
@@ -35,6 +46,45 @@ export class EmpresasService {
       activadaAt: empresa.activadaAt?.toISOString() ?? null,
       personasActivas: empresa._count.usuarios,
     }));
+  }
+
+  /** Ficha de la empresa, con el estado de la invitación de su contacto de RRHH. */
+  async detalle(id: string): Promise<EmpresaDetalle> {
+    const empresa = await this.prisma.acotado.empresa.findUnique({
+      where: { id },
+      include: {
+        _count: { select: { usuarios: { where: { estado: 'ACTIVO' } } } },
+        usuarios: {
+          where: { roles: { some: { rol: 'RRHH' } } },
+          orderBy: { createdAt: 'asc' },
+          take: 1,
+          include: {
+            tokens: {
+              where: { tipo: 'INVITACION', usadoAt: null, revocadoAt: null },
+              orderBy: { createdAt: 'desc' },
+              take: 1,
+            },
+          },
+        },
+      },
+    });
+
+    if (!empresa) {
+      throw new NotFoundException('Empresa no encontrada');
+    }
+
+    const contacto = empresa.usuarios[0];
+
+    return {
+      id: empresa.id,
+      nombre: empresa.nombre,
+      rubro: empresa.rubro,
+      estado: empresa.estado,
+      activadaAt: empresa.activadaAt?.toISOString() ?? null,
+      personasActivas: empresa._count.usuarios,
+      createdAt: empresa.createdAt.toISOString(),
+      contactoRrhh: contacto ? this.aContacto(contacto) : null,
+    };
   }
 
   /**
@@ -118,6 +168,98 @@ export class EmpresasService {
         estado: contacto.estado,
         invitacionExpiraAt: invitacionExpiraAt.toISOString(),
       },
+    };
+  }
+
+  /** Activación manual por el Admin Principal: es la decisión de que la empresa entra al piloto. */
+  async activar(id: string, sesion: SesionActual): Promise<EmpresaDetalle> {
+    const empresa = await this.prisma.empresa.findUnique({ where: { id } });
+    if (!empresa) {
+      throw new NotFoundException('Empresa no encontrada');
+    }
+    if (empresa.estado === 'ACTIVA') {
+      throw new ConflictException('La empresa ya está activa');
+    }
+
+    await this.prisma.empresa.update({
+      where: { id },
+      data: { estado: 'ACTIVA', activadaAt: new Date(), activadaPorId: sesion.usuarioId },
+    });
+
+    await this.auditoria.registrar({
+      accion: 'ACTUALIZAR',
+      entidad: 'Empresa',
+      entidadId: id,
+      actorId: sesion.usuarioId,
+      actorRol: 'ADMIN_ENACTIVA',
+      empresaId: id,
+      camposModificados: ['estado', 'activadaAt', 'activadaPorId'],
+      ip: sesion.ip,
+    });
+
+    return this.detalle(id);
+  }
+
+  /** Emite una invitación nueva y revoca la anterior (por ejemplo, si venció o se perdió). */
+  async reenviarInvitacion(empresaId: string, sesion: SesionActual): Promise<EmpresaDetalle> {
+    const empresa = await this.prisma.empresa.findUnique({ where: { id: empresaId } });
+    if (!empresa) {
+      throw new NotFoundException('Empresa no encontrada');
+    }
+
+    const contacto = await this.prisma.usuario.findFirst({
+      where: { empresaId, roles: { some: { rol: 'RRHH' } } },
+      orderBy: { createdAt: 'asc' },
+    });
+    if (!contacto?.email) {
+      throw new NotFoundException('La empresa no tiene un contacto de RRHH');
+    }
+    if (contacto.estado !== 'INVITADO') {
+      throw new ConflictException('El contacto ya activó su cuenta');
+    }
+
+    const token = generarToken();
+    const expiraAt = new Date(Date.now() + INVITACION_TTL_DIAS * 24 * 60 * 60 * 1000);
+
+    await this.prisma.$transaction(async (tx) => {
+      await tx.tokenAcceso.updateMany({
+        where: { usuarioId: contacto.id, tipo: 'INVITACION', revocadoAt: null },
+        data: { revocadoAt: new Date() },
+      });
+      await tx.tokenAcceso.create({
+        data: {
+          usuarioId: contacto.id,
+          tipo: 'INVITACION',
+          tokenHash: hashToken(token),
+          expiraAt,
+        },
+      });
+    });
+
+    await this.auditoria.registrar({
+      accion: 'ACTUALIZAR',
+      entidad: 'TokenAcceso',
+      entidadId: contacto.id,
+      actorId: sesion.usuarioId,
+      actorRol: 'ADMIN_ENACTIVA',
+      empresaId,
+      camposModificados: ['tokenHash', 'expiraAt', 'revocadoAt'],
+      ip: sesion.ip,
+    });
+
+    await this.enviarInvitacion(contacto.email, empresa.nombre, token);
+
+    return this.detalle(empresaId);
+  }
+
+  private aContacto(contacto: ContactoConInvitacion) {
+    return {
+      id: contacto.id,
+      email: contacto.email ?? '',
+      nombre: contacto.nombre,
+      apellido: contacto.apellido,
+      estado: contacto.estado,
+      invitacionExpiraAt: contacto.tokens[0]?.expiraAt.toISOString() ?? null,
     };
   }
 
