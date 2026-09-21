@@ -1,0 +1,19 @@
+@import 'tailwindcss';
+
+/* Paleta fija de la plataforma (SPEC §4): azul, blanco y acento ámbar. */
+@theme {
+  --color-marca: #00347a;
+  --color-marca-oscuro: #002a63;
+  --color-marca-suave: #e8eefa;
+  --color-acento: #ffb627;
+  --color-texto: #16233a;
+  --color-texto-suave: #5b6880;
+  --color-borde: #dde3ed;
+  --color-fondo: #f5f7fb;
+  --color-peligro: #b42318;
+}
+
+body {
+  background-color: var(--color-fondo);
+  color: var(--color-texto);
+}

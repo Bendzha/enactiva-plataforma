@@ -8,6 +8,8 @@ const envSchema = z.object({
   JWT_ACCESS_SECRET: z.string().min(32, 'debe tener al menos 32 caracteres'),
   REFRESH_TOKEN_PEPPER: z.string().min(32, 'debe tener al menos 32 caracteres'),
   LOGIN_INTENTOS_POR_MINUTO: z.coerce.number().int().positive().default(5),
+  /** Origen del frontend autorizado a llamar a la API con cookies. */
+  WEB_ORIGIN: z.string().min(1).default('http://localhost:5173'),
 });
 
 export type Env = z.infer<typeof envSchema>;
