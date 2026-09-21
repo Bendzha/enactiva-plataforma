@@ -51,3 +51,9 @@ Si Karina quiere restringir o ampliar lo que ve el Operativo, se cambia una lín
 ## Consequences
 - Todo endpoint nuevo declara su permiso; un endpoint sin decorador se rechaza por defecto (guard global).
 - El despliegue requiere configurar subdominios en el DNS de ENACTIVA.
+
+## Nota de implementación (T0.6, 2026-09-21)
+- Se implementó con **`@nestjs/jwt` y guards propios, sin `@nestjs/passport`**. Passport aporta valor cuando hay varias estrategias (login social, SAML), que están fuera de alcance; con solo JWT agrega dependencias y una capa de indirección que el equipo tendría que aprender sin ganar nada. Si más adelante entra SSO, se reevalúa.
+- Detección de reuso de refresh tokens: si llega uno ya rotado, se revocan **todas** las sesiones abiertas de esa persona.
+- El login compara siempre contra un hash bcrypt ficticio cuando el email no existe, para no revelar qué correos están registrados.
+- Límite de intentos de login configurable con `LOGIN_INTENTOS_POR_MINUTO` (por defecto 5 por minuto y por IP).
