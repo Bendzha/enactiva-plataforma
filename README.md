@@ -48,11 +48,21 @@ pnpm dev            # levanta api y web en paralelo (desde T0.3 / T0.9)
 
 `@enactiva/shared` se consume compilado. `pnpm build`, `pnpm test` y `pnpm typecheck` lo compilan antes que el resto. Si un comando falla porque no encuentra `@enactiva/shared`, ejecuta `pnpm --filter @enactiva/shared build`.
 
+## Levantar la plataforma en local
+
+```bash
+docker compose up -d --wait        # base de datos y Mailpit
+pnpm --filter api dev              # API en http://localhost:3000
+pnpm --filter web dev              # Web en http://localhost:5173
+```
+
+Entra en http://localhost:5173 con el Admin Principal: el email y la contraseña están en tu `apps/api/.env` (`SEED_ADMIN_EMAIL` y `SEED_ADMIN_PASSWORD`). Si aún no creaste la cuenta, corre `pnpm --filter api db:seed`.
+
 ## Estructura
 
 ```
 apps/api          NestJS + Prisma
-apps/web          React + Vite               (T0.9)
+apps/web          React + Vite
 packages/shared   Zod, tipos y enums comunes — se compila a dist/ en cada `pnpm install`
 docs/             especificación, ADRs y material de la clienta
 tasks/            plan de implementación
