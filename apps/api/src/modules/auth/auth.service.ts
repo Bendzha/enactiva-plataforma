@@ -1,12 +1,22 @@
 import { createHmac, randomBytes } from 'node:crypto';
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import type { LoginInput, RespuestaLogin, UsuarioSesion } from '@enactiva/shared';
+import type { LoginInput, NivelAdmin, RespuestaLogin, Rol, UsuarioSesion } from '@enactiva/shared';
 import { verificarPassword } from '../../common/password.js';
 import { env } from '../../config/env.js';
 import { PrismaService } from '../../prisma/prisma.service.js';
 import { AuditoriaService } from '../auditoria/auditoria.service.js';
 import { ACCESS_TOKEN_TTL, HASH_FICTICIO, REFRESH_TTL_DIAS } from './auth.constantes.js';
+
+interface UsuarioConRoles {
+  id: string;
+  email: string | null;
+  nombre: string | null;
+  apellido: string | null;
+  nivelAdmin: NivelAdmin | null;
+  empresaId: string | null;
+  roles: { rol: Rol }[];
+}
 
 export interface SesionEmitida {
   respuesta: RespuestaLogin;
@@ -116,13 +126,18 @@ export class AuthService {
     });
   }
 
-  private async emitirSesion(usuarioId: string): Promise<SesionEmitida> {
+  /** Perfil de la persona autenticada, leído de la base y no del token. */
+  async perfil(usuarioId: string): Promise<UsuarioSesion> {
     const usuario = await this.prisma.usuario.findUniqueOrThrow({
       where: { id: usuarioId },
       include: { roles: true },
     });
 
-    const sesion: UsuarioSesion = {
+    return this.mapearSesion(usuario);
+  }
+
+  private mapearSesion(usuario: UsuarioConRoles): UsuarioSesion {
+    return {
       id: usuario.id,
       email: usuario.email ?? '',
       nombre: usuario.nombre,
@@ -131,6 +146,15 @@ export class AuthService {
       nivelAdmin: usuario.nivelAdmin,
       empresaId: usuario.empresaId,
     };
+  }
+
+  private async emitirSesion(usuarioId: string): Promise<SesionEmitida> {
+    const usuario = await this.prisma.usuario.findUniqueOrThrow({
+      where: { id: usuarioId },
+      include: { roles: true },
+    });
+
+    const sesion = this.mapearSesion(usuario);
 
     const accessToken = await this.jwt.signAsync(
       {
