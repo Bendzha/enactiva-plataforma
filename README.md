@@ -1,5 +1,7 @@
 # enactiva-plataforma
 
+[![CI](https://github.com/Bendzha/enactiva-plataforma/actions/workflows/ci.yml/badge.svg)](https://github.com/Bendzha/enactiva-plataforma/actions/workflows/ci.yml)
+
 Plataforma de capacitación entre pares para el piloto de ENACTIVA SpA — proyecto Capstone PTY4614, Duoc UC.
 
 - Qué se construye y con qué reglas: [`docs/specs/SPEC.md`](docs/specs/SPEC.md)
@@ -71,3 +73,9 @@ tasks/            plan de implementación
 ## Flujo de trabajo
 
 Una rama por tarea (`slice-N/tN.M-descripcion`) y Pull Request hacia `main`. El CI debe estar en verde antes de mergear.
+
+En cada Pull Request, GitHub Actions levanta Postgres, aplica las migraciones y corre lint, formato, tipos, tests y build — lo mismo que se corre en local:
+
+```bash
+pnpm lint && pnpm format:check && pnpm typecheck && pnpm test && pnpm build
+```

@@ -4,10 +4,10 @@
 **Regla:** cada tarea deja el proyecto compilando y con tests en verde; una tarea ≈ un commit.
 
 ## Estado (actualizado 2026-09-21)
-- ✅ T0.1, T0.2, T0.3 y T0.4 mergeados en `main` (PR #1 a #4).
-- 🟡 T0.5 en curso en la rama `slice-0/t0.5-shared`.
-- ⏭️ Siguiente: **T0.6** (login con JWT).
-- 👀 La primera pantalla visible en el navegador llega en **T0.9**.
+- ✅ Slice 0 completo salvo el CI: T0.1 a T0.9 mergeadas en `main` (PR #1 a #9).
+- 🟡 T0.10 (CI en GitHub Actions) en la rama `slice-0/t0.10-ci`.
+- ⏭️ Siguiente: **Slice 1**, empresas de punta a punta (primera demo a la clienta).
+- 👀 La plataforma ya se puede abrir en el navegador: ver "Levantar la plataforma en local" en el README.
 
 **Para retomar en un PC:** abrir Docker Desktop → `docker compose up -d --wait` → `pnpm install` → copiar `apps/api/.env.example` a `apps/api/.env` si no existe → `pnpm --filter api db:migrate` → `pnpm --filter api db:seed` → `pnpm --filter api test`.
 

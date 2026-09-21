@@ -1,0 +1,76 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+# Si se sube un commit nuevo a la misma rama, se cancela la corrida anterior.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verificar:
+    name: Lint, tipos y tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    services:
+      postgres:
+        image: postgres:18-alpine
+        env:
+          POSTGRES_USER: enactiva
+          POSTGRES_PASSWORD: enactiva
+          POSTGRES_DB: plataforma
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U enactiva -d plataforma"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 10
+
+    env:
+      NODE_ENV: test
+      DATABASE_URL: postgresql://enactiva:enactiva@localhost:5432/plataforma
+      # Valores de prueba: esta base se crea y se destruye en cada corrida.
+      # Los secretos reales nunca se versionan (ADR-0003).
+      JWT_ACCESS_SECRET: secreto-de-ci-sin-valor-real-0123456789
+      REFRESH_TOKEN_PEPPER: pepper-de-ci-sin-valor-real-0123456789
+      SEED_ADMIN_EMAIL: admin.ci@plataforma.local
+      SEED_ADMIN_PASSWORD: clave-de-ci-larga-123
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: pnpm/action-setup@v6
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+
+      - name: Instalar dependencias
+        run: pnpm install --frozen-lockfile
+
+      - name: Aplicar migraciones
+        run: pnpm --filter api exec prisma migrate deploy
+
+      - name: Sembrar el Admin Principal
+        run: pnpm --filter api db:seed
+
+      - name: Lint
+        run: pnpm lint
+
+      - name: Formato
+        run: pnpm format:check
+
+      - name: Tipos
+        run: pnpm typecheck
+
+      - name: Tests
+        run: pnpm test
+
+      - name: Build
+        run: pnpm build
