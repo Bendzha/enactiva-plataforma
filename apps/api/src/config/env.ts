@@ -10,6 +10,12 @@ const envSchema = z.object({
   LOGIN_INTENTOS_POR_MINUTO: z.coerce.number().int().positive().default(5),
   /** Origen del frontend autorizado a llamar a la API con cookies. */
   WEB_ORIGIN: z.string().min(1).default('http://localhost:5173'),
+  // Correo saliente: en local apunta a Mailpit, que no envía nada a internet (ADR-0004).
+  SMTP_HOST: z.string().min(1).default('localhost'),
+  SMTP_PORT: z.coerce.number().int().positive().default(1025),
+  SMTP_USER: z.string().optional(),
+  SMTP_PASS: z.string().optional(),
+  CORREO_DESDE: z.string().min(1).default('ENACTIVA <no-responder@plataforma.local>'),
 });
 
 export type Env = z.infer<typeof envSchema>;

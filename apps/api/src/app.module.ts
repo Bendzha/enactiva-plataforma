@@ -5,7 +5,9 @@ import { ClsModule } from 'nestjs-cls';
 import { AuthGuard } from './common/auth.guard.js';
 import { HealthModule } from './modules/health/health.module.js';
 import { AuditoriaModule } from './modules/auditoria/auditoria.module.js';
+import { CorreoModule } from './modules/correo/correo.module.js';
 import { AuthModule } from './modules/auth/auth.module.js';
+import { EmpresasModule } from './modules/empresas/empresas.module.js';
 import { PrismaModule } from './prisma/prisma.module.js';
 
 @Module({
@@ -16,7 +18,9 @@ import { PrismaModule } from './prisma/prisma.module.js';
     ThrottlerModule.forRoot([{ name: 'default', ttl: 60_000, limit: 120 }]),
     PrismaModule,
     AuditoriaModule,
+    CorreoModule,
     AuthModule,
+    EmpresasModule,
     HealthModule,
   ],
   providers: [
