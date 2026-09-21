@@ -38,14 +38,14 @@ Los permisos se definen como un **mapa rol → permisos en código** (ver ADR-00
 ### 3.2 Curso
 - Etapas fijas, sin excepciones: **Diagnóstico → Clase → Monitoreo** **[C]**, más estado `FINALIZADO` al cerrar Monitoreo **[P]**.
 - **Etapa ≠ momento de medición.** Momentos: diagnóstico, intermedio (ocurre durante la Clase), monitoreo **[C]**.
-- Contenido cargado por el capacitador **[C]** (formato — archivos o enlaces — por definir, Q6).
+- **Contenido: archivos que sube el capacitador o la empresa** **[C]**; la plataforma aporta la estructura y los ordena por etapa. Almacenamiento, tipos y límites en ADR-0006.
 - Sin cupo máximo **[C]**.
 
 ### 3.3 Rúbrica y logro
 - La rúbrica pertenece a un curso; el capacitador define indicadores, la dimensión de cada indicador y los pesos **[C]**.
 - Pesos: enteros que **suman 100 por rúbrica** **[C]**.
 - Cada indicador se puntúa **0–100** **[C]**; la rúbrica la llena **el capacitador** **[C]**.
-- **Umbral de "logrado"** lo define el capacitador **[C]**, uno por rúbrica **[S, Q7]**. Un indicador está logrado si `puntaje ≥ umbral`.
+- **Umbral de "logrado"** lo define el capacitador **[C]**, **uno por rúbrica** **[C]**. Un indicador está logrado si `puntaje ≥ umbral`.
 - La rúbrica se **congela** al abrir el Diagnóstico; después no se editan indicadores, pesos ni umbral **[P]** — si cambiara entre momentos, el delta dejaría de ser comparable.
 - Fórmulas (estructura fija, idéntica para todo curso) **[C]** en su base, **[P]** en su forma exacta:
   - `logro_total = Σ(peso_i · puntaje_i) / 100`
@@ -154,5 +154,6 @@ export class EmpresasController {
 | Q3 | Texto del aviso de privacidad (lo aprueba ENACTIVA) | Slice 2 |
 | Q4 | ¿Son 3 tests (inicio/básico, intermedio, avanzado/final) o 4? ¿Confirma que el delta de evolución se toma solo de la rúbrica? | MVP 2 |
 | Q5 | Escala de la calificación al capacitador (¿1–5 estrellas?) y si es anónima para el capacitador | MVP 2 |
-| Q6 | Formato del contenido de la Clase (archivos subidos o enlaces) | MVP 1 |
-| Q7 | ¿Umbral de logrado uno por rúbrica o uno por indicador? | MVP 1 |
+| ~~Q6~~ | ✅ Resuelto 2026-09-21: son archivos que sube el capacitador o la empresa (ADR-0006) | — |
+| ~~Q7~~ | ✅ Resuelto 2026-09-21: un umbral por rúbrica | — |
+| Q8 | ¿Hay un límite de espacio en disco por empresa para los contenidos? | MVP 1 |
