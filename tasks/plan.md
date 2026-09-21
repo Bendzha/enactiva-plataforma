@@ -6,9 +6,8 @@
 ## Estado (actualizado 2026-09-21)
 - ✅ **Slice 0 completo** (T0.1 a T0.10, PR #1 a #10).
 - ✅ **Slice 1 completo**: T1.2 a T1.10 mergeadas (PR #11 y #12).
-- 🟡 Slice 2 (T2.1 a T2.5) en la rama `slice-2/activacion-cuentas`.
-- ⏭️ Siguiente: **MVP 1** — perfiles de interés, catálogo de temas, cursos con sus 3 etapas,
-  rúbrica y matching. Antes de empezar hay que cerrar las preguntas Q6 y Q7 de la SPEC.
+- ✅ **Slice 2 completo**: T2.1 a T2.5 mergeadas (PR #13).
+- ⏭️ Siguiente: **MVP 1**, desglosado más abajo en los slices 3 a 7. Empieza por el Slice 3.
 - 👀 La plataforma se abre en el navegador: ver "Levantar la plataforma en local" en el README.
 
 **Para retomar en un PC:** abrir Docker Desktop → `docker compose up -d --wait` → `pnpm install` → copiar `apps/api/.env.example` a `apps/api/.env` si no existe → `pnpm --filter api db:migrate` → `pnpm --filter api db:seed` → `pnpm --filter api test`.
@@ -57,6 +56,67 @@
 | T2.3 | Web: página de activación con aviso de privacidad (texto borrador marcado como tal hasta que ENACTIVA lo apruebe, SPEC Q3) | flujo completo desde el link del correo |
 | T2.4 | `POST /admins` y `PATCH /admins/:id/desactivar` (solo Admin Principal) | Operativo → 403 |
 | T2.5 | Web: pantalla "Equipo ENACTIVA" en Ajustes (solo Principal) | lista, invitar y desactivar admins |
+
+---
+
+# MVP 1 — El núcleo del producto
+
+Desglose propuesto (2026-09-21). Cada slice sigue siendo end-to-end: base de datos, API y pantalla.
+
+## Slice 3 — Los colaboradores de la empresa
+**Demo:** RRHH carga a su gente y ellos activan su cuenta con el mismo flujo del Slice 2.
+
+| # | Tarea | Criterio de aceptación |
+|---|---|---|
+| T3.1 | Migración: `Area` + `Usuario.areaId`, registradas en `MODELOS_ACOTADOS` | RRHH solo ve áreas de su empresa |
+| T3.2 | API de áreas (crear, listar, renombrar) para RRHH | nombre único por empresa |
+| T3.3 | API para invitar colaboradores (uno a uno) con rol Estudiante y/o Capacitador | reutiliza el flujo de invitación del Slice 2 |
+| T3.4 | Carga masiva por CSV con vista previa y reporte de errores por fila | ninguna fila válida se pierde por un error en otra |
+| T3.5 | Web: pantalla "Personas" de RRHH (lista, invitar, reenviar, estado) | RRHH de una empresa nunca ve gente de otra |
+
+## Slice 4 — Qué sabe enseñar cada quien
+**Demo:** una persona declara qué quiere enseñar y qué quiere aprender.
+
+| # | Tarea | Criterio de aceptación |
+|---|---|---|
+| T4.1 | Migración: `Tema` y `PerfilInteres` + enums `Dimension`, `TipoInteres`, `NivelDominio` | temas únicos por empresa (nombre normalizado) |
+| T4.2 | API de temas: buscar antes de crear (Admin, RRHH y Capacitador) | no se crean duplicados tipo "Excel" / "excel avanzado" |
+| T4.3 | API de perfiles: declarar enseñar/aprender con dimensiones y nivel | una persona no puede declarar dos veces el mismo tema y tipo |
+| T4.4 | Web: "Mi perfil" con ambas secciones, como en el mockup | — |
+
+## Slice 5 — Cursos con la estructura estándar
+**Demo:** un capacitador crea un curso y carga su contenido.
+
+| # | Tarea | Criterio de aceptación |
+|---|---|---|
+| T5.1 | Migración: `Curso`, `EtapaCurso`, `Inscripcion`, `MaterialClase` | las 3 etapas se crean siempre con el curso |
+| T5.2 | API de cursos: crear, listar los propios, avanzar de etapa | no se salta ni se retrocede de etapa |
+| T5.3 | Subida y descarga de archivos de contenido (ADR-0006) | tipos y tamaño validados; descarga solo para quien corresponde |
+| T5.4 | Web: "Mis cursos" del capacitador y ficha con las 3 etapas | coincide con el mockup |
+
+## Slice 6 — Matching tipo swipe
+**Demo:** un estudiante busca un tema, ve tarjetas y al dar like queda inscrito.
+
+| # | Tarea | Criterio de aceptación |
+|---|---|---|
+| T6.1 | Migración: `Match` (estudiante, capacitador, curso, tema, score, estado) | un estudiante no repite tarjeta ya decidida |
+| T6.2 | Score de afinidad con dimensiones, nivel, área y valoración, con pesos en constantes | función pura con tests propios |
+| T6.3 | API del mazo: solo cursos de su empresa en etapa Diagnóstico | nunca aparecen cursos de otra empresa ni uno propio |
+| T6.4 | API de decisión: like inscribe de inmediato, descarte no vuelve a aparecer | inscripción idempotente |
+| T6.5 | Web: tarjetas con ♥ y ✕ como en el mockup, más estado vacío | funciona en móvil |
+
+## Slice 7 — Rúbrica y mediciones
+**Demo:** el capacitador evalúa a su grupo en los 3 momentos y aparece el delta.
+
+| # | Tarea | Criterio de aceptación |
+|---|---|---|
+| T7.1 | Migración: `Rubrica`, `Indicador`, `Medicion`, `PuntajeIndicador` | pesos enteros; umbral por rúbrica |
+| T7.2 | API de rúbrica: crear y editar en borrador; se congela al abrir Diagnóstico | no se puede editar después; suma de pesos = 100 |
+| T7.3 | Cálculo de logro por dimensión y total, y delta relativo entre momentos | función pura con tests, incluido diagnóstico = 0 |
+| T7.4 | API de mediciones: registrar los 3 momentos por estudiante | no se cierra una medición incompleta |
+| T7.5 | Web: rúbrica del curso y pantalla de evaluación | — |
+
+**Preguntas abiertas que afectan a estos slices:** Q8 (límite de espacio por empresa), Q4 (número de tests) y Q5 (escala de la calificación al capacitador).
 
 ---
 
