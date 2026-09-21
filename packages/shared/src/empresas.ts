@@ -1,4 +1,18 @@
+import { z } from 'zod';
+import { emailSchema } from './auth.js';
 import type { EstadoEmpresa, EstadoUsuario } from './enums.js';
+
+export const crearEmpresaSchema = z.object({
+  nombre: z
+    .string()
+    .trim()
+    .min(2, 'El nombre de la empresa es obligatorio')
+    .max(120, 'El nombre es demasiado largo'),
+  rubro: z.string().trim().min(2, 'El rubro es obligatorio').max(80, 'El rubro es demasiado largo'),
+  /** Email de la persona de RRHH que recibirá la invitación. */
+  emailRrhh: emailSchema,
+});
+export type CrearEmpresaInput = z.infer<typeof crearEmpresaSchema>;
 
 /** Empresa tal como se muestra en el listado del panel de ENACTIVA. */
 export interface EmpresaResumen {

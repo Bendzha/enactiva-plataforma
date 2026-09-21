@@ -105,7 +105,9 @@ describe('Listado de empresas (e2e)', () => {
 
   afterAll(async () => {
     await prisma.usuario.deleteMany({ where: { email: { in: EMAILS_PRUEBA } } });
-    await prisma.empresa.deleteMany({ where: { id: { in: [empresaActivaId, empresaPendienteId] } } });
+    await prisma.empresa.deleteMany({
+      where: { id: { in: [empresaActivaId, empresaPendienteId] } },
+    });
     await app.close();
   });
 

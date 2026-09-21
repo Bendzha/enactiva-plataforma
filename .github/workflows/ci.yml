@@ -31,6 +31,18 @@ jobs:
           --health-timeout 3s
           --health-retries 10
 
+      # Captura los correos que envía la API; los tests verifican que llegaron.
+      mailpit:
+        image: axllent/mailpit:v1.31
+        ports:
+          - 1025:1025
+          - 8025:8025
+        options: >-
+          --health-cmd "/mailpit readyz"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 10
+
     env:
       NODE_ENV: test
       DATABASE_URL: postgresql://enactiva:enactiva@localhost:5432/plataforma
@@ -40,6 +52,9 @@ jobs:
       REFRESH_TOKEN_PEPPER: pepper-de-ci-sin-valor-real-0123456789
       SEED_ADMIN_EMAIL: admin.ci@plataforma.local
       SEED_ADMIN_PASSWORD: clave-de-ci-larga-123
+      SMTP_HOST: localhost
+      SMTP_PORT: 1025
+      MAILPIT_API_URL: http://localhost:8025
 
     steps:
       - uses: actions/checkout@v7

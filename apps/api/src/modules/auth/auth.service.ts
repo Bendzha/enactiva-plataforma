@@ -1,9 +1,8 @@
-import { createHmac, randomBytes } from 'node:crypto';
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import type { LoginInput, NivelAdmin, RespuestaLogin, Rol, UsuarioSesion } from '@enactiva/shared';
 import { verificarPassword } from '../../common/password.js';
-import { env } from '../../config/env.js';
+import { generarToken, hashToken } from '../../common/tokens.js';
 import { PrismaService } from '../../prisma/prisma.service.js';
 import { AuditoriaService } from '../auditoria/auditoria.service.js';
 import { ACCESS_TOKEN_TTL, HASH_FICTICIO, REFRESH_TTL_DIAS } from './auth.constantes.js';
@@ -75,7 +74,7 @@ export class AuthService {
     }
 
     const fila = await this.prisma.tokenAcceso.findUnique({
-      where: { tokenHash: this.hashRefresh(refreshToken) },
+      where: { tokenHash: hashToken(refreshToken) },
     });
 
     if (!fila || fila.tipo !== 'REFRESH') {
@@ -121,7 +120,7 @@ export class AuthService {
     if (!refreshToken) return;
 
     await this.prisma.tokenAcceso.updateMany({
-      where: { tokenHash: this.hashRefresh(refreshToken), revocadoAt: null },
+      where: { tokenHash: hashToken(refreshToken), revocadoAt: null },
       data: { revocadoAt: new Date() },
     });
   }
@@ -166,22 +165,17 @@ export class AuthService {
       { expiresIn: ACCESS_TOKEN_TTL },
     );
 
-    const refreshToken = randomBytes(32).toString('base64url');
+    const refreshToken = generarToken();
     const refreshExpiraAt = new Date(Date.now() + REFRESH_TTL_DIAS * 24 * 60 * 60 * 1000);
     await this.prisma.tokenAcceso.create({
       data: {
         usuarioId: sesion.id,
         tipo: 'REFRESH',
-        tokenHash: this.hashRefresh(refreshToken),
+        tokenHash: hashToken(refreshToken),
         expiraAt: refreshExpiraAt,
       },
     });
 
     return { respuesta: { accessToken, usuario: sesion }, refreshToken, refreshExpiraAt };
-  }
-
-  /** El refresh token nunca se guarda en claro: solo su HMAC con el pepper de la configuración. */
-  private hashRefresh(token: string): string {
-    return createHmac('sha256', env().REFRESH_TOKEN_PEPPER).update(token).digest('hex');
   }
 }
