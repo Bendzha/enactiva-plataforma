@@ -46,6 +46,50 @@ export const invitarPersonaSchema = z.object({
 });
 export type InvitarPersonaInput = z.infer<typeof invitarPersonaSchema>;
 
+/** Máximo de filas por archivo importado. */
+export const MAXIMO_FILAS_IMPORTACION = 500;
+
+export const importarPersonasSchema = z.object({
+  contenido: z
+    .string()
+    .min(1, 'El archivo está vacío')
+    .max(500_000, 'El archivo es demasiado grande'),
+});
+export type ImportarPersonasInput = z.infer<typeof importarPersonasSchema>;
+
+/** Una fila del CSV ya interpretada y revisada. */
+export interface FilaImportada {
+  /** Número de fila del archivo, contando el encabezado como 1. */
+  fila: number;
+  email: string;
+  roles: RolInvitable[];
+  area: string | null;
+  /** El área no existe todavía y se creará al confirmar. */
+  areaNueva: boolean;
+  cargo: string | null;
+  /** Null cuando la fila está lista para invitar. */
+  error: string | null;
+}
+
+export interface VistaPreviaImportacion {
+  filas: FilaImportada[];
+  validas: number;
+  conError: number;
+}
+
+export interface ResultadoImportacion extends VistaPreviaImportacion {
+  invitadas: number;
+  areasCreadas: string[];
+}
+
+/** Encabezados aceptados en el CSV, para no obligar a un formato exacto. */
+export const COLUMNAS_IMPORTACION = {
+  email: ['email', 'correo', 'e-mail'],
+  roles: ['roles', 'rol'],
+  area: ['area', 'área', 'departamento'],
+  cargo: ['cargo', 'puesto'],
+} as const;
+
 /**
  * Normaliza un nombre para comparar sin distinguir mayúsculas, tildes ni espacios de más.
  * Se usa para que "Operaciones", "operaciones" y "Operaciónes " no convivan como áreas distintas.

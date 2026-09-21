@@ -1,16 +1,21 @@
-import { Body, Controller, Get, Param, ParseUUIDPipe, Patch, Post } from '@nestjs/common';
+import { Body, Controller, Get, HttpCode, Param, ParseUUIDPipe, Patch, Post } from '@nestjs/common';
 import {
   crearAreaSchema,
+  importarPersonasSchema,
   invitarPersonaSchema,
   type AreaResumen,
   type CrearAreaInput,
+  type ImportarPersonasInput,
   type InvitarPersonaInput,
   type PersonaResumen,
+  type ResultadoImportacion,
+  type VistaPreviaImportacion,
 } from '@enactiva/shared';
 import { RequierePermiso } from '../../common/decoradores.js';
 import { Sesion, type SesionActual } from '../../common/sesion.js';
 import { ZodValidationPipe } from '../../common/zod.pipe.js';
 import { AreasService } from './areas.service.js';
+import { ImportacionService } from './importacion.service.js';
 import { PersonasService } from './personas.service.js';
 
 @Controller()
@@ -18,6 +23,7 @@ export class PersonasController {
   constructor(
     private readonly personas: PersonasService,
     private readonly areas: AreasService,
+    private readonly importacion: ImportacionService,
   ) {}
 
   @Get('personas')
@@ -42,6 +48,25 @@ export class PersonasController {
     @Sesion() sesion: SesionActual,
   ): Promise<PersonaResumen> {
     return this.personas.reenviarInvitacion(id, sesion);
+  }
+
+  /** Revisa el archivo sin escribir nada: RRHH ve qué filas entrarían y cuáles fallan. */
+  @Post('personas/importar/vista-previa')
+  @HttpCode(200)
+  @RequierePermiso('personas:gestionar')
+  vistaPrevia(
+    @Body(new ZodValidationPipe(importarPersonasSchema)) datos: ImportarPersonasInput,
+  ): Promise<VistaPreviaImportacion> {
+    return this.importacion.vistaPrevia(datos.contenido);
+  }
+
+  @Post('personas/importar')
+  @RequierePermiso('personas:gestionar')
+  importar(
+    @Body(new ZodValidationPipe(importarPersonasSchema)) datos: ImportarPersonasInput,
+    @Sesion() sesion: SesionActual,
+  ): Promise<ResultadoImportacion> {
+    return this.importacion.importar(datos.contenido, sesion);
   }
 
   @Get('areas')
