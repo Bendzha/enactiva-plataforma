@@ -7,7 +7,13 @@
 - ✅ **Slice 0 completo** (T0.1 a T0.10, PR #1 a #10).
 - ✅ **Slice 1 completo**: T1.2 a T1.10 mergeadas (PR #11 y #12).
 - ✅ **Slice 2 completo**: T2.1 a T2.5 mergeadas (PR #13).
-- ⏭️ Siguiente: **MVP 1**, desglosado más abajo en los slices 3 a 7. Empieza por el Slice 3.
+- ✅ **Slice 3 completo** (MVP 1): T3.1 a T3.5 mergeadas (PR #15).
+- ⏭️ Siguiente: **Slice 4** — catálogo de temas y perfiles de "quiero enseñar / quiero aprender".
+- 📌 Supuesto vigente: 2 GB de contenidos por empresa, a confirmar con la clienta (SPEC Q8).
+
+**Para retomar:** abrir Docker Desktop → `docker compose up -d --wait` → `pnpm install` →
+`pnpm --filter api db:migrate` → `pnpm --filter api dev` y `pnpm --filter web dev`.
+La web queda en http://localhost:5173 y los correos en http://localhost:8025.
 - 👀 La plataforma se abre en el navegador: ver "Levantar la plataforma en local" en el README.
 
 **Para retomar en un PC:** abrir Docker Desktop → `docker compose up -d --wait` → `pnpm install` → copiar `apps/api/.env.example` a `apps/api/.env` si no existe → `pnpm --filter api db:migrate` → `pnpm --filter api db:seed` → `pnpm --filter api test`.
