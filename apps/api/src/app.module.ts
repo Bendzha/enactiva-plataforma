@@ -4,10 +4,12 @@ import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { ClsModule } from 'nestjs-cls';
 import { AuthGuard } from './common/auth.guard.js';
 import { HealthModule } from './modules/health/health.module.js';
+import { AdminsModule } from './modules/admins/admins.module.js';
 import { AuditoriaModule } from './modules/auditoria/auditoria.module.js';
 import { CorreoModule } from './modules/correo/correo.module.js';
 import { AuthModule } from './modules/auth/auth.module.js';
 import { EmpresasModule } from './modules/empresas/empresas.module.js';
+import { InvitacionesModule } from './modules/invitaciones/invitaciones.module.js';
 import { PrismaModule } from './prisma/prisma.module.js';
 
 @Module({
@@ -20,7 +22,9 @@ import { PrismaModule } from './prisma/prisma.module.js';
     AuditoriaModule,
     CorreoModule,
     AuthModule,
+    AdminsModule,
     EmpresasModule,
+    InvitacionesModule,
     HealthModule,
   ],
   providers: [

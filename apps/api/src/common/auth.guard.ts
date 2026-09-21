@@ -8,16 +8,14 @@ import {
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { JwtService } from '@nestjs/jwt';
-import { tienePermisos, type NivelAdmin, type Permiso, type Rol } from '@enactiva/shared';
+import { tienePermisos, type Permiso } from '@enactiva/shared';
 import { ClsService } from 'nestjs-cls';
+import { PrismaService } from '../prisma/prisma.service.js';
 import { CLAVE_PERMISOS, CLAVE_PUBLICO, CLAVE_SOLO_SESION } from './decoradores.js';
 import { CLS_SESION, type RequestConSesion, type SesionActual } from './sesion.js';
 
 interface PayloadAccessToken {
   sub: string;
-  roles?: Rol[];
-  nivelAdmin?: NivelAdmin | null;
-  empresaId?: string | null;
 }
 
 /**
@@ -32,6 +30,7 @@ export class AuthGuard implements CanActivate {
     private readonly reflector: Reflector,
     private readonly jwt: JwtService,
     private readonly cls: ClsService,
+    private readonly prisma: PrismaService,
   ) {}
 
   async canActivate(contexto: ExecutionContext): Promise<boolean> {
@@ -43,14 +42,8 @@ export class AuthGuard implements CanActivate {
 
     const req = contexto.switchToHttp().getRequest<RequestConSesion>();
     const payload = await this.verificarToken(req);
+    const sesion = await this.cargarSesion(payload.sub, req.ip ?? null);
 
-    const sesion: SesionActual = {
-      usuarioId: payload.sub,
-      roles: payload.roles ?? [],
-      nivelAdmin: payload.nivelAdmin ?? null,
-      empresaId: payload.empresaId ?? null,
-      ip: req.ip ?? null,
-    };
     req.sesion = sesion;
     this.cls.set(CLS_SESION, sesion);
 
@@ -71,6 +64,35 @@ export class AuthGuard implements CanActivate {
       `${req.method} ${req.url} no declara @Publico, @SoloSesion ni @RequierePermiso`,
     );
     throw new ForbiddenException('Esta ruta no declara permisos');
+  }
+
+  /**
+   * Los roles, el nivel y el estado se leen de la base en cada petición, no del token:
+   * si a alguien se le quita el acceso, deja de entrar de inmediato y no en 15 minutos.
+   */
+  private async cargarSesion(usuarioId: string, ip: string | null): Promise<SesionActual> {
+    const usuario = await this.prisma.usuario.findUnique({
+      where: { id: usuarioId },
+      select: {
+        id: true,
+        estado: true,
+        empresaId: true,
+        nivelAdmin: true,
+        roles: { select: { rol: true } },
+      },
+    });
+
+    if (!usuario || usuario.estado !== 'ACTIVO') {
+      throw new UnauthorizedException('Tu cuenta no está activa');
+    }
+
+    return {
+      usuarioId: usuario.id,
+      roles: usuario.roles.map((fila) => fila.rol),
+      nivelAdmin: usuario.nivelAdmin,
+      empresaId: usuario.empresaId,
+      ip,
+    };
   }
 
   private async verificarToken(req: RequestConSesion): Promise<PayloadAccessToken> {

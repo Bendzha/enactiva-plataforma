@@ -13,6 +13,7 @@ interface Pestana {
 const PESTANAS: Pestana[] = [
   { a: '/empresas', texto: 'Empresas', permiso: 'empresas:listar' },
   { a: '/metricas', texto: 'Métricas', permiso: 'metricas-globales:ver' },
+  { a: '/equipo', texto: 'Equipo', permiso: 'admins:gestionar' },
 ];
 
 export function Layout() {

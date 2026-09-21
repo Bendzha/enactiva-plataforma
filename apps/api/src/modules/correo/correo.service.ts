@@ -9,6 +9,12 @@ export interface InvitacionRrhh {
   diasParaExpirar: number;
 }
 
+export interface InvitacionAdmin {
+  para: string;
+  urlActivacion: string;
+  diasParaExpirar: number;
+}
+
 /** Escapa el texto que entra en el HTML del correo (el nombre de la empresa lo escribe una persona). */
 function escapar(texto: string): string {
   return texto
@@ -36,15 +42,44 @@ export class CorreoService {
   }
 
   async enviarInvitacionRrhh(datos: InvitacionRrhh): Promise<void> {
-    const empresa = escapar(datos.nombreEmpresa);
+    await this.enviarInvitacion({
+      para: datos.para,
+      asunto: `Activa tu cuenta en la plataforma de ENACTIVA (${datos.nombreEmpresa})`,
+      intro: `Te invitaron a administrar la capacitación interna de <strong>${escapar(datos.nombreEmpresa)}</strong>.`,
+      introTexto: `Te invitaron a administrar la capacitación interna de ${datos.nombreEmpresa}.`,
+      urlActivacion: datos.urlActivacion,
+      diasParaExpirar: datos.diasParaExpirar,
+    });
+  }
+
+  async enviarInvitacionAdmin(datos: InvitacionAdmin): Promise<void> {
+    await this.enviarInvitacion({
+      para: datos.para,
+      asunto: 'Te invitaron al equipo de ENACTIVA en la plataforma',
+      intro:
+        'Te invitaron a administrar la plataforma junto al equipo de <strong>ENACTIVA</strong>.',
+      introTexto: 'Te invitaron a administrar la plataforma junto al equipo de ENACTIVA.',
+      urlActivacion: datos.urlActivacion,
+      diasParaExpirar: datos.diasParaExpirar,
+    });
+  }
+
+  private async enviarInvitacion(datos: {
+    para: string;
+    asunto: string;
+    intro: string;
+    introTexto: string;
+    urlActivacion: string;
+    diasParaExpirar: number;
+  }): Promise<void> {
     const url = escapar(datos.urlActivacion);
 
     await this.transporte.sendMail({
       from: env().CORREO_DESDE,
       to: datos.para,
-      subject: `Activa tu cuenta en la plataforma de ENACTIVA (${datos.nombreEmpresa})`,
+      subject: datos.asunto,
       text: [
-        `Te invitaron a administrar la capacitación interna de ${datos.nombreEmpresa}.`,
+        datos.introTexto,
         '',
         `Activa tu cuenta aquí: ${datos.urlActivacion}`,
         `El enlace vence en ${datos.diasParaExpirar} días.`,
@@ -52,7 +87,7 @@ export class CorreoService {
         'Si no esperabas este correo, puedes ignorarlo.',
       ].join('\n'),
       html: `
-        <p>Te invitaron a administrar la capacitación interna de <strong>${empresa}</strong>.</p>
+        <p>${datos.intro}</p>
         <p><a href="${url}" style="background:#00347A;color:#fff;padding:10px 18px;border-radius:6px;text-decoration:none;display:inline-block">Activar mi cuenta</a></p>
         <p style="color:#5b6880;font-size:13px">El enlace vence en ${datos.diasParaExpirar} días. Si no esperabas este correo, puedes ignorarlo.</p>
       `,

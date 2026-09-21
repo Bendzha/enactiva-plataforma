@@ -147,7 +147,8 @@ export class AuthService {
     };
   }
 
-  private async emitirSesion(usuarioId: string): Promise<SesionEmitida> {
+  /** Emite la sesión de una persona ya verificada (login, refresh o activación de invitación). */
+  async emitirSesion(usuarioId: string): Promise<SesionEmitida> {
     const usuario = await this.prisma.usuario.findUniqueOrThrow({
       where: { id: usuarioId },
       include: { roles: true },

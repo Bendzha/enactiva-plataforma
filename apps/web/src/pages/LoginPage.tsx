@@ -8,6 +8,7 @@ import { Card, CardDescription, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { ErrorApi } from '@/lib/api';
+import { destinoDe } from '@/lib/navegacion';
 
 export function LoginPage() {
   const { usuario, cargando, iniciarSesion } = useSesion();
@@ -21,7 +22,7 @@ export function LoginPage() {
   const [enviando, setEnviando] = useState(false);
 
   if (!cargando && usuario) {
-    return <Navigate to="/empresas" replace />;
+    return <Navigate to={destinoDe(usuario)} replace />;
   }
 
   const enviar = async (evento: FormEvent) => {
@@ -42,8 +43,8 @@ export function LoginPage() {
     setErrores({});
     setEnviando(true);
     try {
-      await iniciarSesion(validacion.data.email, validacion.data.password);
-      const destino = (ubicacion.state as { desde?: string } | null)?.desde ?? '/empresas';
+      const persona = await iniciarSesion(validacion.data.email, validacion.data.password);
+      const destino = (ubicacion.state as { desde?: string } | null)?.desde ?? destinoDe(persona);
       navegar(destino, { replace: true });
     } catch (error) {
       setErrorGeneral(
