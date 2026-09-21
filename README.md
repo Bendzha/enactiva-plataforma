@@ -46,12 +46,14 @@ pnpm test           # tests de cada paquete
 pnpm dev            # levanta api y web en paralelo (desde T0.3 / T0.9)
 ```
 
+`@enactiva/shared` se consume compilado. `pnpm build`, `pnpm test` y `pnpm typecheck` lo compilan antes que el resto. Si un comando falla porque no encuentra `@enactiva/shared`, ejecuta `pnpm --filter @enactiva/shared build`.
+
 ## Estructura
 
 ```
-apps/api          NestJS + Prisma            (T0.3)
+apps/api          NestJS + Prisma
 apps/web          React + Vite               (T0.9)
-packages/shared   Zod, tipos y enums comunes (T0.5)
+packages/shared   Zod, tipos y enums comunes — se compila a dist/ en cada `pnpm install`
 docs/             especificación, ADRs y material de la clienta
 tasks/            plan de implementación
 ```
