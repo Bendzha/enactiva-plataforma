@@ -1,0 +1,15 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "module": "nodenext",
+    "moduleResolution": "nodenext",
+    "isolatedModules": true,
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
+    "strictPropertyInitialization": false,
+    "importHelpers": true,
+    "outDir": "./dist",
+    "types": ["vitest/globals", "node"]
+  },
+  "include": ["src", "test", "vitest.config.ts", "vitest.config.e2e.ts"]
+}

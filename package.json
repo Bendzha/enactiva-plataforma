@@ -7,14 +7,16 @@
     "node": ">=24 <25"
   },
   "scripts": {
-    "dev": "pnpm -r --parallel --if-present dev",
+    "dev": "pnpm --filter api --filter web --parallel --if-present dev",
+    "dev:servicios": "pnpm --filter api-gateway --filter auth-service --filter identity-service --filter learning-service --filter matching-service --parallel dev",
     "build": "pnpm -r --if-present build",
     "lint": "eslint .",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "typecheck": "pnpm --filter @enactiva/shared build && pnpm -r --if-present typecheck",
-    "test": "pnpm --filter @enactiva/shared build && pnpm -r --if-present test",
-    "prepare": "pnpm --filter @enactiva/shared build"
+    "build:paquetes": "pnpm --filter @enactiva/shared build && pnpm --filter @enactiva/service-kit build",
+    "typecheck": "pnpm build:paquetes && pnpm -r --if-present typecheck",
+    "test": "pnpm build:paquetes && pnpm -r --if-present test",
+    "prepare": "pnpm build:paquetes"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",

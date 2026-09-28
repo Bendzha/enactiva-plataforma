@@ -1,0 +1,14 @@
+// Modelo de datos de matching-service — ADR-0002 (dominio) y ADR-0007 (reparto entre servicios).
+//
+// Fase M0: la base existe y el servicio sabe llegar a ella, pero todavía no hay tablas.
+// Se construyen en M3, con el Slice 6:
+//   Match · RegistroAuditoria
+//
+// `estudianteId`, `capacitadorId`, `cursoId` y `temaId` se guardan sin clave foránea: viven en
+// identity_db y learning_db, y Postgres no puede validarlos entre bases distintas (ADR-0007).
+//
+// El bloque `generator` se agrega junto con la primera tabla.
+
+datasource db {
+  provider = "postgresql"
+}

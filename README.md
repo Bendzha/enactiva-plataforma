@@ -14,17 +14,47 @@ Plataforma de capacitación entre pares para el piloto de ENACTIVA SpA — proye
 - pnpm 12, vía corepack: `corepack enable` (o `corepack pnpm <comando>` sin habilitarlo)
 - Docker Desktop (Postgres y Mailpit locales, desde T0.2)
 
+## Arquitectura
+
+El sistema se está migrando de un monolito modular a microservicios ([ADR-0007](docs/decisions/0007-microservicios.md)). Durante la migración conviven las dos cosas.
+
+| Proceso                 | Puerto | Base de datos | Estado                                                                                   |
+| ----------------------- | ------ | ------------- | ---------------------------------------------------------------------------------------- |
+| `apps/api` (monolito)   | 3000   | `plataforma`  | **Es el que funciona hoy.** Congelado: no recibe código nuevo. Se elimina al terminar M2 |
+| `apps/api-gateway`      | 3010   | —             | Solo `/health`. Enruta por prefijo desde M2, y ahí toma el puerto 3000                   |
+| `apps/auth-service`     | 3101   | —             | Solo `/health`. Emite los JWT desde M1                                                   |
+| `apps/identity-service` | 3102   | `identity_db` | Solo `/health`. Empresas, personas e invitaciones desde M1                               |
+| `apps/learning-service` | 3103   | `learning_db` | Solo `/health`. Cursos, rúbricas y mediciones desde M3                                   |
+| `apps/matching-service` | 3104   | `matching_db` | Solo `/health`. Matching desde M3                                                        |
+
 ## Servicios locales (Docker)
 
 ```bash
 docker compose up -d --wait   # Postgres (localhost:5432) y Mailpit
 docker compose ps             # estado de los servicios
 docker compose down           # los detiene (los datos se conservan)
-docker compose down -v        # los detiene y BORRA la base de datos local
+docker compose down -v        # los detiene y BORRA las bases de datos locales
 ```
 
-- **Postgres 18:** usuario `enactiva`, contraseña `enactiva`, base `plataforma` (solo desarrollo; ver `apps/api/.env.example`).
-- **Mailpit:** captura los correos que envía la API. Bandeja en http://localhost:8025. Ningún correo sale a internet.
+- **Postgres 18:** un contenedor con una base por servicio (`plataforma`, `identity_db`, `learning_db`, `matching_db`) y un rol por servicio que solo puede conectarse a la suya. Las crea `docker/postgres/00-bases.sql`.
+- **Mailpit:** captura los correos que envía la plataforma. Bandeja en http://localhost:8025. Ningún correo sale a internet.
+
+> **Ojo:** Postgres ejecuta el script de inicialización **solo cuando el volumen está vacío**. Si cambia `docker/postgres/00-bases.sql`, o si vienes de una versión anterior del repositorio, hay que recrear el volumen con `docker compose down -v` y volver a aplicar migraciones y seed. Eso borra los datos locales.
+
+## Configuración
+
+Dos archivos, porque durante la migración conviven dos mundos:
+
+```bash
+cp .env.example .env                     # microservicios y gateway
+cp apps/api/.env.example apps/api/.env   # monolito (mientras exista)
+```
+
+En el `.env` de la raíz hay que completar `JWT_ACCESS_SECRET` y `REFRESH_TOKEN_PEPPER`. Se generan con:
+
+```bash
+node -e "console.log(require('crypto').randomBytes(48).toString('base64url'))"
+```
 
 ## Base de datos
 
@@ -45,17 +75,25 @@ pnpm lint           # ESLint
 pnpm format:check   # Prettier
 pnpm typecheck      # TypeScript en cada paquete
 pnpm test           # tests de cada paquete
-pnpm dev            # levanta api y web en paralelo (desde T0.3 / T0.9)
+pnpm dev            # monolito + web, que es lo que hoy se puede demostrar
+pnpm dev:servicios  # gateway y los cuatro microservicios
 ```
 
-`@enactiva/shared` se consume compilado. `pnpm build`, `pnpm test` y `pnpm typecheck` lo compilan antes que el resto. Si un comando falla porque no encuentra `@enactiva/shared`, ejecuta `pnpm --filter @enactiva/shared build`.
+`@enactiva/shared` y `@enactiva/service-kit` se consumen compilados. `pnpm build`, `pnpm test` y `pnpm typecheck` los compilan antes que el resto. Si un comando falla porque no encuentra uno de los dos, ejecuta `pnpm build:paquetes`.
 
 ## Levantar la plataforma en local
 
 ```bash
-docker compose up -d --wait        # base de datos y Mailpit
+docker compose up -d --wait        # bases de datos y Mailpit
 pnpm --filter api dev              # API en http://localhost:3000
 pnpm --filter web dev              # Web en http://localhost:5173
+```
+
+Para levantar los microservicios en paralelo (todavía solo responden `/health`):
+
+```bash
+pnpm dev:servicios
+curl http://localhost:3102/health   # identity-service
 ```
 
 Entra en http://localhost:5173 con el Admin Principal: el email y la contraseña están en tu `apps/api/.env` (`SEED_ADMIN_EMAIL` y `SEED_ADMIN_PASSWORD`). Si aún no creaste la cuenta, corre `pnpm --filter api db:seed`.
@@ -63,11 +101,19 @@ Entra en http://localhost:5173 con el Admin Principal: el email y la contraseña
 ## Estructura
 
 ```
-apps/api          NestJS + Prisma
-apps/web          React + Vite
-packages/shared   Zod, tipos y enums comunes — se compila a dist/ en cada `pnpm install`
-docs/             especificación, ADRs y material de la clienta
-tasks/            plan de implementación
+apps/api               NestJS + Prisma — monolito, congelado (se elimina al terminar M2)
+apps/api-gateway       único punto de entrada del frontend
+apps/auth-service      emite y rota los JWT
+apps/identity-service  empresas, personas, invitaciones, temas y correo
+apps/learning-service  cursos, rúbricas y mediciones
+apps/matching-service  motor de matching
+apps/web               React + Vite
+packages/shared        Zod, tipos, enums y permisos — lo usan el backend y el navegador
+packages/service-kit   infraestructura común de los servicios (guard, acotado por empresa,
+                       caché de sesión, contexto entre servicios) — no la importa el navegador
+docker/postgres        script que crea una base y un rol por servicio
+docs/                  especificación, ADRs y material de la clienta
+tasks/                 plan de implementación
 ```
 
 ## Flujo de trabajo

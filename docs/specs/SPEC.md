@@ -86,14 +86,21 @@ Los permisos se definen como un **mapa rol → permisos en código** (ver ADR-00
 LMS con catálogo · IA generativa de contenidos · SaaS multi-tenant · certificación externa · colores por empresa (paleta fija `#00347A` / blanco / `#FFB627`).
 
 ## 5. Estructura del proyecto
-Ver ADR-0001. Resumen:
+Ver ADR-0001 y **ADR-0007** (migración a microservicios, en curso). Resumen:
 ```
-apps/api        NestJS (monolito modular) + Prisma
-apps/web        React + Vite + TanStack Query + shadcn/ui
-packages/shared Zod schemas, tipos y enums compartidos
-docs/           specs/, decisions/ (ADRs), material de la clienta
-tasks/          plan.md (slices y tareas)
+apps/api               NestJS (monolito modular) + Prisma — congelado, se elimina en M2
+apps/api-gateway       único punto de entrada del frontend
+apps/auth-service      emisión y rotación de JWT
+apps/identity-service  empresas, personas, invitaciones, temas y correo
+apps/learning-service  cursos, rúbricas y mediciones
+apps/matching-service  motor de matching
+apps/web               React + Vite + TanStack Query + shadcn/ui
+packages/shared        Zod schemas, tipos, enums y permisos compartidos
+packages/service-kit   infraestructura común de los servicios (no la usa el navegador)
+docs/                  specs/, decisions/ (ADRs), material de la clienta
+tasks/                 plan.md (slices, tareas y fases de la migración)
 ```
+El reparto de datos entre servicios, y lo que se pierde al separarlos, está en ADR-0007.
 
 ## 6. Comandos (se habilitan en Slice 0)
 ```bash
