@@ -3,14 +3,64 @@
 **Referencias:** `docs/specs/SPEC.md`, `docs/decisions/0001`–`0004`.
 **Regla:** cada tarea deja el proyecto compilando y con tests en verde; una tarea ≈ un commit.
 
-## Estado (actualizado 2026-09-21)
+## Estado (actualizado 2026-09-28)
 - ✅ **Slice 0 completo** (T0.1 a T0.10, PR #1 a #10).
 - ✅ **Slice 1 completo**: T1.2 a T1.10 mergeadas (PR #11 y #12).
 - ✅ **Slice 2 completo**: T2.1 a T2.5 mergeadas (PR #13).
-- ⏭️ Siguiente: **MVP 1**, desglosado más abajo en los slices 3 a 7. Empieza por el Slice 3.
-- 👀 La plataforma se abre en el navegador: ver "Levantar la plataforma en local" en el README.
+- ✅ **Slice 3 completo** (MVP 1): T3.1 a T3.5 mergeadas (PR #15).
+- 🔀 **En curso: migración a microservicios** (ADR-0007). Fase **M0 lista**; siguiente **M1**.
+- ⏸️ Slice 4 queda en pausa: se construye dentro de `identity-service` en la fase M3.
+- 📌 Supuesto vigente: 2 GB de contenidos por empresa, a confirmar con la clienta (SPEC Q8).
+- 👀 La plataforma se demuestra con el monolito: ver "Levantar la plataforma en local" en el README.
 
-**Para retomar en un PC:** abrir Docker Desktop → `docker compose up -d --wait` → `pnpm install` → copiar `apps/api/.env.example` a `apps/api/.env` si no existe → `pnpm --filter api db:migrate` → `pnpm --filter api db:seed` → `pnpm --filter api test`.
+**En un PC nuevo:** Docker Desktop → `docker compose up -d --wait` → `pnpm install` → copiar `.env.example` a `.env` y `apps/api/.env.example` a `apps/api/.env` → completar los secretos → `pnpm --filter api db:migrate` → `pnpm --filter api db:seed` → `pnpm test`.
+
+---
+
+# Migración a microservicios
+
+Referencia: [`docs/decisions/0007-microservicios.md`](../docs/decisions/0007-microservicios.md).
+**Regla:** cada fase termina con el sistema funcionando de punta a punta y `main` demostrable.
+Ninguna fase empieza sin confirmación.
+
+## Fase M0 — Estructura base ✅
+**Resultado:** los cinco procesos arrancan y responden `/health`; el monolito sigue intacto en el puerto 3000.
+
+| # | Tarea | Estado |
+|---|---|---|
+| M0.1 | ADR-0007 con el corte de datos, la caché de sesión y lo que se pierde | ✅ |
+| M0.2 | `packages/service-kit`: guard global, acotado por empresa, caché de estado de sesión, `X-Request-Id`, contexto entre servicios y configuración | ✅ 46 tests |
+| M0.3 | `auth-service`, `identity-service`, `learning-service`, `matching-service` y `api-gateway` como apps Nest independientes | ✅ 3 e2e cada una |
+| M0.4 | Una base y un rol por servicio en Postgres, con `REVOKE CONNECT` sobre las demás | ✅ verificado |
+| M0.5 | `schema.prisma` y `prisma.config.ts` por servicio, sin tablas todavía | ✅ |
+| M0.6 | `.env` único en la raíz y CI que crea las bases nuevas | ✅ |
+
+## Fase M1 — Mover lo ya construido (Slices 0 a 3)
+**Demo:** el mismo flujo de hoy (login → crear empresa → invitar → activar → cargar personas), servido por auth-service e identity-service en vez del monolito.
+
+| # | Tarea | Criterio de aceptación |
+|---|---|---|
+| M1.1 | Migración inicial de `identity_db` con las tablas del monolito, incluido el trigger append-only de auditoría | `migrate deploy` limpio sobre una base vacía |
+| M1.2 | Módulos de empresas, invitaciones, personas, áreas, importación CSV, auditoría y correo en `identity-service` | los e2e del monolito pasan apuntando al servicio |
+| M1.3 | Endpoints internos de verificación de credenciales y de estado de sesión | el hash de la contraseña nunca sale del servicio |
+| M1.4 | Login, refresh, logout y rotación de tokens en `auth-service` | reutiliza el endpoint interno; nadie más firma tokens |
+| M1.5 | Proveedor real de estado de sesión en los cuatro servicios, con la caché de 30 s | una cuenta desactivada pierde el acceso en ≤30 s |
+| M1.6 | Adaptador del acotado por empresa sobre el cliente Prisma de `identity-service` | test de acceso cruzado entre empresas en verde |
+| M1.7 | Migrar los 88 tests del monolito | misma cobertura, sin perder ningún caso 401/403/cruzado |
+
+## Fase M2 — API Gateway
+| # | Tarea | Criterio de aceptación |
+|---|---|---|
+| M2.1 | Enrutamiento por prefijo (`/auth/*`, `/identity/*`, `/learning/*`, `/matching/*`) | reenvía cabeceras, cookies y `X-Request-Id` |
+| M2.2 | `apps/web` apunta solo al gateway | login → crear empresa → invitar funciona de punta a punta |
+| M2.3 | El gateway toma el puerto 3000 y se elimina `apps/api` | el monolito deja de existir |
+
+## Fase M3 — Seguir el desarrollo en los servicios
+Slice 4 (temas y perfiles) → `identity-service`. Slices 5 y 7 (cursos, contenidos, rúbrica, mediciones) → `learning-service`. Slice 6 (matching) → `matching-service`.
+A diseñar antes de empezar: el mazo del swipe deja de ser una consulta SQL y pasa a componerse con llamadas a identity y learning (ADR-0007).
+
+## Fase M4 — CI/CD y cierre
+Pipeline por servicio (matriz), README de despliegue, y la exportación y supresión de datos por usuario orquestada en el gateway (Ley 21.719, criterio 6 de SPEC §10).
 
 ---
 

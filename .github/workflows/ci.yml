@@ -46,6 +46,11 @@ jobs:
     env:
       NODE_ENV: test
       DATABASE_URL: postgresql://enactiva:enactiva@localhost:5432/plataforma
+      # Una base por microservicio (ADR-0007). Las crea el mismo script que se usa en local,
+      # para que CI y el PC de cada uno no se separen.
+      DATABASE_URL_IDENTITY: postgresql://svc_identity:identity@localhost:5432/identity_db
+      DATABASE_URL_LEARNING: postgresql://svc_learning:learning@localhost:5432/learning_db
+      DATABASE_URL_MATCHING: postgresql://svc_matching:matching@localhost:5432/matching_db
       # Valores de prueba: esta base se crea y se destruye en cada corrida.
       # Los secretos reales nunca se versionan (ADR-0003).
       JWT_ACCESS_SECRET: secreto-de-ci-sin-valor-real-0123456789
@@ -68,6 +73,9 @@ jobs:
 
       - name: Instalar dependencias
         run: pnpm install --frozen-lockfile
+
+      - name: Crear las bases de los microservicios
+        run: psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f docker/postgres/00-bases.sql
 
       - name: Aplicar migraciones
         run: pnpm --filter api exec prisma migrate deploy

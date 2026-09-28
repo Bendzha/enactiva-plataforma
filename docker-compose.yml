@@ -1,5 +1,13 @@
-# Servicios de apoyo SOLO para desarrollo local (ADR-0001, ADR-0004).
-# Las credenciales son de desarrollo y coinciden con apps/api/.env.example; nunca se usan fuera de local.
+# Servicios de apoyo SOLO para desarrollo local (ADR-0001, ADR-0004, ADR-0007).
+# Las credenciales son de desarrollo y coinciden con .env.example; nunca se usan fuera de local.
+#
+# Un solo contenedor de Postgres con una base por microservicio (ADR-0007, decisión D3):
+#   plataforma   monolito apps/api, mientras siga vivo (se elimina al terminar M2)
+#   identity_db  identity-service
+#   learning_db  learning-service
+#   matching_db  matching-service
+# Postgres no permite joins ni claves foráneas entre bases, así que el aislamiento es el mismo
+# que tendrían instancias separadas, y cada rol solo puede conectarse a la suya.
 name: enactiva-plataforma
 
 services:
@@ -15,6 +23,9 @@ services:
     volumes:
       # Desde Postgres 18 el volumen se monta en /var/lib/postgresql (no en .../data)
       - postgres-data:/var/lib/postgresql
+      # Crea una base y un rol por microservicio (ADR-0007). Ojo: Postgres solo ejecuta estos
+      # scripts cuando el directorio de datos está vacío; si cambian, `docker compose down -v`.
+      - ./docker/postgres:/docker-entrypoint-initdb.d:ro
     healthcheck:
       test: ['CMD-SHELL', 'pg_isready -U enactiva -d plataforma']
       interval: 5s

@@ -4,7 +4,7 @@ coverage/
 *.tsbuildinfo
 
 # Cliente de Prisma generado (se regenera con `prisma generate` en cada install)
-apps/api/src/generated/
+apps/*/src/generated/
 *.log
 
 # Variables de entorno: nunca se versionan (solo .env.example)

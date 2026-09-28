@@ -1,0 +1,15 @@
+// Modelo de datos de learning-service — ADR-0002 (dominio) y ADR-0007 (reparto entre servicios).
+//
+// Fase M0: la base existe y el servicio sabe llegar a ella, pero todavía no hay tablas.
+// Se construyen en M3, con los Slices 5 y 7:
+//   Curso · EtapaCurso · Inscripcion · MaterialClase · Rubrica · Indicador · Medicion
+//   PuntajeIndicador · RegistroAuditoria
+//
+// `capacitadorId`, `estudianteId` y `temaId` se guardan sin clave foránea: esos datos viven en
+// identity_db y Postgres no puede validarlos entre bases distintas (ADR-0007).
+//
+// El bloque `generator` se agrega junto con la primera tabla.
+
+datasource db {
+  provider = "postgresql"
+}

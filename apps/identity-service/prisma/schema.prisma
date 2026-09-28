@@ -1,0 +1,13 @@
+// Modelo de datos de identity-service — ADR-0002 (dominio) y ADR-0007 (reparto entre servicios).
+//
+// Fase M0: la base existe y el servicio sabe llegar a ella, pero todavía no hay tablas.
+// En M1 se traen desde el monolito, sin inventar nada nuevo:
+//   Empresa · Area · Usuario · UsuarioRol · TokenAcceso · AceptacionAviso · RegistroAuditoria
+// y más adelante Tema y PerfilInteres (Slice 4).
+//
+// El bloque `generator` se agrega junto con la primera tabla: un cliente Prisma sin modelos no
+// sirve para nada y solo agregaría ruido al instalar.
+
+datasource db {
+  provider = "postgresql"
+}
