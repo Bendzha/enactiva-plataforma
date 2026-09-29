@@ -2,7 +2,7 @@
 # Las credenciales son de desarrollo y coinciden con .env.example; nunca se usan fuera de local.
 #
 # Un solo contenedor de Postgres con una base por microservicio (ADR-0007, decisión D3):
-#   plataforma   monolito apps/api, mientras siga vivo (se elimina al terminar M2)
+#   plataforma   base de mantenimiento; ningún servicio la usa
 #   identity_db  identity-service
 #   learning_db  learning-service
 #   matching_db  matching-service

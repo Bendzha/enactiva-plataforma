@@ -16,16 +16,21 @@ Plataforma de capacitación entre pares para el piloto de ENACTIVA SpA — proye
 
 ## Arquitectura
 
-El sistema se está migrando de un monolito modular a microservicios ([ADR-0007](docs/decisions/0007-microservicios.md)). Durante la migración conviven las dos cosas.
+El sistema son cinco procesos: un gateway que es la única puerta de entrada del frontend, y cuatro servicios con su propia base de datos ([ADR-0007](docs/decisions/0007-microservicios.md)). El monolito que había antes ya no existe.
 
-| Proceso                 | Puerto | Base de datos | Estado                                                                                    |
-| ----------------------- | ------ | ------------- | ----------------------------------------------------------------------------------------- |
-| `apps/api` (monolito)   | 3000   | `plataforma`  | **Lo que se demuestra hoy.** Congelado: no recibe código nuevo. Se elimina al terminar M2 |
-| `apps/api-gateway`      | 3010   | —             | Solo `/health`. Enruta por prefijo desde M2, y ahí toma el puerto 3000                    |
-| `apps/auth-service`     | 3101   | —             | Emite y rota los JWT. Sin base de datos propia                                            |
-| `apps/identity-service` | 3102   | `identity_db` | Empresas, áreas, personas, invitaciones, temas y correo                                   |
-| `apps/learning-service` | 3103   | `learning_db` | Solo `/health`. Cursos, rúbricas y mediciones desde M3                                    |
-| `apps/matching-service` | 3104   | `matching_db` | Solo `/health`. Matching desde M3                                                         |
+| Proceso                 | Puerto | Base de datos | Qué hace                                                |
+| ----------------------- | ------ | ------------- | ------------------------------------------------------- |
+| `apps/api-gateway`      | 3000   | —             | Única puerta de entrada. Enruta por prefijo             |
+| `apps/auth-service`     | 3101   | —             | Emite y rota los JWT. Sin base de datos propia          |
+| `apps/identity-service` | 3102   | `identity_db` | Empresas, áreas, personas, invitaciones, temas y correo |
+| `apps/learning-service` | 3103   | `learning_db` | Cursos, rúbricas y mediciones. Se construye en M3       |
+| `apps/matching-service` | 3104   | `matching_db` | Motor de matching. Se construye en M3                   |
+
+El frontend habla **solo con el gateway**, en `http://localhost:3000`, que enruta por prefijo:
+`/auth/*` a auth-service (conservando el prefijo, porque la cookie de refresh está acotada a
+`Path=/auth`) y `/identity/*`, `/learning/*` y `/matching/*` a los demás, quitándolo.
+
+Las rutas `/interno/*` son conversaciones entre servicios y el gateway nunca las deja pasar.
 
 ## Servicios locales (Docker)
 
@@ -36,21 +41,20 @@ docker compose down           # los detiene (los datos se conservan)
 docker compose down -v        # los detiene y BORRA las bases de datos locales
 ```
 
-- **Postgres 18:** un contenedor con una base por servicio (`plataforma`, `identity_db`, `learning_db`, `matching_db`) y un rol por servicio que solo puede conectarse a la suya. Las crea `docker/postgres/00-bases.sql`.
+- **Postgres 18:** un contenedor con una base por servicio (`identity_db`, `learning_db`, `matching_db`) y un rol por servicio que solo puede conectarse a la suya. Las crea `docker/postgres/00-bases.sql`. La base `plataforma` que aparece en la lista es solo la de mantenimiento; ningún servicio la usa.
 - **Mailpit:** captura los correos que envía la plataforma. Bandeja en http://localhost:8025. Ningún correo sale a internet.
 
 > **Ojo:** Postgres ejecuta el script de inicialización **solo cuando el volumen está vacío**. Si cambia `docker/postgres/00-bases.sql`, o si vienes de una versión anterior del repositorio, hay que recrear el volumen con `docker compose down -v` y volver a aplicar migraciones y seed. Eso borra los datos locales.
 
 ## Configuración
 
-Dos archivos, porque durante la migración conviven dos mundos:
+Un solo archivo en la raíz, que leen los cinco procesos:
 
 ```bash
-cp .env.example .env                     # microservicios y gateway
-cp apps/api/.env.example apps/api/.env   # monolito (mientras exista)
+cp .env.example .env
 ```
 
-En el `.env` de la raíz hay que completar `JWT_ACCESS_SECRET` y `REFRESH_TOKEN_PEPPER`. Se generan con:
+Hay que completar `JWT_ACCESS_SECRET`, `REFRESH_TOKEN_PEPPER`, `INTERNO_SECRETO` y los `SEED_ADMIN_*`. Los tres secretos se generan con:
 
 ```bash
 node -e "console.log(require('crypto').randomBytes(48).toString('base64url'))"
@@ -59,10 +63,10 @@ node -e "console.log(require('crypto').randomBytes(48).toString('base64url'))"
 ## Base de datos
 
 ```bash
-cp apps/api/.env.example apps/api/.env   # completar SEED_ADMIN_EMAIL y SEED_ADMIN_PASSWORD
-pnpm --filter api db:migrate             # aplica las migraciones pendientes
-pnpm --filter api db:seed                # crea el Admin Principal (idempotente)
-pnpm --filter api db:reset               # BORRA la base local y la recrea desde cero
+pnpm --filter identity-service db:migrate   # crea una migración nueva en desarrollo
+pnpm --filter identity-service db:deploy    # aplica las migraciones pendientes
+pnpm --filter identity-service db:seed      # crea el Admin Principal (idempotente)
+pnpm --filter identity-service db:reset     # BORRA identity_db y la recrea desde cero
 ```
 
 El registro de auditoría es append-only: la base rechaza cualquier UPDATE o DELETE sobre él.
@@ -75,8 +79,7 @@ pnpm lint           # ESLint
 pnpm format:check   # Prettier
 pnpm typecheck      # TypeScript en cada paquete
 pnpm test           # tests de cada paquete
-pnpm dev            # monolito + web, que es lo que hoy se puede demostrar
-pnpm dev:servicios  # gateway y los cuatro microservicios
+pnpm dev            # la plataforma completa: web, gateway y los cuatro servicios
 ```
 
 `@enactiva/shared` y `@enactiva/service-kit` se consumen compilados. `pnpm build`, `pnpm test` y `pnpm typecheck` los compilan antes que el resto. Si un comando falla porque no encuentra uno de los dos, ejecuta `pnpm build:paquetes`.
@@ -84,31 +87,24 @@ pnpm dev:servicios  # gateway y los cuatro microservicios
 ## Levantar la plataforma en local
 
 ```bash
-docker compose up -d --wait        # bases de datos y Mailpit
-pnpm --filter api dev              # API en http://localhost:3000
-pnpm --filter web dev              # Web en http://localhost:5173
+docker compose up -d --wait                 # bases de datos y Mailpit
+pnpm --filter identity-service db:deploy    # solo la primera vez
+pnpm --filter identity-service db:seed      # crea el Admin Principal
+pnpm dev                                    # web, gateway y los cuatro servicios
 ```
 
-Para levantar los microservicios en paralelo:
+Entra en http://localhost:5173 con el Admin Principal: el email y la contraseña están en tu `.env` (`SEED_ADMIN_EMAIL` y `SEED_ADMIN_PASSWORD`).
+
+La web habla solo con el gateway, en http://localhost:3000. Para ver qué servicio respondió algo:
 
 ```bash
-pnpm --filter identity-service db:deploy   # solo la primera vez
-pnpm --filter identity-service db:seed     # crea el Admin Principal en identity_db
-pnpm dev:servicios
+curl http://localhost:3000/health     # el gateway
+curl http://localhost:3102/health     # identity-service
 ```
-
-Desde M1 ya hacen el flujo completo, aunque la web todavía no los usa (eso es M2):
-
-```bash
-curl -X POST http://localhost:3101/auth/login -H 'Content-Type: application/json' -d '{"email":"...","password":"..."}'
-```
-
-Entra en http://localhost:5173 con el Admin Principal: el email y la contraseña están en tu `apps/api/.env` (`SEED_ADMIN_EMAIL` y `SEED_ADMIN_PASSWORD`). Si aún no creaste la cuenta, corre `pnpm --filter api db:seed`.
 
 ## Estructura
 
 ```
-apps/api               NestJS + Prisma — monolito, congelado (se elimina al terminar M2)
 apps/api-gateway       único punto de entrada del frontend
 apps/auth-service      emite y rota los JWT
 apps/identity-service  empresas, personas, invitaciones, temas y correo

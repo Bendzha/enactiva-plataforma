@@ -78,5 +78,4 @@ M0 estructura · M1 mover Slices 0 a 3 · M2 gateway y frontend · M3 Slices 4 a
 - **El secreto del JWT es compartido por todos los servicios.** Quien comprometa uno puede firmar tokens válidos para todos. A cambio, ninguna petición depende de `auth-service`.
 - **Un despliegue de 5 servicios y 3 bases** en vez de 1 API y 1 base. Hay que verificar que quepa en el plan gratuito de Railway o Render antes de M4.
 - **Depurar cruza cinco procesos.** Por eso el `X-Request-Id` se genera en el gateway y se propaga desde M0: sin él, "el login falló" son cinco logs sin nada en común.
-- **El monolito `apps/api` se congela en M0** (no recibe código nuevo) y se elimina al terminar M2.
-- Durante M0 y M1 conviven el monolito en el puerto 3000, que es el que la web sigue usando, y los servicios nuevos en 3010 y 3101–3104. La plataforma se puede demostrar en todo momento.
+- **El monolito `apps/api` se eliminó al terminar M2.** El gateway ocupa su puerto 3000 y la web no notó el cambio más allá de los prefijos de ruta.

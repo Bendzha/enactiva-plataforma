@@ -9,8 +9,8 @@ cargarEnvRaiz();
  * servicio verifica el suyo. Menos secretos en el proceso que está expuesto a internet.
  */
 const esquema = esquemaEnvBase.extend({
-  // 3010 mientras el monolito siga usando el 3000. El gateway lo toma en la fase M2.
-  PORT_GATEWAY: z.coerce.number().int().positive().default(3010),
+  // El único puerto que la web necesita conocer.
+  PORT_GATEWAY: z.coerce.number().int().positive().default(3000),
   URL_AUTH_SERVICE: urlServicioSchema.default('http://localhost:3101'),
   URL_IDENTITY_SERVICE: urlServicioSchema.default('http://localhost:3102'),
   URL_LEARNING_SERVICE: urlServicioSchema.default('http://localhost:3103'),

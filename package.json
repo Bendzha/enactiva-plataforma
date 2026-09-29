@@ -7,8 +7,7 @@
     "node": ">=24 <25"
   },
   "scripts": {
-    "dev": "pnpm --filter api --filter web --parallel --if-present dev",
-    "dev:servicios": "pnpm --filter api-gateway --filter auth-service --filter identity-service --filter learning-service --filter matching-service --parallel dev",
+    "dev": "pnpm --filter web --filter api-gateway --filter auth-service --filter identity-service --filter learning-service --filter matching-service --parallel dev",
     "build": "pnpm -r --if-present build",
     "lint": "eslint .",
     "format": "prettier --write .",

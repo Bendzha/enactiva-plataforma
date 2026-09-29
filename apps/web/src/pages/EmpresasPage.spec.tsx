@@ -48,7 +48,7 @@ const DETALLE_TECHSERVICE: EmpresaDetalle = {
 describe('Panel de empresas', () => {
   it('muestra las empresas del piloto con sus indicadores reales', async () => {
     simularSesionIniciada(ADMIN_PRINCIPAL, {
-      'GET /empresas': { status: 200, cuerpo: [PLANTA_NORTE, TECHSERVICE] },
+      'GET /identity/empresas': { status: 200, cuerpo: [PLANTA_NORTE, TECHSERVICE] },
     });
     renderizar(<App />, { ruta: '/empresas' });
 
@@ -73,7 +73,9 @@ describe('Panel de empresas', () => {
   });
 
   it('cuando no hay empresas invita a cargar la primera', async () => {
-    simularSesionIniciada(ADMIN_PRINCIPAL, { 'GET /empresas': { status: 200, cuerpo: [] } });
+    simularSesionIniciada(ADMIN_PRINCIPAL, {
+      'GET /identity/empresas': { status: 200, cuerpo: [] },
+    });
     renderizar(<App />, { ruta: '/empresas' });
 
     expect(await screen.findByText('Aún no hay empresas en el piloto')).toBeInTheDocument();
@@ -81,7 +83,7 @@ describe('Panel de empresas', () => {
 
   it('valida el formulario antes de llamar a la API', async () => {
     const api = simularSesionIniciada(ADMIN_PRINCIPAL, {
-      'GET /empresas': { status: 200, cuerpo: [] },
+      'GET /identity/empresas': { status: 200, cuerpo: [] },
     });
     const usuario = userEvent.setup();
     renderizar(<App />, { ruta: '/empresas' });
@@ -93,13 +95,13 @@ describe('Panel de empresas', () => {
     await usuario.click(screen.getByRole('button', { name: 'Agregar empresa' }));
 
     expect(await screen.findByText('Email inválido')).toBeInTheDocument();
-    expect(api.veces('POST /empresas')).toBe(0);
+    expect(api.veces('POST /identity/empresas')).toBe(0);
   });
 
   it('agrega una empresa y confirma que se envió la invitación', async () => {
     const api = simularSesionIniciada(ADMIN_PRINCIPAL, {
-      'GET /empresas': { status: 200, cuerpo: [] },
-      'POST /empresas': { status: 201, cuerpo: DETALLE_TECHSERVICE },
+      'GET /identity/empresas': { status: 200, cuerpo: [] },
+      'POST /identity/empresas': { status: 201, cuerpo: DETALLE_TECHSERVICE },
     });
     const usuario = userEvent.setup();
     renderizar(<App />, { ruta: '/empresas' });
@@ -114,15 +116,18 @@ describe('Panel de empresas', () => {
     await usuario.click(screen.getByRole('button', { name: 'Agregar empresa' }));
 
     expect(await screen.findByRole('status')).toHaveTextContent(/recibió la invitación/i);
-    expect(api.veces('POST /empresas')).toBe(1);
+    expect(api.veces('POST /identity/empresas')).toBe(1);
     // Se vuelve a pedir el listado para no mostrar datos viejos.
-    await waitFor(() => expect(api.veces('GET /empresas')).toBeGreaterThan(1));
+    await waitFor(() => expect(api.veces('GET /identity/empresas')).toBeGreaterThan(1));
   });
 
   it('avisa cuando el email del contacto ya tiene cuenta', async () => {
     simularSesionIniciada(ADMIN_PRINCIPAL, {
-      'GET /empresas': { status: 200, cuerpo: [] },
-      'POST /empresas': { status: 409, cuerpo: { message: 'Ya existe una cuenta con ese email' } },
+      'GET /identity/empresas': { status: 200, cuerpo: [] },
+      'POST /identity/empresas': {
+        status: 409,
+        cuerpo: { message: 'Ya existe una cuenta con ese email' },
+      },
     });
     const usuario = userEvent.setup();
     renderizar(<App />, { ruta: '/empresas' });
@@ -138,9 +143,9 @@ describe('Panel de empresas', () => {
 
   it('el Admin Principal abre la ficha y puede activar la empresa', async () => {
     const api = simularSesionIniciada(ADMIN_PRINCIPAL, {
-      'GET /empresas': { status: 200, cuerpo: [TECHSERVICE] },
-      [`GET /empresas/${TECHSERVICE.id}`]: { status: 200, cuerpo: DETALLE_TECHSERVICE },
-      [`PATCH /empresas/${TECHSERVICE.id}/activar`]: {
+      'GET /identity/empresas': { status: 200, cuerpo: [TECHSERVICE] },
+      [`GET /identity/empresas/${TECHSERVICE.id}`]: { status: 200, cuerpo: DETALLE_TECHSERVICE },
+      [`PATCH /identity/empresas/${TECHSERVICE.id}/activar`]: {
         status: 200,
         cuerpo: {
           ...DETALLE_TECHSERVICE,
@@ -161,13 +166,13 @@ describe('Panel de empresas', () => {
     await usuario.click(within(ficha).getByRole('button', { name: 'Activar empresa' }));
 
     expect(await within(ficha).findByRole('status')).toHaveTextContent('Empresa activada');
-    expect(api.veces(`PATCH /empresas/${TECHSERVICE.id}/activar`)).toBe(1);
+    expect(api.veces(`PATCH /identity/empresas/${TECHSERVICE.id}/activar`)).toBe(1);
   });
 
   it('el Admin Operativo no ve el botón de activar, pero sí el de reenviar la invitación', async () => {
     simularSesionIniciada(ADMIN_OPERATIVO, {
-      'GET /empresas': { status: 200, cuerpo: [TECHSERVICE] },
-      [`GET /empresas/${TECHSERVICE.id}`]: { status: 200, cuerpo: DETALLE_TECHSERVICE },
+      'GET /identity/empresas': { status: 200, cuerpo: [TECHSERVICE] },
+      [`GET /identity/empresas/${TECHSERVICE.id}`]: { status: 200, cuerpo: DETALLE_TECHSERVICE },
     });
     const usuario = userEvent.setup();
     renderizar(<App />, { ruta: '/empresas' });

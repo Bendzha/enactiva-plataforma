@@ -7,7 +7,7 @@ export function useEstadoInvitacion(token: string | null) {
   return useQuery({
     queryKey: ['invitacion', token],
     queryFn: () =>
-      pedir<EstadoInvitacion>(`/invitaciones/estado?token=${encodeURIComponent(token!)}`),
+      pedir<EstadoInvitacion>(`/identity/invitaciones/estado?token=${encodeURIComponent(token!)}`),
     enabled: token !== null,
     retry: false,
   });

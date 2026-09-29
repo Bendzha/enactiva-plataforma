@@ -8,8 +8,8 @@
 - ✅ **Slice 1 completo**: T1.2 a T1.10 mergeadas (PR #11 y #12).
 - ✅ **Slice 2 completo**: T2.1 a T2.5 mergeadas (PR #13).
 - ✅ **Slice 3 completo** (MVP 1): T3.1 a T3.5 mergeadas (PR #15).
-- 🔀 **En curso: migración a microservicios** (ADR-0007). Fases **M0 y M1 listas**; siguiente **M2** (gateway y frontend).
-- ⏸️ Slice 4 queda en pausa: se construye dentro de `identity-service` en la fase M3.
+- ✅ **Migración a microservicios** (ADR-0007): fases **M0, M1 y M2 listas**. El monolito ya no existe y la web corre sobre el gateway.
+- ⏭️ Siguiente: **M3** — retomar el producto. Empieza por el **Slice 4** dentro de `identity-service`.
 - 📌 Supuesto vigente: 2 GB de contenidos por empresa, a confirmar con la clienta (SPEC Q8).
 - 👀 La plataforma se demuestra con el monolito: ver "Levantar la plataforma en local" en el README.
 
@@ -53,12 +53,19 @@ Ninguna fase empieza sin confirmación.
 - Desactivar a un admin no cortaba su sesión al instante, porque la caché de 30 s seguía respondiendo. `AdminsService` ahora la invalida; fuera de identity el corte sigue tardando lo que quede de esa ventana, como dice el ADR.
 - `POST /auth/refresh` sin cookie respondía 400 en vez de 401, porque auth mandaba una cadena vacía a identity y fallaba la validación. Ahora responde antes de llamar.
 
-## Fase M2 — API Gateway
-| # | Tarea | Criterio de aceptación |
+## Fase M2 — API Gateway ✅
+**Resultado:** la plataforma funciona en el navegador sobre la arquitectura nueva. El monolito ya no existe.
+
+| # | Tarea | Estado |
 |---|---|---|
-| M2.1 | Enrutamiento por prefijo (`/auth/*`, `/identity/*`, `/learning/*`, `/matching/*`) | reenvía cabeceras, cookies y `X-Request-Id` |
-| M2.2 | `apps/web` apunta solo al gateway | login → crear empresa → invitar funciona de punta a punta |
-| M2.3 | El gateway toma el puerto 3000 y se elimina `apps/api` | el monolito deja de existir |
+| M2.1 | Enrutamiento por prefijo (`/auth/*`, `/identity/*`, `/learning/*`, `/matching/*`) | ✅ reenvía cuerpo, cabeceras, cookies y `X-Request-Id` |
+| M2.2 | `apps/web` apunta solo al gateway | ✅ verificado en el navegador |
+| M2.3 | El gateway toma el puerto 3000 y se elimina `apps/api` | ✅ |
+
+Dos cosas que solo aparecieron al armarlo:
+
+- Express le quita el prefijo a la URL cuando se monta con `app.use(prefijo, ...)`, así que `/auth/login` llegaba a auth-service como `/login`. El gateway filtra por ruta en vez de montar.
+- El gateway arranca **sin body parser**. Si Nest leyera el cuerpo primero, el stream llegaría consumido al servicio y cualquier POST se colgaría.
 
 ## Fase M3 — Seguir el desarrollo en los servicios
 Slice 4 (temas y perfiles) → `identity-service`. Slices 5 y 7 (cursos, contenidos, rúbrica, mediciones) → `learning-service`. Slice 6 (matching) → `matching-service`.
