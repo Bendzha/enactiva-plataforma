@@ -2,16 +2,19 @@ import {
   type CanActivate,
   type ExecutionContext,
   ForbiddenException,
+  Inject,
   Injectable,
   Logger,
+  Optional,
   UnauthorizedException,
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { JwtService } from '@nestjs/jwt';
-import { tienePermisos, type Permiso } from '@enactiva/shared';
+import { CABECERA_INTERNO, tienePermisos, type Permiso } from '@enactiva/shared';
 import { ClsService } from 'nestjs-cls';
-import { CLAVE_PERMISOS, CLAVE_PUBLICO, CLAVE_SOLO_SESION } from './decoradores.js';
+import { CLAVE_INTERNO, CLAVE_PERMISOS, CLAVE_PUBLICO, CLAVE_SOLO_SESION } from './decoradores.js';
 import { CacheEstadoSesion } from './estado-sesion.js';
+import { SECRETO_INTERNO, verificarSecretoInterno } from './secreto-interno.js';
 import {
   CLS_SESION,
   CLS_TOKEN_ACCESO,
@@ -43,6 +46,7 @@ export class AuthGuard implements CanActivate {
     private readonly jwt: JwtService,
     private readonly cls: ClsService,
     private readonly estadoSesion: CacheEstadoSesion,
+    @Inject(SECRETO_INTERNO) @Optional() private readonly secretoInterno?: string,
   ) {}
 
   async canActivate(contexto: ExecutionContext): Promise<boolean> {
@@ -53,13 +57,23 @@ export class AuthGuard implements CanActivate {
     }
 
     const req = contexto.switchToHttp().getRequest<RequestConSesion>();
+
+    // Llamada de otro servicio: no hay usuario todavía (es anterior al login), así que se
+    // autentica con el secreto compartido y no con un token.
+    if (this.reflector.getAllAndOverride<boolean>(CLAVE_INTERNO, destinos)) {
+      verificarSecretoInterno(req.headers[CABECERA_INTERNO], this.secretoInterno);
+      return true;
+    }
+
     const { payload, token } = await this.verificarToken(req);
+    // Se guarda ANTES de resolver la sesión: los servicios que no tienen las tablas de usuarios
+    // se la preguntan a identity-service reenviando este mismo token (ADR-0007).
+    this.cls.set(CLS_TOKEN_ACCESO, token);
+
     const sesion = await this.cargarSesion(payload.sub, req.ip ?? null);
 
     req.sesion = sesion;
     this.cls.set(CLS_SESION, sesion);
-    // Se guarda para reenviarlo en las llamadas a otros servicios.
-    this.cls.set(CLS_TOKEN_ACCESO, token);
 
     const requeridos = this.reflector.getAllAndOverride<Permiso[]>(CLAVE_PERMISOS, destinos);
     if (requeridos?.length) {

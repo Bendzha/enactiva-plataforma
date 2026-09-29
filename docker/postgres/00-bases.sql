@@ -5,9 +5,12 @@
 -- auth-service no aparece porque no tiene tablas propias: solo firma JWT.
 -- Las credenciales son de desarrollo y coinciden con .env.example; nunca se usan fuera de local.
 
-CREATE ROLE svc_identity LOGIN PASSWORD 'identity';
-CREATE ROLE svc_learning LOGIN PASSWORD 'learning';
-CREATE ROLE svc_matching LOGIN PASSWORD 'matching';
+-- CREATEDB es solo para desarrollo: `prisma migrate dev` crea y destruye una base sombra para
+-- comparar el esquema. En CI y en producción se usa `migrate deploy`, que no la necesita, así que
+-- ahí el rol no lleva este permiso. Poder crear bases nuevas no da acceso a las ya existentes.
+CREATE ROLE svc_identity LOGIN CREATEDB PASSWORD 'identity';
+CREATE ROLE svc_learning LOGIN CREATEDB PASSWORD 'learning';
+CREATE ROLE svc_matching LOGIN CREATEDB PASSWORD 'matching';
 
 CREATE DATABASE identity_db OWNER svc_identity;
 CREATE DATABASE learning_db OWNER svc_learning;

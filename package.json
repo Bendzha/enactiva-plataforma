@@ -15,7 +15,7 @@
     "format:check": "prettier --check .",
     "build:paquetes": "pnpm --filter @enactiva/shared build && pnpm --filter @enactiva/service-kit build",
     "typecheck": "pnpm build:paquetes && pnpm -r --if-present typecheck",
-    "test": "pnpm build:paquetes && pnpm -r --if-present test",
+    "test": "pnpm build:paquetes && pnpm -r --workspace-concurrency=1 --if-present test",
     "prepare": "pnpm build:paquetes"
   },
   "devDependencies": {

@@ -1,10 +1,5 @@
 import { Module } from '@nestjs/common';
-import {
-  PROVEEDOR_ESTADO_SESION,
-  ProveedorEstadoSesionNoDisponible,
-  SaludModule,
-  ServiceKitModule,
-} from '@enactiva/service-kit';
+import { proveedorEstadoSesionRemoto, SaludModule, ServiceKitModule } from '@enactiva/service-kit';
 import { env } from './config/env.js';
 
 /**
@@ -17,11 +12,8 @@ import { env } from './config/env.js';
   imports: [
     ServiceKitModule.forRoot({
       secretoJwt: env().JWT_ACCESS_SECRET,
-      // En M1 se reemplaza por el proveedor que consulta a identity-service y cachea 30 s.
-      proveedorEstadoSesion: {
-        provide: PROVEEDOR_ESTADO_SESION,
-        useClass: ProveedorEstadoSesionNoDisponible,
-      },
+      // No tiene las tablas de usuarios: le pregunta a identity-service y cachea 30 s.
+      proveedorEstadoSesion: proveedorEstadoSesionRemoto(env().URL_IDENTITY_SERVICE),
     }),
     SaludModule.paraServicio('matching-service'),
   ],

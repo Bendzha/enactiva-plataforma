@@ -12,6 +12,8 @@ const esquema = esquemaEnvBase.extend({
   JWT_ACCESS_SECRET: secretoJwtSchema,
   /** Solo este servicio lo necesita: es donde se calcula el hash de los tokens de refresh. */
   REFRESH_TOKEN_PEPPER: z.string().min(32, 'debe tener al menos 32 caracteres'),
+  /** Secreto de las rutas `/interno/*`, compartido con auth-service (ADR-0007). */
+  INTERNO_SECRETO: z.string().min(32, 'debe tener al menos 32 caracteres'),
   // Correo saliente: en local apunta a Mailpit, que no envía nada a internet (ADR-0004).
   SMTP_HOST: z.string().min(1).default('localhost'),
   SMTP_PORT: z.coerce.number().int().positive().default(1025),

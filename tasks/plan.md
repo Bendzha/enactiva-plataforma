@@ -8,7 +8,7 @@
 - ✅ **Slice 1 completo**: T1.2 a T1.10 mergeadas (PR #11 y #12).
 - ✅ **Slice 2 completo**: T2.1 a T2.5 mergeadas (PR #13).
 - ✅ **Slice 3 completo** (MVP 1): T3.1 a T3.5 mergeadas (PR #15).
-- 🔀 **En curso: migración a microservicios** (ADR-0007). Fase **M0 lista**; siguiente **M1**.
+- 🔀 **En curso: migración a microservicios** (ADR-0007). Fases **M0 y M1 listas**; siguiente **M2** (gateway y frontend).
 - ⏸️ Slice 4 queda en pausa: se construye dentro de `identity-service` en la fase M3.
 - 📌 Supuesto vigente: 2 GB de contenidos por empresa, a confirmar con la clienta (SPEC Q8).
 - 👀 La plataforma se demuestra con el monolito: ver "Levantar la plataforma en local" en el README.
@@ -35,18 +35,23 @@ Ninguna fase empieza sin confirmación.
 | M0.5 | `schema.prisma` y `prisma.config.ts` por servicio, sin tablas todavía | ✅ |
 | M0.6 | `.env` único en la raíz y CI que crea las bases nuevas | ✅ |
 
-## Fase M1 — Mover lo ya construido (Slices 0 a 3)
-**Demo:** el mismo flujo de hoy (login → crear empresa → invitar → activar → cargar personas), servido por auth-service e identity-service en vez del monolito.
+## Fase M1 — Mover lo ya construido (Slices 0 a 3) ✅
+**Resultado:** el flujo completo (login → crear empresa → invitar → activar → cargar personas) funciona servido por auth-service e identity-service. El monolito sigue intacto y es lo que se demuestra hasta M2.
 
-| # | Tarea | Criterio de aceptación |
+| # | Tarea | Estado |
 |---|---|---|
-| M1.1 | Migración inicial de `identity_db` con las tablas del monolito, incluido el trigger append-only de auditoría | `migrate deploy` limpio sobre una base vacía |
-| M1.2 | Módulos de empresas, invitaciones, personas, áreas, importación CSV, auditoría y correo en `identity-service` | los e2e del monolito pasan apuntando al servicio |
-| M1.3 | Endpoints internos de verificación de credenciales y de estado de sesión | el hash de la contraseña nunca sale del servicio |
-| M1.4 | Login, refresh, logout y rotación de tokens en `auth-service` | reutiliza el endpoint interno; nadie más firma tokens |
-| M1.5 | Proveedor real de estado de sesión en los cuatro servicios, con la caché de 30 s | una cuenta desactivada pierde el acceso en ≤30 s |
-| M1.6 | Adaptador del acotado por empresa sobre el cliente Prisma de `identity-service` | test de acceso cruzado entre empresas en verde |
-| M1.7 | Migrar los 88 tests del monolito | misma cobertura, sin perder ningún caso 401/403/cruzado |
+| M1.1 | Migración inicial de `identity_db` con las tablas del monolito, incluido el trigger append-only de auditoría | ✅ |
+| M1.2 | Módulos de empresas, invitaciones, personas, áreas, importación CSV, auditoría y correo en `identity-service` | ✅ |
+| M1.3 | Endpoints internos de credenciales y estado de sesión, con secreto compartido | ✅ el hash y el pepper no salen de identity |
+| M1.4 | Login, refresh, logout, activación de invitación y `/auth/yo` en `auth-service` | ✅ sin base de datos propia |
+| M1.5 | Proveedor real de estado de sesión en los cuatro servicios, con la caché de 30 s | ✅ |
+| M1.6 | Adaptador del acotado por empresa sobre el cliente Prisma de `identity-service` | ✅ test de acceso cruzado en verde |
+| M1.7 | Migrar los tests del monolito | ✅ 69 en identity, 14 en auth |
+
+**Dos regresiones encontradas y corregidas gracias a los tests portados:**
+
+- Desactivar a un admin no cortaba su sesión al instante, porque la caché de 30 s seguía respondiendo. `AdminsService` ahora la invalida; fuera de identity el corte sigue tardando lo que quede de esa ventana, como dice el ADR.
+- `POST /auth/refresh` sin cookie respondía 400 en vez de 401, porque auth mandaba una cadena vacía a identity y fallaba la validación. Ahora responde antes de llamar.
 
 ## Fase M2 — API Gateway
 | # | Tarea | Criterio de aceptación |
