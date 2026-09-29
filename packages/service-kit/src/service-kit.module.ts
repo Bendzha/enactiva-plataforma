@@ -8,6 +8,7 @@ import {
   PROVEEDOR_ESTADO_SESION,
   type ProveedorEstadoSesion,
 } from './estado-sesion.js';
+import { SECRETO_INTERNO } from './secreto-interno.js';
 
 export interface OpcionesServiceKit {
   /** Secreto compartido del access token: auth-service firma, los demás verifican. */
@@ -16,6 +17,11 @@ export interface OpcionesServiceKit {
   proveedorEstadoSesion: Provider;
   /** TTL de la caché de estado de sesión; por defecto `TTL_ESTADO_SESION_MS`. */
   ttlEstadoSesionMs?: number;
+  /**
+   * Secreto compartido de las llamadas entre servicios (`@SoloInterno`). Solo lo necesitan los
+   * servicios que atienden rutas internas anteriores al login.
+   */
+  secretoInterno?: string;
 }
 
 /**
@@ -34,6 +40,7 @@ export class ServiceKitModule {
       imports: [ContextoModule.forRoot(), JwtModule.register({ secret: opciones.secretoJwt })],
       providers: [
         opciones.proveedorEstadoSesion,
+        { provide: SECRETO_INTERNO, useValue: opciones.secretoInterno },
         {
           provide: CacheEstadoSesion,
           inject: [PROVEEDOR_ESTADO_SESION],

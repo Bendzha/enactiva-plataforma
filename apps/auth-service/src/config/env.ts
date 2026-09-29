@@ -21,6 +21,8 @@ const esquema = esquemaEnvBase.extend({
    * contraseña (ADR-0007, decisión D1). El hash nunca sale de identity.
    */
   URL_IDENTITY_SERVICE: urlServicioSchema.default('http://localhost:3102'),
+  /** Secreto de las rutas `/interno/*` de identity-service (ADR-0007). */
+  INTERNO_SECRETO: z.string().min(32, 'debe tener al menos 32 caracteres'),
 });
 
 export const { env, limpiarCacheEnv } = crearEnv(esquema, 'el .env de la raíz del repositorio');

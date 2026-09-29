@@ -18,14 +18,14 @@ Plataforma de capacitación entre pares para el piloto de ENACTIVA SpA — proye
 
 El sistema se está migrando de un monolito modular a microservicios ([ADR-0007](docs/decisions/0007-microservicios.md)). Durante la migración conviven las dos cosas.
 
-| Proceso                 | Puerto | Base de datos | Estado                                                                                   |
-| ----------------------- | ------ | ------------- | ---------------------------------------------------------------------------------------- |
-| `apps/api` (monolito)   | 3000   | `plataforma`  | **Es el que funciona hoy.** Congelado: no recibe código nuevo. Se elimina al terminar M2 |
-| `apps/api-gateway`      | 3010   | —             | Solo `/health`. Enruta por prefijo desde M2, y ahí toma el puerto 3000                   |
-| `apps/auth-service`     | 3101   | —             | Solo `/health`. Emite los JWT desde M1                                                   |
-| `apps/identity-service` | 3102   | `identity_db` | Solo `/health`. Empresas, personas e invitaciones desde M1                               |
-| `apps/learning-service` | 3103   | `learning_db` | Solo `/health`. Cursos, rúbricas y mediciones desde M3                                   |
-| `apps/matching-service` | 3104   | `matching_db` | Solo `/health`. Matching desde M3                                                        |
+| Proceso                 | Puerto | Base de datos | Estado                                                                                    |
+| ----------------------- | ------ | ------------- | ----------------------------------------------------------------------------------------- |
+| `apps/api` (monolito)   | 3000   | `plataforma`  | **Lo que se demuestra hoy.** Congelado: no recibe código nuevo. Se elimina al terminar M2 |
+| `apps/api-gateway`      | 3010   | —             | Solo `/health`. Enruta por prefijo desde M2, y ahí toma el puerto 3000                    |
+| `apps/auth-service`     | 3101   | —             | Emite y rota los JWT. Sin base de datos propia                                            |
+| `apps/identity-service` | 3102   | `identity_db` | Empresas, áreas, personas, invitaciones, temas y correo                                   |
+| `apps/learning-service` | 3103   | `learning_db` | Solo `/health`. Cursos, rúbricas y mediciones desde M3                                    |
+| `apps/matching-service` | 3104   | `matching_db` | Solo `/health`. Matching desde M3                                                         |
 
 ## Servicios locales (Docker)
 
@@ -89,11 +89,18 @@ pnpm --filter api dev              # API en http://localhost:3000
 pnpm --filter web dev              # Web en http://localhost:5173
 ```
 
-Para levantar los microservicios en paralelo (todavía solo responden `/health`):
+Para levantar los microservicios en paralelo:
 
 ```bash
+pnpm --filter identity-service db:deploy   # solo la primera vez
+pnpm --filter identity-service db:seed     # crea el Admin Principal en identity_db
 pnpm dev:servicios
-curl http://localhost:3102/health   # identity-service
+```
+
+Desde M1 ya hacen el flujo completo, aunque la web todavía no los usa (eso es M2):
+
+```bash
+curl -X POST http://localhost:3101/auth/login -H 'Content-Type: application/json' -d '{"email":"...","password":"..."}'
 ```
 
 Entra en http://localhost:5173 con el Admin Principal: el email y la contraseña están en tu `apps/api/.env` (`SEED_ADMIN_EMAIL` y `SEED_ADMIN_PASSWORD`). Si aún no creaste la cuenta, corre `pnpm --filter api db:seed`.

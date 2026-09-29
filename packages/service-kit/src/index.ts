@@ -14,11 +14,13 @@ export {
   type ContextoPeticion,
 } from './contexto-interno.js';
 export {
+  CLAVE_INTERNO,
   CLAVE_PERMISOS,
   CLAVE_PUBLICO,
   CLAVE_SOLO_SESION,
   Publico,
   RequierePermiso,
+  SoloInterno,
   SoloSesion,
 } from './decoradores.js';
 export {
@@ -37,7 +39,9 @@ export {
   type OpcionesCacheEstadoSesion,
   type ProveedorEstadoSesion,
 } from './estado-sesion.js';
+export { ProveedorEstadoSesionRemoto, proveedorEstadoSesionRemoto } from './proveedor-remoto.js';
 export { resolverRequestId } from './request-id.js';
+export { SECRETO_INTERNO, verificarSecretoInterno } from './secreto-interno.js';
 export { SaludModule, type EstadoSalud } from './salud.module.js';
 export {
   acotarArgs,

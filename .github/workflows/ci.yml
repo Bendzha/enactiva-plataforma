@@ -55,6 +55,7 @@ jobs:
       # Los secretos reales nunca se versionan (ADR-0003).
       JWT_ACCESS_SECRET: secreto-de-ci-sin-valor-real-0123456789
       REFRESH_TOKEN_PEPPER: pepper-de-ci-sin-valor-real-0123456789
+      INTERNO_SECRETO: secreto-interno-de-ci-sin-valor-real-0123456789
       SEED_ADMIN_EMAIL: admin.ci@plataforma.local
       SEED_ADMIN_PASSWORD: clave-de-ci-larga-123
       SMTP_HOST: localhost
@@ -77,11 +78,14 @@ jobs:
       - name: Crear las bases de los microservicios
         run: psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f docker/postgres/00-bases.sql
 
-      - name: Aplicar migraciones
+      - name: Aplicar migraciones del monolito
         run: pnpm --filter api exec prisma migrate deploy
 
+      - name: Aplicar migraciones de identity-service
+        run: pnpm --filter identity-service db:deploy
+
       - name: Sembrar el Admin Principal
-        run: pnpm --filter api db:seed
+        run: pnpm --filter api db:seed && pnpm --filter identity-service db:seed
 
       - name: Lint
         run: pnpm lint
