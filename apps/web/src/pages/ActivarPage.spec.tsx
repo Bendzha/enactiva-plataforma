@@ -33,7 +33,10 @@ const INVITACION_VALIDA = {
 
 describe('Activación de cuenta desde el correo', () => {
   it('muestra para qué empresa es la invitación y el aviso de privacidad', async () => {
-    simularApi({ '/auth/refresh': { status: 401 }, '/invitaciones/estado': INVITACION_VALIDA });
+    simularApi({
+      '/auth/refresh': { status: 401 },
+      '/identity/invitaciones/estado': INVITACION_VALIDA,
+    });
     renderizar(<App />, { ruta: RUTA_ACTIVAR });
 
     expect(await screen.findByText(/Planta Norte S\.A\./)).toBeInTheDocument();
@@ -46,7 +49,7 @@ describe('Activación de cuenta desde el correo', () => {
   it('avisa si el enlace ya no sirve', async () => {
     simularApi({
       '/auth/refresh': { status: 401 },
-      '/invitaciones/estado': {
+      '/identity/invitaciones/estado': {
         status: 410,
         cuerpo: { message: 'Esta invitación ya no es válida. Pide que te la reenvíen.' },
       },
@@ -60,7 +63,7 @@ describe('Activación de cuenta desde el correo', () => {
   it('no deja activar sin aceptar el aviso de privacidad', async () => {
     const api = simularApi({
       '/auth/refresh': { status: 401 },
-      '/invitaciones/estado': INVITACION_VALIDA,
+      '/identity/invitaciones/estado': INVITACION_VALIDA,
     });
     const usuario = userEvent.setup();
     renderizar(<App />, { ruta: RUTA_ACTIVAR });
@@ -71,11 +74,14 @@ describe('Activación de cuenta desde el correo', () => {
     await usuario.click(screen.getByRole('button', { name: 'Activar mi cuenta' }));
 
     expect(await screen.findByText(/Debes aceptar el aviso de privacidad/)).toBeInTheDocument();
-    expect(api.veces('POST /invitaciones/aceptar')).toBe(0);
+    expect(api.veces('POST /auth/invitaciones/aceptar')).toBe(0);
   });
 
   it('exige una contraseña de al menos 12 caracteres', async () => {
-    simularApi({ '/auth/refresh': { status: 401 }, '/invitaciones/estado': INVITACION_VALIDA });
+    simularApi({
+      '/auth/refresh': { status: 401 },
+      '/identity/invitaciones/estado': INVITACION_VALIDA,
+    });
     const usuario = userEvent.setup();
     renderizar(<App />, { ruta: RUTA_ACTIVAR });
 
@@ -91,13 +97,13 @@ describe('Activación de cuenta desde el correo', () => {
   it('activa la cuenta y entra directamente, sin volver a pedir la contraseña', async () => {
     const api = simularApi({
       '/auth/refresh': { status: 401 },
-      '/invitaciones/estado': INVITACION_VALIDA,
-      'POST /invitaciones/aceptar': {
+      '/identity/invitaciones/estado': INVITACION_VALIDA,
+      'POST /auth/invitaciones/aceptar': {
         status: 200,
         cuerpo: { accessToken: 'token-de-prueba', usuario: MARCELA },
       },
-      'GET /personas': { status: 200, cuerpo: [] },
-      'GET /areas': { status: 200, cuerpo: [] },
+      'GET /identity/personas': { status: 200, cuerpo: [] },
+      'GET /identity/areas': { status: 200, cuerpo: [] },
     });
     const usuario = userEvent.setup();
     renderizar(<App />, { ruta: RUTA_ACTIVAR });
@@ -113,6 +119,6 @@ describe('Activación de cuenta desde el correo', () => {
       expect(screen.getByRole('heading', { name: 'Personas' })).toBeInTheDocument();
     });
     expect(screen.queryByRole('heading', { name: 'Empresas piloto' })).not.toBeInTheDocument();
-    expect(api.veces('POST /invitaciones/aceptar')).toBe(1);
+    expect(api.veces('POST /auth/invitaciones/aceptar')).toBe(1);
   });
 });

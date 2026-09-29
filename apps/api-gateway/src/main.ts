@@ -1,13 +1,15 @@
 import { Logger } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module.js';
+import { configurarGateway } from './configurar.js';
 import { env } from './config/env.js';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  // Sin body parser: el gateway reenvía el cuerpo tal cual. Si Nest lo leyera primero, el stream
+  // llegaría consumido al servicio y cualquier POST se quedaría esperando para siempre.
+  const app = await NestFactory.create(AppModule, { bodyParser: false });
 
-  // El CORS con cookies se resuelve aquí: la web habla solo con el gateway (ADR-0007).
-  app.enableCors({ origin: env().WEB_ORIGIN, credentials: true });
+  configurarGateway(app);
   app.enableShutdownHooks();
 
   const puerto = env().PORT_GATEWAY;

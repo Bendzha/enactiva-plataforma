@@ -39,8 +39,8 @@ const INVITADO: PersonaResumen = {
 };
 
 const rutasBase = {
-  'GET /personas': { status: 200, cuerpo: [MARCELA, INVITADO] },
-  'GET /areas': { status: 200, cuerpo: AREAS },
+  'GET /identity/personas': { status: 200, cuerpo: [MARCELA, INVITADO] },
+  'GET /identity/areas': { status: 200, cuerpo: AREAS },
 };
 
 describe('Pantalla de Personas (RRHH)', () => {
@@ -60,7 +60,7 @@ describe('Pantalla de Personas (RRHH)', () => {
   it('invita a una persona nueva con su rol y su área', async () => {
     const api = simularSesionIniciada(RRHH_PLANTA, {
       ...rutasBase,
-      'POST /personas': { status: 201, cuerpo: INVITADO },
+      'POST /identity/personas': { status: 201, cuerpo: INVITADO },
     });
     const usuario = userEvent.setup();
     renderizar(<App />, { ruta: '/personas' });
@@ -72,13 +72,13 @@ describe('Pantalla de Personas (RRHH)', () => {
     await usuario.click(screen.getByRole('button', { name: 'Enviar invitación' }));
 
     expect(await screen.findByRole('status')).toHaveTextContent('Invitación enviada a');
-    expect(api.veces('POST /personas')).toBe(1);
+    expect(api.veces('POST /identity/personas')).toBe(1);
   });
 
   it('al subir un CSV muestra qué filas entran y cuáles fallan antes de confirmar', async () => {
     const api = simularSesionIniciada(RRHH_PLANTA, {
       ...rutasBase,
-      'POST /personas/importar/vista-previa': {
+      'POST /identity/personas/importar/vista-previa': {
         status: 200,
         cuerpo: {
           validas: 1,
@@ -105,7 +105,7 @@ describe('Pantalla de Personas (RRHH)', () => {
           ],
         },
       },
-      'POST /personas/importar': {
+      'POST /identity/personas/importar': {
         status: 201,
         cuerpo: { validas: 1, conError: 1, filas: [], invitadas: 1, areasCreadas: ['Calidad'] },
       },
@@ -127,7 +127,7 @@ describe('Pantalla de Personas (RRHH)', () => {
     expect(await screen.findByText('Email inválido')).toBeInTheDocument();
     expect(screen.getByText('Se invitará')).toBeInTheDocument();
     expect(screen.getByText(/\(nueva\)/)).toBeInTheDocument();
-    expect(api.veces('POST /personas/importar')).toBe(0);
+    expect(api.veces('POST /identity/personas/importar')).toBe(0);
 
     await usuario.click(screen.getByRole('button', { name: 'Invitar a 1 personas' }));
 
@@ -139,7 +139,7 @@ describe('Pantalla de Personas (RRHH)', () => {
 
   it('el equipo de ENACTIVA no administra la gente de las empresas', async () => {
     simularSesionIniciada(ADMIN_PRINCIPAL, {
-      'GET /empresas': { status: 200, cuerpo: [] },
+      'GET /identity/empresas': { status: 200, cuerpo: [] },
     });
     renderizar(<App />, { ruta: '/personas' });
 

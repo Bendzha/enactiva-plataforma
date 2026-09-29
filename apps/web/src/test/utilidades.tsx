@@ -44,7 +44,7 @@ type Manejador = RespuestaFalsa | (() => RespuestaFalsa);
 
 /**
  * Reemplaza fetch por un mapa de ruta -> respuesta, para no depender de la API real.
- * Las claves pueden ser "/ruta" o "MÉTODO /ruta" (por ejemplo "POST /empresas").
+ * Las claves pueden ser "/ruta" o "MÉTODO /ruta" (por ejemplo "POST /identity/empresas").
  */
 export function simularApi(rutas: Record<string, Manejador>) {
   const llamadas: string[] = [];

@@ -15,12 +15,15 @@ const CLAVE_AREAS = ['areas'] as const;
 export function usePersonas() {
   return useQuery({
     queryKey: CLAVE_PERSONAS,
-    queryFn: () => pedir<PersonaResumen[]>('/personas'),
+    queryFn: () => pedir<PersonaResumen[]>('/identity/personas'),
   });
 }
 
 export function useAreas() {
-  return useQuery({ queryKey: CLAVE_AREAS, queryFn: () => pedir<AreaResumen[]>('/areas') });
+  return useQuery({
+    queryKey: CLAVE_AREAS,
+    queryFn: () => pedir<AreaResumen[]>('/identity/areas'),
+  });
 }
 
 function useRefrescar() {
@@ -35,7 +38,7 @@ export function useInvitarPersona() {
   const refrescar = useRefrescar();
   return useMutation({
     mutationFn: (datos: InvitarPersonaInput) =>
-      pedir<PersonaResumen>('/personas', { method: 'POST', body: JSON.stringify(datos) }),
+      pedir<PersonaResumen>('/identity/personas', { method: 'POST', body: JSON.stringify(datos) }),
     onSuccess: refrescar,
   });
 }
@@ -44,7 +47,7 @@ export function useReenviarInvitacionPersona() {
   const refrescar = useRefrescar();
   return useMutation({
     mutationFn: (id: string) =>
-      pedir<PersonaResumen>(`/personas/${id}/invitacion/reenviar`, { method: 'POST' }),
+      pedir<PersonaResumen>(`/identity/personas/${id}/invitacion/reenviar`, { method: 'POST' }),
     onSuccess: refrescar,
   });
 }
@@ -53,7 +56,7 @@ export function useCrearArea() {
   const refrescar = useRefrescar();
   return useMutation({
     mutationFn: (datos: CrearAreaInput) =>
-      pedir<AreaResumen>('/areas', { method: 'POST', body: JSON.stringify(datos) }),
+      pedir<AreaResumen>('/identity/areas', { method: 'POST', body: JSON.stringify(datos) }),
     onSuccess: refrescar,
   });
 }
@@ -62,7 +65,7 @@ export function useCrearArea() {
 export function useVistaPreviaImportacion() {
   return useMutation({
     mutationFn: (contenido: string) =>
-      pedir<VistaPreviaImportacion>('/personas/importar/vista-previa', {
+      pedir<VistaPreviaImportacion>('/identity/personas/importar/vista-previa', {
         method: 'POST',
         body: JSON.stringify({ contenido }),
       }),
@@ -73,7 +76,7 @@ export function useImportarPersonas() {
   const refrescar = useRefrescar();
   return useMutation({
     mutationFn: (contenido: string) =>
-      pedir<ResultadoImportacion>('/personas/importar', {
+      pedir<ResultadoImportacion>('/identity/personas/importar', {
         method: 'POST',
         body: JSON.stringify({ contenido }),
       }),

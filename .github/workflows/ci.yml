@@ -45,6 +45,7 @@ jobs:
 
     env:
       NODE_ENV: test
+      # Base de mantenimiento: ningún servicio la usa, solo sirve para crear las demás.
       DATABASE_URL: postgresql://enactiva:enactiva@localhost:5432/plataforma
       # Una base por microservicio (ADR-0007). Las crea el mismo script que se usa en local,
       # para que CI y el PC de cada uno no se separen.
@@ -78,14 +79,11 @@ jobs:
       - name: Crear las bases de los microservicios
         run: psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f docker/postgres/00-bases.sql
 
-      - name: Aplicar migraciones del monolito
-        run: pnpm --filter api exec prisma migrate deploy
-
-      - name: Aplicar migraciones de identity-service
+      - name: Aplicar migraciones
         run: pnpm --filter identity-service db:deploy
 
       - name: Sembrar el Admin Principal
-        run: pnpm --filter api db:seed && pnpm --filter identity-service db:seed
+        run: pnpm --filter identity-service db:seed
 
       - name: Lint
         run: pnpm lint

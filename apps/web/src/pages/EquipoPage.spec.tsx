@@ -37,7 +37,7 @@ const COLABORADOR: AdminResumen = {
 describe('Equipo ENACTIVA', () => {
   it('lista al equipo con su nivel y el estado de las invitaciones', async () => {
     simularSesionIniciada(ADMIN_PRINCIPAL, {
-      'GET /admins': { status: 200, cuerpo: [KARINA, COLABORADOR] },
+      'GET /identity/admins': { status: 200, cuerpo: [KARINA, COLABORADOR] },
     });
     renderizar(<App />, { ruta: '/equipo' });
 
@@ -49,7 +49,7 @@ describe('Equipo ENACTIVA', () => {
 
   it('no ofrece quitarse el acceso a uno mismo', async () => {
     simularSesionIniciada(ADMIN_PRINCIPAL, {
-      'GET /admins': { status: 200, cuerpo: [KARINA, COLABORADOR] },
+      'GET /identity/admins': { status: 200, cuerpo: [KARINA, COLABORADOR] },
     });
     renderizar(<App />, { ruta: '/equipo' });
 
@@ -62,8 +62,8 @@ describe('Equipo ENACTIVA', () => {
 
   it('invita a alguien nuevo y confirma el envío', async () => {
     const api = simularSesionIniciada(ADMIN_PRINCIPAL, {
-      'GET /admins': { status: 200, cuerpo: [KARINA] },
-      'POST /admins': { status: 201, cuerpo: COLABORADOR },
+      'GET /identity/admins': { status: 200, cuerpo: [KARINA] },
+      'POST /identity/admins': { status: 201, cuerpo: COLABORADOR },
     });
     const usuario = userEvent.setup();
     renderizar(<App />, { ruta: '/equipo' });
@@ -74,13 +74,13 @@ describe('Equipo ENACTIVA', () => {
     await usuario.click(screen.getByRole('button', { name: 'Enviar invitación' }));
 
     expect(await screen.findByRole('status')).toHaveTextContent('Invitación enviada a');
-    expect(api.veces('POST /admins')).toBe(1);
+    expect(api.veces('POST /identity/admins')).toBe(1);
   });
 
   it('pide confirmación antes de quitar el acceso y explica qué implica', async () => {
     const api = simularSesionIniciada(ADMIN_PRINCIPAL, {
-      'GET /admins': { status: 200, cuerpo: [KARINA, COLABORADOR] },
-      [`PATCH /admins/${COLABORADOR.id}/desactivar`]: {
+      'GET /identity/admins': { status: 200, cuerpo: [KARINA, COLABORADOR] },
+      [`PATCH /identity/admins/${COLABORADOR.id}/desactivar`]: {
         status: 200,
         cuerpo: { ...COLABORADOR, estado: 'SUSPENDIDO' },
       },
@@ -99,11 +99,13 @@ describe('Equipo ENACTIVA', () => {
     await usuario.click(within(confirmacion).getByRole('button', { name: 'Quitar acceso' }));
 
     expect(await screen.findByRole('status')).toHaveTextContent('ya no tiene acceso');
-    expect(api.veces(`PATCH /admins/${COLABORADOR.id}/desactivar`)).toBe(1);
+    expect(api.veces(`PATCH /identity/admins/${COLABORADOR.id}/desactivar`)).toBe(1);
   });
 
   it('el Admin Operativo no ve la pestaña Equipo ni puede entrar por la URL', async () => {
-    simularSesionIniciada(ADMIN_OPERATIVO, { 'GET /empresas': { status: 200, cuerpo: [] } });
+    simularSesionIniciada(ADMIN_OPERATIVO, {
+      'GET /identity/empresas': { status: 200, cuerpo: [] },
+    });
     renderizar(<App />, { ruta: '/equipo' });
 
     expect(

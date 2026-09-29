@@ -58,7 +58,7 @@ export function SesionProvider({ children }: { children: ReactNode }) {
 
   /** Activar una invitación deja la sesión iniciada: no hay que volver a escribir la contraseña. */
   const activarCuenta = useCallback(async (entrada: AceptarInvitacionInput) => {
-    const datos = await pedir<RespuestaLogin>('/invitaciones/aceptar', {
+    const datos = await pedir<RespuestaLogin>('/auth/invitaciones/aceptar', {
       method: 'POST',
       body: JSON.stringify(entrada),
     });

@@ -7,14 +7,14 @@ const CLAVE_EMPRESAS = ['empresas'] as const;
 export function useEmpresas() {
   return useQuery({
     queryKey: CLAVE_EMPRESAS,
-    queryFn: () => pedir<EmpresaResumen[]>('/empresas'),
+    queryFn: () => pedir<EmpresaResumen[]>('/identity/empresas'),
   });
 }
 
 export function useEmpresa(id: string | null) {
   return useQuery({
     queryKey: ['empresa', id],
-    queryFn: () => pedir<EmpresaDetalle>(`/empresas/${id!}`),
+    queryFn: () => pedir<EmpresaDetalle>(`/identity/empresas/${id!}`),
     enabled: id !== null,
   });
 }
@@ -32,7 +32,7 @@ export function useCrearEmpresa() {
   const refrescar = useRefrescar();
   return useMutation({
     mutationFn: (datos: CrearEmpresaInput) =>
-      pedir<EmpresaDetalle>('/empresas', { method: 'POST', body: JSON.stringify(datos) }),
+      pedir<EmpresaDetalle>('/identity/empresas', { method: 'POST', body: JSON.stringify(datos) }),
     onSuccess: (empresa) => refrescar(empresa.id),
   });
 }
@@ -41,7 +41,7 @@ export function useActivarEmpresa() {
   const refrescar = useRefrescar();
   return useMutation({
     mutationFn: (id: string) =>
-      pedir<EmpresaDetalle>(`/empresas/${id}/activar`, { method: 'PATCH' }),
+      pedir<EmpresaDetalle>(`/identity/empresas/${id}/activar`, { method: 'PATCH' }),
     onSuccess: (empresa) => refrescar(empresa.id),
   });
 }
@@ -50,7 +50,7 @@ export function useReenviarInvitacion() {
   const refrescar = useRefrescar();
   return useMutation({
     mutationFn: (id: string) =>
-      pedir<EmpresaDetalle>(`/empresas/${id}/invitacion/reenviar`, { method: 'POST' }),
+      pedir<EmpresaDetalle>(`/identity/empresas/${id}/invitacion/reenviar`, { method: 'POST' }),
     onSuccess: (empresa) => refrescar(empresa.id),
   });
 }
