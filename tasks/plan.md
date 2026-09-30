@@ -10,8 +10,9 @@
 - ✅ **Slice 3 completo** (MVP 1): T3.1 a T3.5 mergeadas (PR #15).
 - ✅ **Migración a microservicios** (ADR-0007): fases **M0, M1 y M2 listas**. El monolito ya no existe y la web corre sobre el gateway.
 - ⏭️ Siguiente: **Slice 4** dentro de `identity-service`. Es el único que se puede empezar sin esperar respuestas.
-- 🔴 **El acta del 2026-09-29 cambió el alcance** (ADR-0008): la plataforma no aloja clases. Cae la subida de contenidos; aparecen la ficha del taller, el cupo, la ubicación, la disponibilidad, la agenda y los recordatorios.
-- ❓ **Tres preguntas bloquean los Slices 5 a 8**: Q9 (¿sobreviven las tres etapas?), Q10 (¿sobrevive la rúbrica?) y Q11 (¿se renombra a taller/facilitador?). Ver SPEC §11.
+- 🔴 **El 2026-09-29 la clienta cambió el alcance** (ADR-0008): la plataforma no aloja clases. Cae la subida de contenidos; aparecen la ficha del taller, el cupo, la ubicación, la disponibilidad, la agenda y los recordatorios.
+- 🎮 **Segundo eje del producto** (WhatsApp de la clienta, 2026-09-29, ADR-0009): valoración del encuentro con estrellas, referencias públicas y tokens de reconocimiento. "Match corporativo + gamificación corporativa". Es el Slice 8.
+- ❓ **Preguntas que bloquean del Slice 5 en adelante**: Q9 (etapas), Q10 (rúbrica), Q11 (taller/facilitador) y Q15 a Q18 (valoración, referencias y tokens). Ver SPEC §11.
 - 👀 La plataforma se abre en http://localhost:5173: ver "Levantar la plataforma en local" en el README.
 
 **En un PC nuevo:** Docker Desktop → `docker compose up -d --wait` → `pnpm install` → copiar `.env.example` a `.env` y completar los secretos → `pnpm --filter identity-service db:deploy` → `pnpm --filter identity-service db:seed` → `pnpm test`.
@@ -184,21 +185,38 @@ Es **el corazón del producto** según el acta: "Activa facilitará matches corp
 | T7.2 | Recordatorio por correo al facilitador y a los inscritos | reutiliza el correo del Slice 1 (ADR-0004) |
 | T7.3 | Web: pantalla de agenda | funciona en móvil |
 
-## Slice 8 — Rúbrica y mediciones · ⏸️ EN ESPERA
+## Slice 8 — Valoración del encuentro y gamificación
+**Demo:** al terminar un taller, quien asistió lo valora con estrellas, deja su referencia y el facilitador recibe sus tokens; RRHH ve en el dashboard si los matches funcionaron.
+**Slice nuevo**, pedido por la clienta por WhatsApp el 2026-09-29 (ADR-0009). Es el segundo eje del producto: "gamificación corporativa".
+
+| # | Tarea | Criterio de aceptación |
+|---|---|---|
+| T8.1 | Migración: `ValoracionTaller` (estrellas por dimensión, asistencia), `Referencia` y `Token` | solo valora quien asistió, y una sola vez por taller |
+| T8.2 | Migración: puntuación del match (¿se reunieron?, ¿a la hora?, ¿como esperaban?, ¿repetirían?) | depende de Q15 |
+| T8.3 | API de valoración: estrellas, asistencia y referencia | la referencia se firma con el nombre de quien la escribe (ADR-0009) |
+| T8.4 | API de moderación para RRHH: ocultar una referencia, con auditoría | no se borra, se oculta |
+| T8.5 | Tokens del facilitador: contador por taller, sin valor canjeable | Q18 antes de ir más lejos |
+| T8.6 | El promedio del facilitador alimenta el score de afinidad | matching lo pide por REST a learning |
+| T8.7 | Web: pantalla de valoración y tarjeta de perfil con estrellas, referencias y tokens | como el ejemplo que mandó la clienta |
+
+**Preguntas que lo bloquean:** Q15, Q16, Q17 y Q18.
+
+## Slice 9 — Rúbrica y mediciones · ⏸️ EN ESPERA
 **Bloqueado por Q10.** La clienta lo confirmó en detalle el 2026-09-15, pero el acta del 2026-09-29 no lo
 menciona y describe un taller presencial único, donde medir en tres momentos no tiene un lugar evidente
 donde ocurrir. **No empezar sin su respuesta.**
 
 | # | Tarea | Criterio de aceptación |
 |---|---|---|
-| T8.1 | Migración: `Rubrica`, `Indicador`, `Medicion`, `PuntajeIndicador` | pesos enteros; umbral por rúbrica |
-| T8.2 | API de rúbrica: crear y editar en borrador; se congela al empezar | no se puede editar después; suma de pesos = 100 |
-| T8.3 | Cálculo de logro por dimensión y total, y delta relativo entre momentos | función pura con tests, incluido diagnóstico = 0 |
-| T8.4 | API de mediciones: registrar los momentos por estudiante | no se cierra una medición incompleta |
-| T8.5 | Web: rúbrica del taller y pantalla de evaluación | — |
+| T9.1 | Migración: `Rubrica`, `Indicador`, `Medicion`, `PuntajeIndicador` | pesos enteros; umbral por rúbrica |
+| T9.2 | API de rúbrica: crear y editar en borrador; se congela al empezar | no se puede editar después; suma de pesos = 100 |
+| T9.3 | Cálculo de logro por dimensión y total, y delta relativo entre momentos | función pura con tests, incluido diagnóstico = 0 |
+| T9.4 | API de mediciones: registrar los momentos por estudiante | no se cierra una medición incompleta |
+| T9.5 | Web: rúbrica del taller y pantalla de evaluación | — |
 
 **Preguntas que bloquean lo que queda:** Q9 (¿sobreviven las tres etapas?), Q10 (¿sobrevive la
-evaluación?), Q11 (¿se renombra a taller/facilitador?). Q4 y Q5 dependen de Q10.
+rúbrica?), Q11 (¿se renombra a taller/facilitador?) y Q15 a Q18 (valoración, referencias y tokens).
+Q4 depende de Q10.
 
 ---
 
