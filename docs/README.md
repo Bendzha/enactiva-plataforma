@@ -6,7 +6,9 @@ Estos archivos contienen todo el contexto de negocio y las decisiones ya validad
 
 - **specs/SPEC.md** — Especificación vigente del MVP: roles y permisos, reglas de dominio confirmadas con la clienta (rúbrica, matching, mediciones, privacidad), límites y preguntas abiertas. **Es la fuente de verdad de qué construir.**
 
-- **decisions/** — Registros de decisiones de arquitectura (ADRs): monorepo, modelo de datos, autenticación y permisos, correo transaccional.
+- **reuniones/** — Actas de las reuniones con la clienta, en PDF y en texto plano. La clienta pidió expresamente conservarlas como evidencia. **El acta del 2026-09-29 cambió el alcance del producto**: la plataforma no aloja clases.
+
+- **decisions/** — Registros de decisiones de arquitectura (ADRs): monorepo, modelo de datos, autenticación y permisos, correo transaccional, microservicios y ficha de taller.
 
 - **arquitectura-tecnica.md** — Stack tecnológico decidido (React+TS, NestJS, PostgreSQL+Prisma), con el porqué de cada elección y las alternativas descartadas. Incluye el diagrama de arquitectura, retos técnicos esperados y el roadmap por fases del MVP. **Léelo antes de proponer cualquier estructura de carpetas o esquema de base de datos.** Nota: su roadmap ubica el Panel Admin en el MVP 3; la prioridad vigente lo pone primero (ver `../tasks/plan.md`).
 
