@@ -1,7 +1,17 @@
 # Especificación — la plataforma (MVP piloto ENACTIVA)
 
-**Estado:** Aprobada por el equipo (2026-09-15) · **Fecha:** 2026-09-15
-**Fuentes:** prompt de arquitectura del equipo, `docs/arquitectura-tecnica.md`, `docs/informe-fase1.docx`, `docs/mockup-sistema.html`, respuestas de la clienta (2026-09-15).
+**Estado:** Aprobada por el equipo (2026-09-15) · **Revisada con la clienta el 2026-09-29**
+**Fuentes:** prompt de arquitectura del equipo, `docs/arquitectura-tecnica.md`, `docs/informe-fase1.docx`, `docs/mockup-sistema.html`, respuestas de la clienta (2026-09-15), **acta de la reunión con la clienta del 2026-09-29**.
+
+> **Qué cambió el 2026-09-29.** La clienta aclaró que la plataforma **no aloja clases**: conecta
+> personas dentro de una misma empresa y convoca a talleres que ocurren en persona (ADR-0008).
+> Cae la subida de contenidos (§3.2, ADR-0006, Q6 y Q8) y aparecen la ficha del taller, el cupo,
+> la ubicación, la disponibilidad horaria, la agenda y los recordatorios por correo.
+> Quedan en duda las secciones de evaluación (§3.3 y §3.4): ver Q9 y Q10.
+>
+> **Ese mismo día, por WhatsApp,** la clienta agregó la valoración del encuentro, las referencias
+> públicas y los tokens de reconocimiento: "Así se puede usar la plataforma como: 1. Match
+> corporativo 2. Gamificación corporativa". Está en §3.5 y en el ADR-0009.
 
 > Trazabilidad (mismo marco del informe): **[C]** confirmado por la clienta · **[S]** supuesto del equipo, por validar · **[P]** propuesta técnica del equipo.
 > `docs/requerimientos.xlsx` es **histórico** (describe el concepto previo de cartografía de red / simulador) y no es fuente de verdad.
@@ -35,11 +45,27 @@ Los permisos se definen como un **mapa rol → permisos en código** (ver ADR-00
 - Rubro: texto libre **[C]**.
 - Al agregar una empresa se crea la cuenta RRHH en estado `INVITADO` y se envía **correo real de invitación** **[C]**. El invitado completa su propio nombre y contraseña al activar **[P]** (minimización: el Admin solo ingresa el email).
 
-### 3.2 Curso
-- Etapas fijas, sin excepciones: **Diagnóstico → Clase → Monitoreo** **[C]**, más estado `FINALIZADO` al cerrar Monitoreo **[P]**.
-- **Etapa ≠ momento de medición.** Momentos: diagnóstico, intermedio (ocurre durante la Clase), monitoreo **[C]**.
-- **Contenido: archivos que sube el capacitador o la empresa** **[C]**; la plataforma aporta la estructura y los ordena por etapa. Almacenamiento, tipos y límites en ADR-0006.
-- Sin cupo máximo **[C]**.
+### 3.2 Taller (llamado "curso" en el código)
+> Reescrita el 2026-09-29 a partir del acta. **La plataforma no aloja clases** (ADR-0008): conecta
+> personas y convoca a una actividad que ocurre **en persona**.
+
+- El facilitador publica una **ficha del taller** con: nombre, fecha, horario, cupo, objetivo,
+  resultados esperados y **ubicación de la actividad presencial** **[C, acta 2026-09-29]**.
+- **No hay contenidos que subir.** Sin archivos, sin almacenamiento, sin descargas **[C, acta 2026-09-29]**.
+  El ADR-0006 queda reemplazado por el ADR-0008.
+- **Cupo máximo: sí existe** **[C, acta 2026-09-29]**. Corrige la respuesta del 2026-09-15 ("sin cupo
+  máximo"): un taller presencial tiene el límite físico de la sala.
+- **Disponibilidad horaria del facilitador**: declara cuándo puede enseñar, y los participantes lo ven
+  **[C, acta 2026-09-29]**.
+- **Agenda y recordatorios por correo** para facilitador y participantes **[C, acta 2026-09-29]**.
+- ~~Etapas fijas **Diagnóstico → Clase → Monitoreo**~~ **[C 2026-09-15, en duda Q9]**: confirmado por la
+  clienta el 2026-09-15, pero el acta describe una sesión presencial única. Hay que preguntarle si la
+  estructura de tres etapas sigue teniendo sentido antes de construirla (Q9).
+
+> **Las secciones 3.3, 3.4 y 3.5 quedaron en duda tras el acta del 2026-09-29 (Q10).** La clienta las
+> confirmó en detalle el 2026-09-15 y no las desmintió, así que siguen vigentes; pero el acta no las
+> menciona y describe un taller presencial único, donde medir en tres momentos no tiene un lugar
+> evidente donde ocurrir. **Preguntar antes de construir los Slices 5 y 7.**
 
 ### 3.3 Rúbrica y logro
 - La rúbrica pertenece a un curso; el capacitador define indicadores, la dimensión de cada indicador y los pesos **[C]**.
@@ -61,16 +87,67 @@ Los permisos se definen como un **mapa rol → permisos en código** (ver ADR-00
 - Como los tests tienen dificultad creciente, **su delta no es comparable**; el delta de evolución se toma de la **rúbrica** y los tests se muestran como % por nivel **[P, Q4]**.
 - Tipo de pregunta (ej. selección múltiple): por definir.
 
-### 3.5 Medición del capacitador
-- Se mide por **cursos dictados** y **calificación de los estudiantes** **[C]**.
-- La calificación se hace **al final del curso**, una sola nota sobre cómo le pareció el curso **[C]**; escala 1–5 estrellas **[S, Q5]** (coincide con el mockup).
-- El capacitador ve el promedio, no quién calificó qué **[S, Q5]**.
+### 3.5 Valoración del encuentro y reconocimiento
+
+> Reescrita el 2026-09-29 con lo que la clienta mandó por WhatsApp ese mismo día, después de la
+> reunión. Reemplaza la nota única que había antes. Ver ADR-0009.
+
+La clienta lo resumió así: **"Así se puede usar la plataforma como: 1. Match corporativo
+2. Gamificación corporativa"** **[C]**.
+
+#### Qué se pregunta al cerrar un taller
+Al terminar, el participante valora el encuentro **[C]**. La clienta dio este ejemplo textual:
+
+```
+HENRY CAVILL
+Taller sobre arreglos de CPU
+
+Claridad                    ⭐⭐⭐⭐
+¿Me sentí seguro en el taller?  ⭐⭐⭐⭐⭐
+Aplicación                  ⭐⭐⭐⭐
+Uso de materiales           ⭐
+Mi asistencia al taller     ✅
+
+Referencia (info pública): volveré al taller 2 porque ahora quiero
+arreglar unos lentes de META.
+```
+
+- **Dimensiones en estrellas** **[C]**: claridad, seguridad percibida, aplicación y uso de
+  materiales. Escala de 1 a 5 **[S]** (el ejemplo llega a 5). Si el set es fijo o configurable
+  por empresa: **Q16**.
+- **Asistencia**, marcada por el participante **[C]**.
+- **Referencia en texto libre**, declarada **"info pública"** por la clienta **[C]**. Alcance de
+  esa publicidad y moderación: **Q17** — ver el riesgo en ADR-0009.
+
+#### Cómo se puntúa el match
+La clienta pidió que el dashboard puntúe **el match en sí**, no solo al facilitador **[C]**:
+
+| Pregunta | Fuente |
+|---|---|
+| ¿Se reunieron o no? | WhatsApp 2026-09-29 |
+| ¿Lograron reunirse en el día y hora acordados? | WhatsApp 2026-09-29 |
+| ¿La actividad fue como se la imaginaron? | WhatsApp 2026-09-29 |
+| ¿Volverían a hacer match con esa persona? | WhatsApp 2026-09-29 |
+
+Quién contesta (solo el participante, o ambas partes) y en qué momento: **Q15**.
+
+#### Tokens de reconocimiento
+- Quien enseñó recibe **tokens de regalo** como reconocimiento **[C]**.
+- La clienta los describió como **"visibles pero privados"** **[C]**, que a primera vista se
+  contradice. Qué significa exactamente: **Q18**.
+- Si los tokens son solo un contador simbólico o tienen valor canjeable: **Q18**.
+
+#### Lo que se conserva del modelo anterior
+- El facilitador se sigue midiendo por **talleres dictados** y por la valoración que recibe **[C]**.
+- La valoración alimenta el **score de afinidad** del matching (§3.6) **[P]**.
+- ~~"El capacitador ve el promedio, no quién calificó qué"~~ **[S, en duda]**: era un supuesto del
+  equipo, y choca con la referencia pública y con los tokens. Se resuelve con Q17 y Q18.
 
 ### 3.6 Matching
 - Solo dentro de la **misma empresa** **[C]**.
 - Grafo: nodos = personas; arista potencial = A enseña tema T y B quiere aprender T (se calcula); arista decidida = `Match` (se guarda) **[P]**.
-- Cada tarjeta del swipe es **capacitador + curso existente** **[C]**. Solo aparecen cursos en etapa **Diagnóstico**, para que el estudiante tenga línea base **[P]**.
-- Like = **inscripción inmediata** al curso, sin aprobación del capacitador **[C]**. Descarte = no se vuelve a mostrar esa tarjeta **[P]**.
+- Cada tarjeta del swipe es **facilitador + taller convocado** **[C]**, con su fecha, su cupo y su lugar. Qué talleres entran al mazo depende de Q9: si sobreviven las etapas, los que estén en Diagnóstico; si no, los que aún no ocurren y tienen cupo **[P]**.
+- Like = **inscripción inmediata** al taller, sin aprobación del facilitador **[C]**. Descarte = no se vuelve a mostrar esa tarjeta **[P]**. Al llenarse el cupo el taller sale del mazo **[P, acta 2026-09-29]**.
 - Score de afinidad simple (sin ML) con **todos** los criterios **[C]**: dimensiones coincidentes, nivel, área, valoración del capacitador. Pesos iniciales iguales, constantes en código, ajustados con datos reales **[C]**. Signo del criterio área (misma área suma) **[S]**.
 - Catálogo de temas: lo crean Admin, RRHH y Capacitador **[C]**. Temas **por empresa**, con nombre normalizado único y buscador que sugiere existentes antes de crear **[P]** (evita duplicados que romperían el matching).
 
@@ -83,16 +160,21 @@ Los permisos se definen como un **mapa rol → permisos en código** (ver ADR-00
 - HTTPS obligatorio. Sin cifrado a nivel de campo para puntajes (rompe agregaciones); se reevalúa si se agregan comentarios libres **[P]**.
 
 ## 4. Fuera de alcance
-LMS con catálogo · IA generativa de contenidos · SaaS multi-tenant · certificación externa · colores por empresa (paleta fija `#00347A` / blanco / `#FFB627`).
+**Alojar clases o material: la plataforma no es un Moodle** **[C, acta 2026-09-29]** · LMS con catálogo ·
+IA generativa de contenidos · SaaS multi-tenant · certificación externa · colores por empresa
+(paleta fija `#00347A` / blanco / `#FFB627`).
+
+Las métricas globales avanzadas (patrones de intereses entre empresas, detección de oportunidades de
+nuevos servicios) quedan para **una fase posterior**: las métricas actuales del panel le bastan a la
+clienta para la primera versión **[C, acta 2026-09-29]**.
 
 ## 5. Estructura del proyecto
-Ver ADR-0001 y **ADR-0007** (migración a microservicios, en curso). Resumen:
+Ver ADR-0001 y **ADR-0007** (microservicios; migración terminada el 2026-09-28). Resumen:
 ```
-apps/api               NestJS (monolito modular) + Prisma — congelado, se elimina en M2
 apps/api-gateway       único punto de entrada del frontend
 apps/auth-service      emisión y rotación de JWT
 apps/identity-service  empresas, personas, invitaciones, temas y correo
-apps/learning-service  cursos, rúbricas y mediciones
+apps/learning-service  talleres, agenda y (si sigue en alcance) rúbricas y mediciones
 apps/matching-service  motor de matching
 apps/web               React + Vite + TanStack Query + shadcn/ui
 packages/shared        Zod schemas, tipos, enums y permisos compartidos
@@ -107,16 +189,16 @@ El reparto de datos entre servicios, y lo que se pierde al separarlos, está en 
 corepack enable                                # pnpm vía corepack (Node 24 LTS)
 pnpm install
 docker compose up -d                           # Postgres + Mailpit
-cp apps/api/.env.example apps/api/.env         # completar variables del seed
-pnpm --filter api db:migrate
-pnpm --filter api db:seed
-pnpm dev                                       # api + web en paralelo
+cp .env.example .env                           # completar secretos y SEED_ADMIN_*
+pnpm --filter identity-service db:deploy
+pnpm --filter identity-service db:seed
+pnpm dev                                       # web, gateway y los cuatro servicios
 pnpm lint && pnpm typecheck && pnpm test
 ```
 
 ## 7. Estilo de código
 - TypeScript estricto en todo el monorepo; ESLint + Prettier compartidos.
-- **Dominio en español** (`Empresa`, `Curso`, `Rubrica`, `logroTotal`), **términos técnicos en inglés** (`Controller`, `Service`, `Guard`, `dto`).
+- **Dominio en español** (`Empresa`, `Taller`, `Rubrica`, `logroTotal`), **términos técnicos en inglés** (`Controller`, `Service`, `Guard`, `dto`). El nombre definitivo de la entidad depende de Q11.
 - Modelos Prisma en PascalCase mapeados a tablas snake_case (`@@map`).
 - Un módulo NestJS por contexto de negocio; un módulo no accede a tablas de otro sin pasar por su service.
 - Validación de entrada con Zod (esquemas en `packages/shared`).
@@ -147,20 +229,32 @@ export class EmpresasController {
 
 ## 10. Criterios de éxito del MVP
 1. Admin crea una empresa, el contacto RRHH recibe la invitación por correo y activa su cuenta.
-2. Un estudiante hace like a un curso de su empresa y queda inscrito.
-3. Un capacitador evalúa a sus estudiantes con su rúbrica en los 3 momentos y el sistema calcula logro y delta según §3.3.
-4. RRHH ve el dashboard de su empresa y lo exporta a PDF y Excel; el capacitador ve la evolución de sus estudiantes y la exporta.
-5. Ningún usuario puede leer datos de otra empresa (verificado por tests e2e).
-6. Un usuario puede exportar sus datos y solicitar supresión; toda acción queda en auditoría.
+2. Una persona hace like a un taller de su empresa y queda inscrita, respetando el cupo.
+3. Un facilitador publica la ficha de un taller y tanto él como los inscritos lo ven en su agenda y reciben el recordatorio por correo.
+4. Tras un taller, quien asistió lo valora con estrellas, deja su referencia y el facilitador recibe sus tokens.
+5. RRHH ve el dashboard de su empresa, con las puntuaciones de los matches, y lo exporta a PDF y Excel.
+6. *(Depende de Q10)* Un facilitador evalúa con su rúbrica en los 3 momentos y el sistema calcula logro y delta según §3.3.
+7. Ningún usuario puede leer datos de otra empresa (verificado por tests e2e).
+8. Un usuario puede exportar sus datos y solicitar supresión; toda acción queda en auditoría.
 
 ## 11. Preguntas abiertas
 | # | Pregunta | Bloquea |
 |---|---|---|
 | Q1 | Nombre del dominio de ENACTIVA y quién administra su DNS (para SPF/DKIM). **Por ahora todo se trabaja en local** (correos en Mailpit); se define al publicar | Despliegue público |
 | ~~Q2~~ | ✅ Resuelto 2026-09-15: el Admin Operativo solo carga empresas e invita; no activa | — |
-| Q3 | Texto del aviso de privacidad (lo aprueba ENACTIVA) | Slice 2 |
-| Q4 | ¿Son 3 tests (inicio/básico, intermedio, avanzado/final) o 4? ¿Confirma que el delta de evolución se toma solo de la rúbrica? | MVP 2 |
-| Q5 | Escala de la calificación al capacitador (¿1–5 estrellas?) y si es anónima para el capacitador | MVP 2 |
-| ~~Q6~~ | ✅ Resuelto 2026-09-21: son archivos que sube el capacitador o la empresa (ADR-0006) | — |
+| Q3 | Texto del aviso de privacidad y de los términos legales. Karina quedó de revisarlo (acta 2026-09-29) | Publicación |
+| Q4 | ¿Son 3 tests o 4? ¿El delta se toma solo de la rúbrica? **Depende de Q10** | MVP 2 |
+| Q5 | Escala de las estrellas: ¿1 a 5? El ejemplo de la clienta llega a 5 pero no lo dice | Slice 8 |
+| **Q15** | **¿Quién contesta las cuatro preguntas del match** (¿se reunieron?, ¿a la hora?, ¿como esperaban?, ¿repetirían?): solo el participante o ambas partes? ¿Y en qué momento? | Slice 8 |
+| **Q16** | **¿Las dimensiones en estrellas son fijas** (claridad, seguridad, aplicación, uso de materiales) **o las configura cada empresa?** | Slice 8 |
+| **Q17** | **¿Hasta dónde llega "info pública" en las referencias?** Es texto libre sobre una persona identificada: ¿lo ve toda la empresa? ¿RRHH puede ocultar una? Ver ADR-0009 | Slice 8 |
+| **Q18** | **"Tokens visibles pero privados": ¿qué significa?** ¿Y son un contador simbólico o tienen valor canjeable? | Slice 8 |
+| ~~Q6~~ | ⛔ **Anulada 2026-09-29**: no hay contenidos. El facilitador publica una ficha del taller (ADR-0008) | — |
 | ~~Q7~~ | ✅ Resuelto 2026-09-21: un umbral por rúbrica | — |
-| Q8 | ¿Hay un límite de espacio en disco por empresa para los contenidos? | MVP 1 |
+| ~~Q8~~ | ⛔ **Anulada 2026-09-29**: sin archivos no hay espacio que limitar. Cae el supuesto de 2 GB | — |
+| **Q9** | **¿Sigue existiendo la estructura Diagnóstico → Clase → Monitoreo?** El acta describe un taller presencial único. Si desaparece, cambia qué entra al mazo del swipe y dónde se miden los tres momentos | Slices 5, 6 y 7 |
+| **Q10** | **¿Siguen en alcance la rúbrica, las mediciones en 3 momentos, los tests y la calificación al facilitador?** El acta no los menciona ni para confirmar ni para descartar. Es la mitad del trabajo que queda | Slices 5 y 7 |
+| **Q11** | **¿Se renombra el dominio a `taller` y `facilitador`?** Es el vocabulario de la clienta; el código dice `curso` y `capacitador`. Afecta tablas, endpoints y pantallas ya construidas | Slice 5 |
+| **Q12** | **¿"Activa" es un nombre real o una confusión del acta?** El acta dice "Activa" varias veces donde parece decir ENACTIVA. No se adopta ningún nombre comercial sin confirmación | Landing y presentación |
+| Q13 | ¿Cómo se enlaza con la web de ENACTIVA: botón de acceso, redirección, o software aparte? Karina quedó de averiguarlo | Despliegue público |
+| Q14 | Modelo comercial: ¿se vende la aplicación completa o se incorpora una empresa como cliente? Quedó pendiente en el acta | Fuera del MVP |

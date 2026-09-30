@@ -1,7 +1,13 @@
 # ADR-0006: Almacenamiento de los contenidos de clase
 
 ## Status
-Propuesta
+**Reemplazada por el ADR-0008** (2026-09-29)
+
+> En la reunión del 2026-09-29 la clienta aclaró que la plataforma **no aloja clases**: el facilitador
+> publica una ficha del taller y la actividad se organiza en persona. No hay archivos que guardar,
+> así que nada de lo que sigue se construyó. Se conserva el documento porque explica por qué se
+> descartaron MinIO, Postgres y las URLs firmadas, y ese análisis sigue sirviendo si algún día se
+> retoma la idea.
 
 ## Date
 2026-09-21
