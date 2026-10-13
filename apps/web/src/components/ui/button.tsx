@@ -2,7 +2,8 @@ import { cva, type VariantProps } from 'class-variance-authority';
 import type { ComponentProps } from 'react';
 import { cn } from '@/lib/utils';
 
-const botonVariants = cva(
+/** Se exporta para aplicar el mismo estilo a un enlace, sin convertirlo en <button>. */
+export const botonVariants = cva(
   'inline-flex items-center justify-center gap-2 rounded-md text-sm font-semibold transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-marca disabled:pointer-events-none disabled:opacity-60',
   {
     variants: {

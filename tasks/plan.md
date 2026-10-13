@@ -3,16 +3,17 @@
 **Referencias:** `docs/specs/SPEC.md`, `docs/decisions/0001`–`0004`.
 **Regla:** cada tarea deja el proyecto compilando y con tests en verde; una tarea ≈ un commit.
 
-## Estado (actualizado 2026-09-29)
+## Estado (actualizado 2026-10-13)
 - ✅ **Slice 0 completo** (T0.1 a T0.10, PR #1 a #10).
 - ✅ **Slice 1 completo**: T1.2 a T1.10 mergeadas (PR #11 y #12).
 - ✅ **Slice 2 completo**: T2.1 a T2.5 mergeadas (PR #13).
 - ✅ **Slice 3 completo** (MVP 1): T3.1 a T3.5 mergeadas (PR #15).
 - ✅ **Migración a microservicios** (ADR-0007): fases **M0, M1 y M2 listas**. El monolito ya no existe y la web corre sobre el gateway.
-- ⏭️ Siguiente: **Slice 4** dentro de `identity-service`. Es el único que se puede empezar sin esperar respuestas.
+- ✅ **Slice 4 completo** (T4.1 a T4.5): catálogo de temas y perfil corporativo en `identity-service`.
+- ⏭️ Siguiente: **Slice 5** (talleres), que necesita la respuesta a Q9 y Q11 antes de empezar.
 - 🔴 **El 2026-09-29 la clienta cambió el alcance** (ADR-0008): la plataforma no aloja clases. Cae la subida de contenidos; aparecen la ficha del taller, el cupo, la ubicación, la disponibilidad, la agenda y los recordatorios.
 - 🎮 **Segundo eje del producto** (WhatsApp de la clienta, 2026-09-29, ADR-0009): valoración del encuentro con estrellas, referencias públicas y tokens de reconocimiento. "Match corporativo + gamificación corporativa". Es el Slice 8.
-- ❓ **Preguntas que bloquean del Slice 5 en adelante**: Q9 (etapas), Q10 (rúbrica), Q11 (taller/facilitador) y Q15 a Q18 (valoración, referencias y tokens). Ver SPEC §11.
+- ❓ **Preguntas que bloquean del Slice 5 en adelante**: Q9 (etapas), Q10 (rúbrica), Q11 (taller/facilitador), Q15 a Q18 (valoración, referencias y tokens) y Q19 (escala de nivel). Ver SPEC §11.
 - 👀 La plataforma se abre en http://localhost:5173: ver "Levantar la plataforma en local" en el README.
 
 **En un PC nuevo:** Docker Desktop → `docker compose up -d --wait` → `pnpm install` → copiar `.env.example` a `.env` y completar los secretos → `pnpm --filter identity-service db:deploy` → `pnpm --filter identity-service db:seed` → `pnpm test`.
@@ -138,17 +139,23 @@ Desglose propuesto (2026-09-21). Cada slice sigue siendo end-to-end: base de dat
 | T3.4 | Carga masiva por CSV con vista previa y reporte de errores por fila | ninguna fila válida se pierde por un error en otra |
 | T3.5 | Web: pantalla "Personas" de RRHH (lista, invitar, reenviar, estado) | RRHH de una empresa nunca ve gente de otra |
 
-## Slice 4 — Qué quiere enseñar y aprender cada quien
+## Slice 4 — Qué quiere enseñar y aprender cada quien ✅
 **Demo:** una persona completa su perfil corporativo y declara qué puede enseñar y qué quiere aprender.
 **Sin cambios de fondo tras el acta**, salvo que el perfil se amplía con lo que pidió la clienta.
 
-| # | Tarea | Criterio de aceptación |
-|---|---|---|
-| T4.1 | Migración: `Tema` y `PerfilInteres` + enums `Dimension`, `TipoInteres`, `NivelDominio` | temas únicos por empresa (nombre normalizado) |
-| T4.2 | API de temas: buscar antes de crear (Admin, RRHH y Capacitador) | no se crean duplicados tipo "Excel" / "excel avanzado" |
-| T4.3 | API de perfiles: declarar enseñar/aprender con dimensiones y nivel | una persona no puede declarar dos veces el mismo tema y tipo |
-| T4.4 | Perfil corporativo: habilidades, conocimientos, actitudes e intereses generales **[C, acta]** | se recogen datos corporativos, no personales (minimización) |
-| T4.5 | Web: "Mi perfil" con todas las secciones | — |
+| # | Tarea | Criterio de aceptación | Estado |
+|---|---|---|---|
+| T4.1 | Migración: `Tema`, `PerfilInteres` y `PerfilCorporativo` + enums `Dimension`, `TipoInteres`, `NivelDominio` | temas únicos por empresa (nombre normalizado) | ✅ |
+| T4.2 | API de temas: buscar antes de crear (Admin, RRHH y Capacitador) | no se crean duplicados tipo "Excel" / "excel avanzado" | ✅ |
+| T4.3 | API de perfiles: declarar enseñar/aprender con dimensiones y nivel | una persona no puede declarar dos veces el mismo tema y tipo | ✅ |
+| T4.4 | Perfil corporativo: habilidades, conocimientos, actitudes e intereses generales **[C, acta]** | se recogen datos corporativos, no personales (minimización) | ✅ |
+| T4.5 | Web: "Mi perfil" con todas las secciones | — | ✅ |
+
+Tres decisiones que solo aparecieron al construirlo:
+
+- **La dimensión es de la declaración, no del tema.** Si "Excel avanzado" fuera *contenido* para siempre, el criterio "dimensiones coincidentes" del score (SPEC §3.6) no tendría nada que comparar: todos los pares del mismo tema coincidirían. Puesta en la declaración, una persona puede ofrecerlo como habilidad y otra buscarlo como actitud.
+- **El equipo de ENACTIVA no tiene perfil corporativo**, porque no pertenece a ninguna empresa. Para crear un tema tiene que decir en cuál; el resto lo toma de su sesión y nunca del cuerpo de la petición (ADR-0007).
+- **Las habilidades, conocimientos y actitudes que pidió la clienta no son campos nuevos**: son las declaraciones agrupadas por dimensión. Lo único en texto libre son los intereses generales, con un aviso en pantalla de que no se escriban datos personales.
 
 ## Slice 5 — Talleres convocados
 **Demo:** un facilitador publica la ficha de un taller con su fecha, su cupo y su lugar, y declara cuándo está disponible.

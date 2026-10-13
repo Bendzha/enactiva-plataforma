@@ -8,9 +8,12 @@ interface Pestana {
   a: string;
   texto: string;
   permiso?: Permiso;
+  /** El perfil corporativo es de quien trabaja en una empresa; el equipo ENACTIVA no tiene. */
+  requiereEmpresa?: boolean;
 }
 
 const PESTANAS: Pestana[] = [
+  { a: '/mi-perfil', texto: 'Mi perfil', requiereEmpresa: true },
   { a: '/personas', texto: 'Personas', permiso: 'personas:gestionar' },
   { a: '/empresas', texto: 'Empresas', permiso: 'empresas:listar' },
   { a: '/metricas', texto: 'Métricas', permiso: 'metricas-globales:ver' },
@@ -27,7 +30,9 @@ export function Layout() {
   };
 
   const iniciales = (usuario?.nombre ?? usuario?.email ?? '?').slice(0, 2).toUpperCase();
-  const visibles = PESTANAS.filter((p) => !p.permiso || puede(p.permiso));
+  const visibles = PESTANAS.filter(
+    (p) => (!p.permiso || puede(p.permiso)) && (!p.requiereEmpresa || Boolean(usuario?.empresaId)),
+  );
 
   return (
     <div className="min-h-screen">

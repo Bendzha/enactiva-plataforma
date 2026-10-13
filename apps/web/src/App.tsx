@@ -7,6 +7,7 @@ import { EquipoPage } from '@/pages/EquipoPage';
 import { InicioPage } from '@/pages/InicioPage';
 import { LoginPage } from '@/pages/LoginPage';
 import { MetricasPage } from '@/pages/MetricasPage';
+import { MiPerfilPage } from '@/pages/MiPerfilPage';
 import { PersonasPage } from '@/pages/PersonasPage';
 import { SinPermisoPage } from '@/pages/SinPermisoPage';
 
@@ -26,6 +27,8 @@ export function App() {
       >
         <Route index element={<Navigate to="/inicio" replace />} />
         <Route path="/inicio" element={<InicioPage />} />
+        {/* Sin permiso: cualquiera con sesión gestiona su propio perfil. */}
+        <Route path="/mi-perfil" element={<MiPerfilPage />} />
         <Route
           path="/empresas"
           element={
