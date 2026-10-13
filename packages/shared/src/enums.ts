@@ -14,17 +14,12 @@ export type EstadoEmpresa = (typeof ESTADOS_EMPRESA)[number];
 export const ESTADOS_USUARIO = ['INVITADO', 'ACTIVO', 'SUSPENDIDO', 'ANONIMIZADO'] as const;
 export type EstadoUsuario = (typeof ESTADOS_USUARIO)[number];
 
-/** Las tres dimensiones que se miden, tanto a quien enseña como a quien aprende (SPEC §3.3). */
+/**
+ * Las tres dimensiones de lo que alguien puede enseñar o quiere aprender (SPEC §3.6).
+ * Dejaron de ser ejes de medición el 2026-10-13 (ADR-0010); ahora sirven para emparejar.
+ */
 export const DIMENSIONES = ['HABILIDAD', 'CONTENIDO', 'ACTITUD'] as const;
 export type Dimension = (typeof DIMENSIONES)[number];
-
-/** Los tres momentos de medición; el valor está en la comparación entre ellos (SPEC §3.3). */
-export const MOMENTOS = ['DIAGNOSTICO', 'INTERMEDIO', 'MONITOREO'] as const;
-export type Momento = (typeof MOMENTOS)[number];
-
-/** Estructura estandarizada de todo curso, sin excepciones (SPEC §3.2). */
-export const ETAPAS_CURSO = ['DIAGNOSTICO', 'CLASE', 'MONITOREO'] as const;
-export type EtapaCurso = (typeof ETAPAS_CURSO)[number];
 
 /** Lo que una persona declara sobre un tema: que puede enseñarlo o que quiere aprenderlo (SPEC §3.6). */
 export const TIPOS_INTERES = ['ENSENAR', 'APRENDER'] as const;
@@ -33,7 +28,7 @@ export type TipoInteres = (typeof TIPOS_INTERES)[number];
 /**
  * Cuánto domina el tema quien va a enseñar, o desde dónde parte quien quiere aprender.
  * Alimenta el criterio "nivel" del score de afinidad (SPEC §3.6).
- * La escala de tres pasos es un supuesto nuestro, no una definición de la clienta.
+ * La clienta confirmó esta escala el 2026-10-13.
  */
 export const NIVELES_DOMINIO = ['BASICO', 'INTERMEDIO', 'AVANZADO'] as const;
 export type NivelDominio = (typeof NIVELES_DOMINIO)[number];
@@ -42,12 +37,6 @@ export const ETIQUETAS_DIMENSION: Record<Dimension, string> = {
   HABILIDAD: 'Habilidad',
   CONTENIDO: 'Contenido',
   ACTITUD: 'Actitud',
-};
-
-export const ETIQUETAS_MOMENTO: Record<Momento, string> = {
-  DIAGNOSTICO: 'Diagnóstico',
-  INTERMEDIO: 'Intermedio',
-  MONITOREO: 'Monitoreo',
 };
 
 export const ETIQUETAS_ROL: Record<Rol, string> = {
