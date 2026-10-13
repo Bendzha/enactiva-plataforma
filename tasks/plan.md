@@ -11,7 +11,8 @@
 - ✅ **Migración a microservicios** (ADR-0007): fases **M0, M1 y M2 listas**. El monolito ya no existe y la web corre sobre el gateway.
 - ✅ **Slice 4 completo** (T4.1 a T4.5): catálogo de temas y perfil corporativo en `identity-service`.
 - ✅ **Métricas de intereses** (compromiso del acta): el panel de RRHH y el global de ENACTIVA ya muestran perfiles completos, oferta, demanda y brechas.
-- ⏭️ Siguiente: **Slice 5** (talleres). Ya no espera nada: la clienta cerró el alcance.
+- ✅ **Slice 5 completo** (T5.1 a T5.5): talleres convocados, inscripciones y disponibilidad, ya en `learning-service`.
+- ⏭️ Siguiente: **Slice 6** (matching tipo swipe), el corazón del producto según el acta.
 - 🔴 **El 2026-09-29 la clienta cambió el alcance** (ADR-0008): la plataforma no aloja clases. Cae la subida de contenidos; aparecen la ficha del taller, el cupo, la ubicación, la disponibilidad, la agenda y los recordatorios.
 - 🎮 **Segundo eje del producto** (WhatsApp de la clienta, 2026-09-29, ADR-0009): valoración del encuentro con estrellas, referencias públicas y tokens de reconocimiento. "Match corporativo + gamificación corporativa". Es el Slice 8.
 - 🟢 **El 2026-10-13 la clienta cerró el alcance** (ADR-0010): se elimina el modelo de evaluación —etapas, rúbrica, logro, delta, mediciones y tests—. *"Lo mejor es que sea sólo conectar y convocar"*. Cae el Slice 9 completo.
@@ -172,19 +173,25 @@ En la reunión del 2026-09-29 quedó dicho que las métricas de abajo del panel 
 
 La métrica que importa son las **brechas**: temas que alguien quiere aprender y nadie de la empresa declaró que puede enseñar. Es lo que contesta dónde hay que traer formación de afuera, que es la pregunta de negocio de la clienta. Todo lo que sale de estos endpoints son agregados: nunca quién declaró qué.
 
-## Slice 5 — Talleres convocados
+## Slice 5 — Talleres convocados ✅
 **Demo:** un facilitador publica la ficha de un taller con su fecha, su cupo y su lugar, y declara cuándo está disponible.
 **Reescrito el 2026-09-29** (ADR-0008): ya no hay contenidos que subir.
 **Desbloqueado el 2026-10-13** (ADR-0010): el taller es una actividad única, sin etapas. `Taller` no lleva estado de etapa; lo que decide si se puede entrar es la fecha y el cupo.
 
-| # | Tarea | Criterio de aceptación |
-|---|---|---|
-| T5.1 | Migración: `Taller` (nombre, fecha, horario, cupo, objetivo, resultados esperados, ubicación) e `Inscripcion` | la ficha exige los campos que pidió la clienta |
-| T5.2 | Migración: `Disponibilidad` del facilitador | franjas horarias por persona |
-| T5.3 | API de talleres: publicar, listar los propios, editar mientras no haya empezado | el cupo no baja de las inscripciones ya hechas |
-| T5.4 | API de inscripción: respeta el cupo | al llenarse, el taller deja de aceptar gente |
-| T5.5 | Web: "Mis talleres" del facilitador y el formulario de la ficha | — |
-| ~~T5.x~~ | ~~Subida y descarga de archivos de contenido (ADR-0006)~~ | ⛔ **Eliminada**: la plataforma no aloja clases |
+| # | Tarea | Criterio de aceptación | Estado |
+|---|---|---|---|
+| T5.1 | Migración: `Taller` (nombre, fecha, horario, cupo, objetivo, resultados esperados, ubicación) e `Inscripcion` | la ficha exige los campos que pidió la clienta | ✅ |
+| T5.2 | Migración: `Disponibilidad` del facilitador | franjas horarias por persona | ✅ |
+| T5.3 | API de talleres: publicar, listar los propios, editar mientras no haya empezado | el cupo no baja de las inscripciones ya hechas | ✅ |
+| T5.4 | API de inscripción: respeta el cupo | al llenarse, el taller deja de aceptar gente | ✅ |
+| T5.5 | Web: "Mis talleres" del facilitador y el formulario de la ficha | — | ✅ |
+| ~~T5.x~~ | ~~Subida y descarga de archivos de contenido (ADR-0006)~~ | ⛔ **Eliminada**: la plataforma no aloja clases | — |
+
+Lo que apareció al construirlo:
+
+- **Primera llamada entre servicios del producto.** learning-service no conoce los temas: se los pregunta a identity por `/interno/temas?ids=`, con el token de quien pide. Así un tema de otra empresa no existe para él, sin que learning tenga que saber de empresas.
+- **El cupo se decide en una transacción serializable.** Contar y crear son dos pasos; con dos personas entrando al último lugar al mismo tiempo, ambas verían cupo libre. Dentro de la transacción los filtros por empresa van escritos a mano, para que el aislamiento no dependa de la extensión de Prisma.
+- **Falta el nombre de quien dicta.** La tarjeta muestra el tema, la fecha y el lugar, pero no quién enseña: eso es un dato personal que cruza servicios y se agrega en el Slice 6, donde la tarjeta del swipe lo necesita de verdad.
 
 ## Slice 6 — Matching tipo swipe
 **Demo:** una persona busca un tema, ve tarjetas de talleres y al dar like queda inscrita.

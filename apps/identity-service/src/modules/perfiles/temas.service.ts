@@ -9,6 +9,7 @@ import {
   MAXIMO_TEMAS_SUGERIDOS,
   normalizarNombre,
   type CrearTemaInput,
+  type TemaInterno,
   type TemaResumen,
 } from '@enactiva/shared';
 import { type SesionActual } from '@enactiva/service-kit';
@@ -51,6 +52,18 @@ export class TemasService {
         puedenEnsenar: tema.intereses.filter((i) => i.tipo === 'ENSENAR').length,
         quierenAprender: tema.intereses.filter((i) => i.tipo === 'APRENDER').length,
       }));
+  }
+
+  /**
+   * Los temas que pidió otro servicio, de los que existan en la empresa de quien consulta.
+   * Devuelve menos de los pedidos si alguno no es suyo: eso ya es la respuesta.
+   */
+  async porIds(ids: string[]): Promise<TemaInterno[]> {
+    const temas = await this.prisma.acotado.tema.findMany({
+      where: { id: { in: ids } },
+      select: { id: true, nombre: true },
+    });
+    return temas;
   }
 
   async crear(datos: CrearTemaInput, sesion: SesionActual): Promise<TemaResumen> {

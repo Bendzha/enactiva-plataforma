@@ -23,9 +23,12 @@ export function InicioPage() {
             Declara qué puedes enseñar y qué quieres aprender. Con eso la plataforma te va a
             emparejar con otras personas de tu organización.
           </CardDescription>
-          <div className="mt-4">
+          <div className="mt-4 flex flex-wrap gap-2">
             <Link to="/mi-perfil" className={botonVariants()}>
               Completar mi perfil
+            </Link>
+            <Link to="/talleres" className={botonVariants({ variant: 'outline' })}>
+              Ver talleres
             </Link>
           </div>
         </Card>

@@ -10,6 +10,7 @@ import { MetricasPage } from '@/pages/MetricasPage';
 import { MiPerfilPage } from '@/pages/MiPerfilPage';
 import { PersonasPage } from '@/pages/PersonasPage';
 import { SinPermisoPage } from '@/pages/SinPermisoPage';
+import { TalleresPage } from '@/pages/TalleresPage';
 
 export function App() {
   return (
@@ -29,6 +30,8 @@ export function App() {
         <Route path="/inicio" element={<InicioPage />} />
         {/* Sin permiso: cualquiera con sesión gestiona su propio perfil. */}
         <Route path="/mi-perfil" element={<MiPerfilPage />} />
+        {/* Sin permiso: cualquiera de una empresa mira los talleres y se inscribe. */}
+        <Route path="/talleres" element={<TalleresPage />} />
         <Route
           path="/empresas"
           element={

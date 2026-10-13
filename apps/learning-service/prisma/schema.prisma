@@ -1,15 +1,141 @@
-// Modelo de datos de learning-service — ADR-0002 (dominio) y ADR-0007 (reparto entre servicios).
+// Modelo de datos de learning-service — ADR-0002 (dominio), ADR-0007 (reparto entre servicios),
+// ADR-0008 (ficha de taller) y ADR-0010 (se elimina el modelo de evaluación).
 //
-// Fase M0: la base existe y el servicio sabe llegar a ella, pero todavía no hay tablas.
-// Se construyen en M3, con los Slices 5 y 7:
-//   Curso · EtapaCurso · Inscripcion · MaterialClase · Rubrica · Indicador · Medicion
-//   PuntajeIndicador · RegistroAuditoria
+// Aquí vive lo que pasa alrededor de un taller: la convocatoria, quién se inscribe y cuándo
+// puede enseñar cada facilitador. No hay etapas, rúbricas ni mediciones: la clienta las sacó
+// del alcance el 2026-10-13.
 //
-// `capacitadorId`, `estudianteId` y `temaId` se guardan sin clave foránea: esos datos viven en
-// identity_db y Postgres no puede validarlos entre bases distintas (ADR-0007).
-//
-// El bloque `generator` se agrega junto con la primera tabla.
+// `capacitadorId`, `usuarioId` y `temaId` se guardan sin clave foránea: esos datos viven en
+// identity_db y Postgres no puede validarlos entre bases distintas (ADR-0007). La validación
+// la hace el servicio preguntándole a identity con el token de quien pide.
+
+generator client {
+  provider     = "prisma-client"
+  output       = "../src/generated/prisma"
+  moduleFormat = "esm"
+}
 
 datasource db {
   provider = "postgresql"
+}
+
+// ── Enums ────────────────────────────────────────────────────────────────────
+
+/// Copia del enum de identity_db. No es duplicación por descuido: cada base es independiente y
+/// el registro de auditoría de este servicio necesita saber con qué rol actuó alguien.
+enum Rol {
+  ADMIN_ENACTIVA
+  RRHH
+  CAPACITADOR
+  ESTUDIANTE
+}
+
+enum AccionAuditoria {
+  LOGIN
+  LOGIN_FALLIDO
+  LEER
+  CREAR
+  ACTUALIZAR
+  ELIMINAR
+  EXPORTAR
+  ANONIMIZAR
+}
+
+enum DiaSemana {
+  LUNES
+  MARTES
+  MIERCOLES
+  JUEVES
+  VIERNES
+  SABADO
+  DOMINGO
+}
+
+// ── Talleres ─────────────────────────────────────────────────────────────────
+
+/// La ficha de un taller presencial (acta 2026-09-29): lo que alguien necesita para decidir si va.
+///
+/// No hay archivos ni contenidos: la plataforma no aloja clases (ADR-0008). Tampoco hay etapas
+/// ni estados de avance: el taller ocurre una vez (ADR-0010). Lo único que decide si todavía se
+/// puede entrar son la fecha y el cupo.
+model Taller {
+  id                  String   @id @default(uuid(7)) @db.Uuid
+  empresaId           String   @map("empresa_id") @db.Uuid
+  /// Quien lo dicta. Vive en identity_db.
+  capacitadorId       String   @map("capacitador_id") @db.Uuid
+  /// Tema del catálogo de la empresa. Vive en identity_db.
+  temaId              String   @map("tema_id") @db.Uuid
+  nombre              String
+  objetivo            String
+  resultadosEsperados String   @map("resultados_esperados")
+  ubicacion           String
+  inicioAt            DateTime @map("inicio_at") @db.Timestamptz(3)
+  finAt               DateTime @map("fin_at") @db.Timestamptz(3)
+  cupo                Int
+  createdAt           DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt           DateTime @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  inscripciones Inscripcion[]
+
+  @@index([empresaId, inicioAt])
+  @@index([empresaId, capacitadorId])
+  @@index([empresaId, temaId])
+  @@map("taller")
+}
+
+/// Alguien va a ir. El par (taller, persona) es único: inscribirse dos veces no significa nada,
+/// y el cupo dejaría de cuadrar.
+model Inscripcion {
+  id        String   @id @default(uuid(7)) @db.Uuid
+  empresaId String   @map("empresa_id") @db.Uuid
+  tallerId  String   @map("taller_id") @db.Uuid
+  usuarioId String   @map("usuario_id") @db.Uuid
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  taller Taller @relation(fields: [tallerId], references: [id], onDelete: Cascade)
+
+  @@unique([tallerId, usuarioId])
+  @@index([empresaId, usuarioId])
+  @@map("inscripcion")
+}
+
+/// Cuándo puede enseñar una persona, semana a semana (acta 2026-09-29).
+///
+/// Las horas se guardan como texto "HH:MM" en 24 horas: así se leen directo en la base y, al
+/// llevar cero a la izquierda, ordenarlas alfabéticamente las ordena por hora.
+model Disponibilidad {
+  id          String    @id @default(uuid(7)) @db.Uuid
+  empresaId   String    @map("empresa_id") @db.Uuid
+  usuarioId   String    @map("usuario_id") @db.Uuid
+  dia         DiaSemana
+  horaInicio  String    @map("hora_inicio")
+  horaFin     String    @map("hora_fin")
+  createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  @@unique([usuarioId, dia, horaInicio, horaFin])
+  @@index([empresaId, usuarioId])
+  @@map("disponibilidad")
+}
+
+// ── Cumplimiento Ley 21.719 ──────────────────────────────────────────────────
+
+/// Append-only: un trigger en la base rechaza UPDATE y DELETE.
+/// Cada servicio tiene su propia copia de esta tabla en su base (ADR-0007); la exportación y la
+/// supresión de los datos de una persona se orquestan desde el gateway.
+/// Nunca guarda valores de datos personales, solo nombres de campos.
+model RegistroAuditoria {
+  id                BigInt          @id @default(autoincrement())
+  actorId           String?         @map("actor_id") @db.Uuid
+  actorRol          Rol?            @map("actor_rol")
+  empresaId         String?         @map("empresa_id") @db.Uuid
+  accion            AccionAuditoria
+  entidad           String
+  entidadId         String?         @map("entidad_id")
+  camposModificados String[]        @map("campos_modificados")
+  ip                String?
+  createdAt         DateTime        @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  @@index([empresaId, createdAt])
+  @@index([actorId, createdAt])
+  @@map("registro_auditoria")
 }
