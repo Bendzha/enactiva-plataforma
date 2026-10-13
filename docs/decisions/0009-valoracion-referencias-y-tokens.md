@@ -1,10 +1,10 @@
 # ADR-0009: Valoración del encuentro, referencias públicas y tokens de reconocimiento
 
 ## Status
-Propuesta — las salvaguardas de privacidad necesitan el visto bueno de la clienta (Q17)
+Aceptada — la clienta respondió Q15 a Q18 el 2026-10-13 y aprobó las salvaguardas
 
 ## Date
-2026-09-29
+2026-09-29 (actualizada el 2026-10-13 con las respuestas de la clienta)
 
 ## Context
 El mismo día de la reunión, la clienta agregó por WhatsApp una pieza que no estaba en el acta. En sus palabras:
@@ -21,6 +21,29 @@ Con un ejemplo concreto de la pantalla (claridad, seguridad percibida, aplicaci�
 
 Esto convierte la gamificación en un **segundo eje del producto**, no en un adorno. Y trae un elemento que el sistema no tenía: **texto libre escrito por una persona sobre otra persona identificada**, con intención de publicarse.
 
+## Lo que respondió la clienta (2026-10-13)
+Las cuatro preguntas que este ADR dejó abiertas quedaron contestadas
+(`docs/reuniones/2026-10-13-respuestas-karina.md`):
+
+- **Q15 — quién puntúa el match:** *"Ambas personas, post primera reunion"*. Lo contestan las dos
+  partes, después de que se reúnen por primera vez. Si solo una responde, el match igual queda
+  puntuado por esa parte: la otra no puede quedar bloqueada esperando.
+- **Q16 — las estrellas:** *"Son siempre esas 4, se pueden agrega o cambiar en un futuro"*. Claridad,
+  seguridad, aplicación y uso de materiales son fijas en el MVP. Se guardan como **filas de datos y
+  no como columnas de la tabla**, para que agregar una quinta más adelante no sea una migración.
+- **Q17 — las referencias:** *"Claro, podria manejarse como temas sensibles"*. Confirma que se ven
+  dentro de la empresa, que RRHH puede ocultarlas, y pide tratarlas como dato sensible. Las
+  salvaguardas propuestas más abajo quedan aprobadas.
+- **Q18 — los tokens:** *"para canjear cosas, pero la empresa ve que valene sos tokens nosotros solo
+  por el momento damos el recuento"*. **Sí tienen valor**, pero el canje lo define y administra cada
+  empresa **fuera de la plataforma**; nosotros llevamos la cuenta.
+
+Esa última respuesta cambia una cosa importante: si el recuento vale algo afuera, deja de ser un
+adorno. Se guarda como **registro auditado y no editable a mano** —se suma al valorar un taller y
+de ninguna otra forma—, porque desde el momento en que alguien canjea con él, un número mal puesto
+es un problema real. Lo que seguimos sin construir es la economía: saldo, canje, premios ni
+transferencias entre personas.
+
 ## Decision
 
 ### Se separa valorar el encuentro de valorar a la persona
@@ -34,18 +57,25 @@ Un match puede fallar (nunca se reunieron) sin que el taller sea malo, y al rev�
 ### Las referencias en texto libre llevan salvaguardas
 La clienta las quiere públicas. Es texto libre sobre una persona identificada dentro de su trabajo, así que **entra de lleno en la Ley 21.719** y trae un riesgo que hasta ahora el sistema no tenía: una reseña negativa sobre un colega es un problema laboral, no un detalle de producto.
 
-Propuesta, a confirmar (Q17):
+Confirmadas por la clienta el 2026-10-13:
 
 - **Pública dentro de la empresa, nunca fuera de ella.** El aislamiento por empresa ya existe (ADR-0003) y aquí aplica igual.
 - **Quien la escribe sabe que se publica con su nombre**, antes de escribirla. Una reseña anónima sobre un colega identificado es justo la combinación que invita al abuso.
 - **RRHH puede ocultar una referencia**, y esa acción queda auditada. No se borra: se oculta, porque borrar evidencia de un conflicto laboral es peor que conservarla.
-- **El aviso de privacidad tiene que declararlo** (Q3, que sigue pendiente con la clienta).
+- **El aviso de privacidad tiene que declararlo** (Q3, que sigue pendiente: es el único cabo suelto
+  que queda de este ADR, y la clienta quedó de revisar ese texto).
 - Se escribe **después** del taller y sobre un taller al que la persona asistió.
 
-### Los tokens son un contador de reconocimiento, sin valor canjeable
-Hasta que la clienta aclare Q18, se modelan como un contador: cuántos recibió y por qué taller. **No se construye** ninguna economía, saldo, canje ni premio.
+### Los tokens son un recuento auditado; el canje lo administra la empresa
+Se modelan como un registro de cuántos recibió alguien y por qué taller. **No se construye**
+ninguna economía dentro de la plataforma: ni saldo, ni canje, ni premios, ni transferencias.
+La clienta lo dijo así: la empresa decide qué valen y nosotros damos el recuento.
 
-Si más adelante tuvieran valor real, aparecen problemas que hoy no existen: fraude (dos personas intercambiándose tokens), presión jerárquica sobre quién regala a quién, y consecuencias tributarias de un beneficio en especie. Ese es un producto distinto y se decide aparte.
+Mantener el canje afuera no hace desaparecer los problemas de una moneda interna —fraude entre dos
+personas que se regalan tokens, presión de una jefatura sobre a quién reconocer, el tratamiento
+tributario de un beneficio en especie—, pero los deja donde la empresa puede manejarlos con sus
+propias reglas. Si alguna vez el canje entra a la plataforma, eso es otro producto y se decide
+aparte.
 
 ### Dónde vive
 En **learning-service**, junto al taller y la inscripción: la valoración cuelga de un taller al que alguien asistió. El **matching-service** consulta el promedio del facilitador para el score de afinidad, por REST, como ya hace con el resto (ADR-0007).
@@ -63,4 +93,4 @@ La alternativa era ponerlo en matching-service, porque la clienta habla de "punt
 - **El score de afinidad se vuelve más rico**, pero también más sensible: una mala racha de valoraciones puede sacar a alguien del mazo. Hay que decidir si el score tiene piso, o el sistema castiga de más a quien empezó con mal pie.
 - **Crece la superficie de datos personales.** Texto libre sobre personas identificadas es lo más delicado que va a guardar la plataforma; la exportación y supresión (Ley 21.719) tienen que incluirlo.
 - **La gamificación pasa a ser un eje declarado del producto**, y eso pesa en el informe académico: cambia cómo se justifica el proyecto.
-- **Refuerza la duda sobre el modelo de evaluación (Q10).** Lo que la clienta describe mide *si el encuentro sirvió*, no *cuánto aprendió alguien*. Es una forma distinta de responder la misma pregunta de negocio, y hace más urgente saber si la rúbrica de tres momentos sigue en pie o si esto la reemplaza.
+- **Reemplazó al modelo de evaluación.** Este ADR anticipó que lo que la clienta describe mide *si el encuentro sirvió* y no *cuánto aprendió alguien*. El 2026-10-13 ella confirmó que las estrellas reemplazan la rúbrica: ver ADR-0010.

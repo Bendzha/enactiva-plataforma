@@ -42,8 +42,8 @@ enum EstadoUsuario {
   ANONIMIZADO
 }
 
-/// Las tres dimensiones que se declaran y se miden (SPEC §3.3). En la reunión del 2026-09-29 la
-/// clienta las nombró como habilidades, conocimientos y actitudes.
+/// Las tres dimensiones de lo que alguien puede enseñar o quiere aprender (SPEC §3.6). En la
+/// reunión del 2026-09-29 la clienta las nombró como habilidades, conocimientos y actitudes.
 enum Dimension {
   HABILIDAD
   CONTENIDO
@@ -55,7 +55,7 @@ enum TipoInteres {
   APRENDER
 }
 
-/// Escala de tres pasos: es un supuesto nuestro, la clienta no la definió.
+/// Escala de tres pasos, confirmada por la clienta el 2026-10-13.
 enum NivelDominio {
   BASICO
   INTERMEDIO
