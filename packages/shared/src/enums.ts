@@ -1,6 +1,6 @@
 // Vocabulario fijo del dominio, compartido entre API y web (ADR-0002).
 // Debe coincidir exactamente con los enums de prisma/schema.prisma;
-// apps/api tiene un test que lo verifica.
+// identity-service tiene un test que lo verifica (src/prisma/enums.spec.ts).
 
 export const ROLES = ['ADMIN_ENACTIVA', 'RRHH', 'CAPACITADOR', 'ESTUDIANTE'] as const;
 export type Rol = (typeof ROLES)[number];
@@ -26,6 +26,18 @@ export type Momento = (typeof MOMENTOS)[number];
 export const ETAPAS_CURSO = ['DIAGNOSTICO', 'CLASE', 'MONITOREO'] as const;
 export type EtapaCurso = (typeof ETAPAS_CURSO)[number];
 
+/** Lo que una persona declara sobre un tema: que puede enseñarlo o que quiere aprenderlo (SPEC §3.6). */
+export const TIPOS_INTERES = ['ENSENAR', 'APRENDER'] as const;
+export type TipoInteres = (typeof TIPOS_INTERES)[number];
+
+/**
+ * Cuánto domina el tema quien va a enseñar, o desde dónde parte quien quiere aprender.
+ * Alimenta el criterio "nivel" del score de afinidad (SPEC §3.6).
+ * La escala de tres pasos es un supuesto nuestro, no una definición de la clienta.
+ */
+export const NIVELES_DOMINIO = ['BASICO', 'INTERMEDIO', 'AVANZADO'] as const;
+export type NivelDominio = (typeof NIVELES_DOMINIO)[number];
+
 export const ETIQUETAS_DIMENSION: Record<Dimension, string> = {
   HABILIDAD: 'Habilidad',
   CONTENIDO: 'Contenido',
@@ -43,4 +55,15 @@ export const ETIQUETAS_ROL: Record<Rol, string> = {
   RRHH: 'RRHH',
   CAPACITADOR: 'Capacitador',
   ESTUDIANTE: 'Estudiante',
+};
+
+export const ETIQUETAS_TIPO_INTERES: Record<TipoInteres, string> = {
+  ENSENAR: 'Puedo enseñar',
+  APRENDER: 'Quiero aprender',
+};
+
+export const ETIQUETAS_NIVEL_DOMINIO: Record<NivelDominio, string> = {
+  BASICO: 'Básico',
+  INTERMEDIO: 'Intermedio',
+  AVANZADO: 'Avanzado',
 };

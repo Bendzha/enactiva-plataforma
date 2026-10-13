@@ -151,6 +151,14 @@ Quién contesta (solo el participante, o ambas partes) y en qué momento: **Q15*
 - Score de afinidad simple (sin ML) con **todos** los criterios **[C]**: dimensiones coincidentes, nivel, área, valoración del capacitador. Pesos iniciales iguales, constantes en código, ajustados con datos reales **[C]**. Signo del criterio área (misma área suma) **[S]**.
 - Catálogo de temas: lo crean Admin, RRHH y Capacitador **[C]**. Temas **por empresa**, con nombre normalizado único y buscador que sugiere existentes antes de crear **[P]** (evita duplicados que romperían el matching).
 
+#### Perfil corporativo (construido en el Slice 4)
+- Cada persona declara, sobre un tema del catálogo de su empresa, que **puede enseñarlo** o que **quiere aprenderlo** **[C]**. Un mismo tema admite las dos cosas: enseñar Excel no impide querer aprenderlo mejor **[P]**.
+- Cada declaración lleva **una o más dimensiones** (habilidad, contenido, actitud) **[P]**, que es lo que hace calculable el criterio "dimensiones coincidentes" del score.
+- Y un **nivel** —cuánto domina quien enseña, desde dónde parte quien aprende—. La escala de tres pasos (básico, intermedio, avanzado) es **[S]**, ver Q19.
+- El perfil guarda además los **intereses generales** en texto libre **[C, acta 2026-09-29]**: la clienta pidió recoger datos corporativos y limitar los personales. No hay biografía, foto ni teléfono **[P]**.
+- El cargo y el área los administra RRHH; la persona los ve pero no los edita **[P]**.
+- Cada quien gestiona **solo su propio perfil**: el usuario sale del token verificado y nunca de la URL **[P]**.
+
 ### 3.7 Privacidad y cumplimiento (Ley 21.719)
 - Registro de auditoría append-only desde el Slice 0 **[C]**.
 - Exportación y supresión de datos por usuario **[C]**.
@@ -249,6 +257,7 @@ export class EmpresasController {
 | **Q16** | **¿Las dimensiones en estrellas son fijas** (claridad, seguridad, aplicación, uso de materiales) **o las configura cada empresa?** | Slice 8 |
 | **Q17** | **¿Hasta dónde llega "info pública" en las referencias?** Es texto libre sobre una persona identificada: ¿lo ve toda la empresa? ¿RRHH puede ocultar una? Ver ADR-0009 | Slice 8 |
 | **Q18** | **"Tokens visibles pero privados": ¿qué significa?** ¿Y son un contador simbólico o tienen valor canjeable? | Slice 8 |
+| **Q19** | **¿La escala de nivel es básico / intermedio / avanzado?** La pusimos nosotros para poder emparejar a quien parte con quien domina; la clienta no la definió | Slice 6 |
 | ~~Q6~~ | ⛔ **Anulada 2026-09-29**: no hay contenidos. El facilitador publica una ficha del taller (ADR-0008) | — |
 | ~~Q7~~ | ✅ Resuelto 2026-09-21: un umbral por rúbrica | — |
 | ~~Q8~~ | ⛔ **Anulada 2026-09-29**: sin archivos no hay espacio que limitar. Cae el supuesto de 2 GB | — |

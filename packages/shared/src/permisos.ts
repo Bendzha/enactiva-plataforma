@@ -13,6 +13,8 @@ export const PERMISOS = [
   'admins:gestionar',
   /** RRHH: áreas y personas de su propia empresa. */
   'personas:gestionar',
+  /** Agregar temas al catálogo de la empresa: Admin, RRHH y Capacitador (SPEC §3.6). */
+  'temas:crear',
 ] as const;
 export type Permiso = (typeof PERMISOS)[number];
 
@@ -21,6 +23,8 @@ const PERMISOS_ADMIN_OPERATIVO: readonly Permiso[] = [
   'empresas:listar',
   'empresas:crear',
   'invitaciones:gestionar',
+  // Sumar un tema al catálogo es trabajo de puesta en marcha, no una decisión sobre la empresa.
+  'temas:crear',
 ];
 
 const PERMISOS_ADMIN_PRINCIPAL: readonly Permiso[] = [
@@ -35,8 +39,9 @@ const PERMISOS_POR_ROL: Record<Rol, readonly Permiso[]> = {
   ADMIN_ENACTIVA: [],
   // Gestionar la gente de su empresa es de RRHH; el equipo de ENACTIVA administra el piloto,
   // no el día a día de cada organización.
-  RRHH: ['personas:gestionar'],
-  CAPACITADOR: [],
+  RRHH: ['personas:gestionar', 'temas:crear'],
+  // Quien enseña necesita poder nombrar lo que enseña; si no existiera el tema, no podría ofrecerlo.
+  CAPACITADOR: ['temas:crear'],
   ESTUDIANTE: [],
 };
 

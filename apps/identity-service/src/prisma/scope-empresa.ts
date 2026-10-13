@@ -16,6 +16,9 @@ export const MODELOS_ACOTADOS: ModelosAcotados = {
   Usuario: 'empresaId',
   Empresa: 'id',
   Area: 'empresaId',
+  Tema: 'empresaId',
+  PerfilInteres: 'empresaId',
+  PerfilCorporativo: 'empresaId',
 };
 
 /**

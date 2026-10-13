@@ -42,6 +42,26 @@ enum EstadoUsuario {
   ANONIMIZADO
 }
 
+/// Las tres dimensiones que se declaran y se miden (SPEC §3.3). En la reunión del 2026-09-29 la
+/// clienta las nombró como habilidades, conocimientos y actitudes.
+enum Dimension {
+  HABILIDAD
+  CONTENIDO
+  ACTITUD
+}
+
+enum TipoInteres {
+  ENSENAR
+  APRENDER
+}
+
+/// Escala de tres pasos: es un supuesto nuestro, la clienta no la definió.
+enum NivelDominio {
+  BASICO
+  INTERMEDIO
+  AVANZADO
+}
+
 enum TipoToken {
   REFRESH
   INVITACION
@@ -76,6 +96,7 @@ model Empresa {
   creadaPor   Usuario   @relation("EmpresaCreadaPor", fields: [creadaPorId], references: [id], onDelete: Restrict)
   usuarios    Usuario[] @relation("UsuariosDeEmpresa")
   areas       Area[]
+  temas       Tema[]
 
   @@map("empresa")
 }
@@ -121,6 +142,9 @@ model Usuario {
   roles             UsuarioRol[]
   tokens            TokenAcceso[]
   aceptaciones      AceptacionAviso[]
+  perfil            PerfilCorporativo?
+  intereses         PerfilInteres[]
+  temasCreados      Tema[]            @relation("TemaCreadoPor")
   empresasCreadas   Empresa[]         @relation("EmpresaCreadaPor")
   empresasActivadas Empresa[]         @relation("EmpresaActivadaPor")
 
@@ -156,6 +180,75 @@ model TokenAcceso {
 
   @@index([usuarioId, tipo])
   @@map("token_acceso")
+}
+
+// ── Qué enseña y qué quiere aprender cada quien ──────────────────────────────
+
+/// Tema del catálogo de una empresa ("Excel avanzado", "Hablar en público").
+///
+/// El catálogo es por empresa y el nombre normalizado es único dentro de ella (SPEC §3.6):
+/// si "Excel" y "excel " convivieran como temas distintos, el matching no encontraría a la
+/// persona que sí puede enseñarlo. El buscador sugiere los existentes antes de crear uno nuevo.
+///
+/// El tema no lleva dimensión: la dimensión es de la declaración, porque alguien puede querer
+/// aprender un tema como habilidad y otra persona ofrecerlo como contenido, y de esa diferencia
+/// vive el criterio "dimensiones coincidentes" del score de afinidad.
+model Tema {
+  id                String   @id @default(uuid(7)) @db.Uuid
+  empresaId         String   @map("empresa_id") @db.Uuid
+  nombre            String
+  nombreNormalizado String   @map("nombre_normalizado")
+  creadoPorId       String?  @map("creado_por_id") @db.Uuid
+  createdAt         DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt         DateTime @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  empresa   Empresa         @relation(fields: [empresaId], references: [id], onDelete: Cascade)
+  creadoPor Usuario?        @relation("TemaCreadoPor", fields: [creadoPorId], references: [id], onDelete: SetNull)
+  intereses PerfilInteres[]
+
+  @@unique([empresaId, nombreNormalizado])
+  @@map("tema")
+}
+
+/// Una declaración: "puedo enseñar este tema" o "quiero aprender este tema".
+///
+/// La empresa está duplicada aquí a propósito, para que el acotado por empresa (ADR-0003) filtre
+/// sin pasar por el usuario ni por el tema.
+/// Una persona declara un tema una sola vez por tipo, pero puede enseñar y querer aprender el
+/// mismo tema: enseñar Excel no impide querer aprenderlo mejor.
+model PerfilInteres {
+  id          String       @id @default(uuid(7)) @db.Uuid
+  empresaId   String       @map("empresa_id") @db.Uuid
+  usuarioId   String       @map("usuario_id") @db.Uuid
+  temaId      String       @map("tema_id") @db.Uuid
+  tipo        TipoInteres
+  dimensiones Dimension[]
+  nivel       NivelDominio
+  createdAt   DateTime     @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt   DateTime     @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  usuario Usuario @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+  tema    Tema    @relation(fields: [temaId], references: [id], onDelete: Cascade)
+
+  @@unique([usuarioId, temaId, tipo])
+  @@index([empresaId, temaId, tipo])
+  @@map("perfil_interes")
+}
+
+/// Perfil corporativo. Solo guarda los intereses generales en texto libre: el resto del perfil
+/// son las declaraciones de arriba y los datos del puesto, que administra RRHH.
+/// La clienta pidió recoger datos corporativos y limitar los personales (acta 2026-09-29).
+model PerfilCorporativo {
+  usuarioId          String   @id @map("usuario_id") @db.Uuid
+  empresaId          String   @map("empresa_id") @db.Uuid
+  interesesGenerales String   @default("") @map("intereses_generales")
+  createdAt          DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt          DateTime @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  usuario Usuario @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+
+  @@index([empresaId])
+  @@map("perfil_corporativo")
 }
 
 // ── Cumplimiento Ley 21.719 ──────────────────────────────────────────────────

@@ -27,6 +27,25 @@ export const RRHH_PLANTA: UsuarioSesion = {
   empresaId: 'e-planta-norte',
 };
 
+export const CAPACITADOR_PLANTA: UsuarioSesion = {
+  id: 'u-capacitador',
+  email: 'luis.soto@planta-norte.cl',
+  nombre: 'Luis',
+  apellido: 'Soto',
+  roles: ['ESTUDIANTE', 'CAPACITADOR'],
+  nivelAdmin: null,
+  empresaId: 'e-planta-norte',
+};
+
+export const ESTUDIANTE_PLANTA: UsuarioSesion = {
+  ...CAPACITADOR_PLANTA,
+  id: 'u-estudiante',
+  email: 'ana.vera@planta-norte.cl',
+  nombre: 'Ana',
+  apellido: 'Vera',
+  roles: ['ESTUDIANTE'],
+};
+
 export const ADMIN_OPERATIVO: UsuarioSesion = {
   ...ADMIN_PRINCIPAL,
   id: 'u-operativo',
