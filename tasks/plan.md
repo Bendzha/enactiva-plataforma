@@ -10,6 +10,7 @@
 - ✅ **Slice 3 completo** (MVP 1): T3.1 a T3.5 mergeadas (PR #15).
 - ✅ **Migración a microservicios** (ADR-0007): fases **M0, M1 y M2 listas**. El monolito ya no existe y la web corre sobre el gateway.
 - ✅ **Slice 4 completo** (T4.1 a T4.5): catálogo de temas y perfil corporativo en `identity-service`.
+- ✅ **Métricas de intereses** (compromiso del acta): el panel de RRHH y el global de ENACTIVA ya muestran perfiles completos, oferta, demanda y brechas.
 - ⏭️ Siguiente: **Slice 5** (talleres), que necesita la respuesta a Q9 y Q11 antes de empezar.
 - 🔴 **El 2026-09-29 la clienta cambió el alcance** (ADR-0008): la plataforma no aloja clases. Cae la subida de contenidos; aparecen la ficha del taller, el cupo, la ubicación, la disponibilidad, la agenda y los recordatorios.
 - 🎮 **Segundo eje del producto** (WhatsApp de la clienta, 2026-09-29, ADR-0009): valoración del encuentro con estrellas, referencias públicas y tokens de reconocimiento. "Match corporativo + gamificación corporativa". Es el Slice 8.
@@ -156,6 +157,18 @@ Tres decisiones que solo aparecieron al construirlo:
 - **La dimensión es de la declaración, no del tema.** Si "Excel avanzado" fuera *contenido* para siempre, el criterio "dimensiones coincidentes" del score (SPEC §3.6) no tendría nada que comparar: todos los pares del mismo tema coincidirían. Puesta en la declaración, una persona puede ofrecerlo como habilidad y otra buscarlo como actitud.
 - **El equipo de ENACTIVA no tiene perfil corporativo**, porque no pertenece a ninguna empresa. Para crear un tema tiene que decir en cuál; el resto lo toma de su sesión y nunca del cuerpo de la petición (ADR-0007).
 - **Las habilidades, conocimientos y actitudes que pidió la clienta no son campos nuevos**: son las declaraciones agrupadas por dimensión. Lo único en texto libre son los intereses generales, con un aviso en pantalla de que no se escriban datos personales.
+
+## Métricas de intereses ✅ — compromiso del acta, no es un slice
+**Demo:** RRHH ve qué quiere aprender su gente y qué nadie puede enseñar; el Admin Principal ve lo mismo empresa por empresa.
+En la reunión del 2026-09-29 quedó dicho que las métricas de abajo del panel se encenderían cuando la gente registrara sus intereses. Con el Slice 4 ya hay datos.
+
+| # | Tarea | Criterio de aceptación | Estado |
+|---|---|---|---|
+| MI.1 | `GET /metricas/intereses` para RRHH, acotado a su empresa | una empresa nunca ve números de otra | ✅ |
+| MI.2 | `GET /metricas/globales` para el Admin Principal, empresa por empresa | RRHH recibe 403 | ✅ |
+| MI.3 | Tarjeta "Qué quiere aprender tu gente" en Personas y tabla en Métricas globales | sin cifras de ejemplo cuando no hay datos | ✅ |
+
+La métrica que importa son las **brechas**: temas que alguien quiere aprender y nadie de la empresa declaró que puede enseñar. Es lo que contesta dónde hay que traer formación de afuera, que es la pregunta de negocio de la clienta. Todo lo que sale de estos endpoints son agregados: nunca quién declaró qué.
 
 ## Slice 5 — Talleres convocados
 **Demo:** un facilitador publica la ficha de un taller con su fecha, su cupo y su lugar, y declara cuándo está disponible.

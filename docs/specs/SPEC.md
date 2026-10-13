@@ -158,6 +158,7 @@ Quién contesta (solo el participante, o ambas partes) y en qué momento: **Q15*
 - El perfil guarda además los **intereses generales** en texto libre **[C, acta 2026-09-29]**: la clienta pidió recoger datos corporativos y limitar los personales. No hay biografía, foto ni teléfono **[P]**.
 - El cargo y el área los administra RRHH; la persona los ve pero no los edita **[P]**.
 - Cada quien gestiona **solo su propio perfil**: el usuario sale del token verificado y nunca de la URL **[P]**.
+- Sobre estas declaraciones se calculan las **métricas de intereses** que la clienta pidió ver cuando la gente registrara sus temas **[C, acta 2026-09-29]**: cuánta gente tiene perfil, qué se ofrece, qué se busca y las **brechas** (temas que alguien quiere aprender y nadie de la empresa puede enseñar). Son agregados: nunca dicen quién declaró qué **[P]**.
 
 ### 3.7 Privacidad y cumplimiento (Ley 21.719)
 - Registro de auditoría append-only desde el Slice 0 **[C]**.

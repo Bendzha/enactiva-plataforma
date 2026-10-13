@@ -1,4 +1,4 @@
-import type { AreaResumen, PersonaResumen } from '@enactiva/shared';
+import type { AreaResumen, MetricasIntereses, PersonaResumen } from '@enactiva/shared';
 import { screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, describe, expect, it, vi } from 'vitest';
@@ -135,6 +135,33 @@ describe('Pantalla de Personas (RRHH)', () => {
       expect(screen.getByRole('status')).toHaveTextContent('Se invitó a 1 personas');
     });
     expect(screen.getByRole('status')).toHaveTextContent('Se crearon las áreas: Calidad');
+  });
+
+  it('muestra qué quiere aprender la gente y qué nadie puede enseñar', async () => {
+    const metricas: MetricasIntereses = {
+      personasActivas: 12,
+      personasConPerfil: 7,
+      temas: 4,
+      declaraciones: 15,
+      brechas: [{ temaId: 't-1', nombre: 'Inglés técnico', puedenEnsenar: 0, quierenAprender: 5 }],
+      masOfrecidos: [
+        { temaId: 't-2', nombre: 'Excel avanzado', puedenEnsenar: 3, quierenAprender: 1 },
+      ],
+      masBuscados: [
+        { temaId: 't-1', nombre: 'Inglés técnico', puedenEnsenar: 0, quierenAprender: 5 },
+      ],
+    };
+    simularSesionIniciada(RRHH_PLANTA, {
+      ...rutasBase,
+      'GET /identity/metricas/intereses': { status: 200, cuerpo: metricas },
+    });
+    renderizar(<App />, { ruta: '/personas' });
+
+    expect(await screen.findByText(/7 de 12 personas ya declararon sus temas/)).toBeInTheDocument();
+    expect(screen.getByText('Inglés técnico')).toBeInTheDocument();
+    expect(screen.getByText('5 quieren aprenderlo')).toBeInTheDocument();
+    expect(screen.queryByText('1 quieren aprenderlo')).not.toBeInTheDocument();
+    expect(screen.getByText('3 pueden enseñarlo')).toBeInTheDocument();
   });
 
   it('el equipo de ENACTIVA no administra la gente de las empresas', async () => {

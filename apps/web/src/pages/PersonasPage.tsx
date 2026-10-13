@@ -1,5 +1,6 @@
 import { ETIQUETAS_ROL, type ResultadoImportacion } from '@enactiva/shared';
 import { useState } from 'react';
+import { InteresesDeclarados } from '@/components/metricas/InteresesDeclarados';
 import { ImportarPersonas } from '@/components/personas/ImportarPersonas';
 import { InvitarPersona } from '@/components/personas/InvitarPersona';
 import { Alert } from '@/components/ui/alert';
@@ -59,6 +60,8 @@ export function PersonasPage() {
         <Kpi etiqueta="Invitaciones pendientes" valor={personas ? invitadas : '—'} />
         <Kpi etiqueta="Logro promedio" valor="Aún sin mediciones" destacado={false} />
       </div>
+
+      <InteresesDeclarados />
 
       {isPending && <p className="text-sm text-texto-suave">Cargando personas…</p>}
       {isError && <Alert>No pudimos cargar las personas. Actualiza la página.</Alert>}
