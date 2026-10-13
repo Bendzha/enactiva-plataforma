@@ -9,6 +9,7 @@ import { AuditoriaModule } from './modules/auditoria/auditoria.module.js';
 import { CorreoModule } from './modules/correo/correo.module.js';
 import { EmpresasModule } from './modules/empresas/empresas.module.js';
 import { InvitacionesModule } from './modules/invitaciones/invitaciones.module.js';
+import { MetricasModule } from './modules/metricas/metricas.module.js';
 import { PerfilesModule } from './modules/perfiles/perfiles.module.js';
 import { PersonasModule } from './modules/personas/personas.module.js';
 import { ProveedorEstadoSesionLocal } from './modules/sesiones/proveedor-estado-sesion.js';
@@ -37,6 +38,7 @@ import { SesionesModule } from './modules/sesiones/sesiones.module.js';
     AdminsModule,
     EmpresasModule,
     InvitacionesModule,
+    MetricasModule,
     PerfilesModule,
     PersonasModule,
     SesionesModule,

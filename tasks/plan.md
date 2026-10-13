@@ -3,17 +3,21 @@
 **Referencias:** `docs/specs/SPEC.md`, `docs/decisions/0001`–`0004`.
 **Regla:** cada tarea deja el proyecto compilando y con tests en verde; una tarea ≈ un commit.
 
-## Estado (actualizado 2026-10-13)
+## Estado (actualizado 2026-10-13, tarde)
 - ✅ **Slice 0 completo** (T0.1 a T0.10, PR #1 a #10).
 - ✅ **Slice 1 completo**: T1.2 a T1.10 mergeadas (PR #11 y #12).
 - ✅ **Slice 2 completo**: T2.1 a T2.5 mergeadas (PR #13).
 - ✅ **Slice 3 completo** (MVP 1): T3.1 a T3.5 mergeadas (PR #15).
 - ✅ **Migración a microservicios** (ADR-0007): fases **M0, M1 y M2 listas**. El monolito ya no existe y la web corre sobre el gateway.
 - ✅ **Slice 4 completo** (T4.1 a T4.5): catálogo de temas y perfil corporativo en `identity-service`.
-- ⏭️ Siguiente: **Slice 5** (talleres), que necesita la respuesta a Q9 y Q11 antes de empezar.
+- ✅ **Métricas de intereses** (compromiso del acta): el panel de RRHH y el global de ENACTIVA ya muestran perfiles completos, oferta, demanda y brechas.
+- ✅ **Slice 5 completo** (T5.1 a T5.5): talleres convocados, inscripciones y disponibilidad, ya en `learning-service`.
+- ⏭️ Siguiente: **Slice 6** (matching tipo swipe), el corazón del producto según el acta.
 - 🔴 **El 2026-09-29 la clienta cambió el alcance** (ADR-0008): la plataforma no aloja clases. Cae la subida de contenidos; aparecen la ficha del taller, el cupo, la ubicación, la disponibilidad, la agenda y los recordatorios.
 - 🎮 **Segundo eje del producto** (WhatsApp de la clienta, 2026-09-29, ADR-0009): valoración del encuentro con estrellas, referencias públicas y tokens de reconocimiento. "Match corporativo + gamificación corporativa". Es el Slice 8.
-- ❓ **Preguntas que bloquean del Slice 5 en adelante**: Q9 (etapas), Q10 (rúbrica), Q11 (taller/facilitador), Q15 a Q18 (valoración, referencias y tokens) y Q19 (escala de nivel). Ver SPEC §11.
+- 🟢 **El 2026-10-13 la clienta cerró el alcance** (ADR-0010): se elimina el modelo de evaluación —etapas, rúbrica, logro, delta, mediciones y tests—. *"Lo mejor es que sea sólo conectar y convocar"*. Cae el Slice 9 completo.
+- ✅ También quedó cerrado: el producto se llama **ENACTIVA**, el código mantiene `curso` y `capacitador`, el match lo puntúan ambas partes, las 4 estrellas son fijas, las referencias se moderan y los tokens solo se cuentan.
+- ❓ **Lo que sigue abierto no frena nada**: el aviso de privacidad (Q3, urgente antes del Slice 8), la escala de estrellas (Q5), el dominio (Q1), el enlace con la web (Q13) y el modelo comercial (Q14).
 - 👀 La plataforma se abre en http://localhost:5173: ver "Levantar la plataforma en local" en el README.
 
 **En un PC nuevo:** Docker Desktop → `docker compose up -d --wait` → `pnpm install` → copiar `.env.example` a `.env` y completar los secretos → `pnpm --filter identity-service db:deploy` → `pnpm --filter identity-service db:seed` → `pnpm test`.
@@ -157,18 +161,37 @@ Tres decisiones que solo aparecieron al construirlo:
 - **El equipo de ENACTIVA no tiene perfil corporativo**, porque no pertenece a ninguna empresa. Para crear un tema tiene que decir en cuál; el resto lo toma de su sesión y nunca del cuerpo de la petición (ADR-0007).
 - **Las habilidades, conocimientos y actitudes que pidió la clienta no son campos nuevos**: son las declaraciones agrupadas por dimensión. Lo único en texto libre son los intereses generales, con un aviso en pantalla de que no se escriban datos personales.
 
-## Slice 5 — Talleres convocados
+## Métricas de intereses ✅ — compromiso del acta, no es un slice
+**Demo:** RRHH ve qué quiere aprender su gente y qué nadie puede enseñar; el Admin Principal ve lo mismo empresa por empresa.
+En la reunión del 2026-09-29 quedó dicho que las métricas de abajo del panel se encenderían cuando la gente registrara sus intereses. Con el Slice 4 ya hay datos.
+
+| # | Tarea | Criterio de aceptación | Estado |
+|---|---|---|---|
+| MI.1 | `GET /metricas/intereses` para RRHH, acotado a su empresa | una empresa nunca ve números de otra | ✅ |
+| MI.2 | `GET /metricas/globales` para el Admin Principal, empresa por empresa | RRHH recibe 403 | ✅ |
+| MI.3 | Tarjeta "Qué quiere aprender tu gente" en Personas y tabla en Métricas globales | sin cifras de ejemplo cuando no hay datos | ✅ |
+
+La métrica que importa son las **brechas**: temas que alguien quiere aprender y nadie de la empresa declaró que puede enseñar. Es lo que contesta dónde hay que traer formación de afuera, que es la pregunta de negocio de la clienta. Todo lo que sale de estos endpoints son agregados: nunca quién declaró qué.
+
+## Slice 5 — Talleres convocados ✅
 **Demo:** un facilitador publica la ficha de un taller con su fecha, su cupo y su lugar, y declara cuándo está disponible.
 **Reescrito el 2026-09-29** (ADR-0008): ya no hay contenidos que subir.
+**Desbloqueado el 2026-10-13** (ADR-0010): el taller es una actividad única, sin etapas. `Taller` no lleva estado de etapa; lo que decide si se puede entrar es la fecha y el cupo.
 
-| # | Tarea | Criterio de aceptación |
-|---|---|---|
-| T5.1 | Migración: `Taller` (nombre, fecha, horario, cupo, objetivo, resultados esperados, ubicación) e `Inscripcion` | la ficha exige los campos que pidió la clienta |
-| T5.2 | Migración: `Disponibilidad` del facilitador | franjas horarias por persona |
-| T5.3 | API de talleres: publicar, listar los propios, editar mientras no haya empezado | el cupo no baja de las inscripciones ya hechas |
-| T5.4 | API de inscripción: respeta el cupo | al llenarse, el taller deja de aceptar gente |
-| T5.5 | Web: "Mis talleres" del facilitador y el formulario de la ficha | — |
-| ~~T5.x~~ | ~~Subida y descarga de archivos de contenido (ADR-0006)~~ | ⛔ **Eliminada**: la plataforma no aloja clases |
+| # | Tarea | Criterio de aceptación | Estado |
+|---|---|---|---|
+| T5.1 | Migración: `Taller` (nombre, fecha, horario, cupo, objetivo, resultados esperados, ubicación) e `Inscripcion` | la ficha exige los campos que pidió la clienta | ✅ |
+| T5.2 | Migración: `Disponibilidad` del facilitador | franjas horarias por persona | ✅ |
+| T5.3 | API de talleres: publicar, listar los propios, editar mientras no haya empezado | el cupo no baja de las inscripciones ya hechas | ✅ |
+| T5.4 | API de inscripción: respeta el cupo | al llenarse, el taller deja de aceptar gente | ✅ |
+| T5.5 | Web: "Mis talleres" del facilitador y el formulario de la ficha | — | ✅ |
+| ~~T5.x~~ | ~~Subida y descarga de archivos de contenido (ADR-0006)~~ | ⛔ **Eliminada**: la plataforma no aloja clases | — |
+
+Lo que apareció al construirlo:
+
+- **Primera llamada entre servicios del producto.** learning-service no conoce los temas: se los pregunta a identity por `/interno/temas?ids=`, con el token de quien pide. Así un tema de otra empresa no existe para él, sin que learning tenga que saber de empresas.
+- **El cupo se decide en una transacción serializable.** Contar y crear son dos pasos; con dos personas entrando al último lugar al mismo tiempo, ambas verían cupo libre. Dentro de la transacción los filtros por empresa van escritos a mano, para que el aislamiento no dependa de la extensión de Prisma.
+- **Falta el nombre de quien dicta.** La tarjeta muestra el tema, la fecha y el lugar, pero no quién enseña: eso es un dato personal que cruza servicios y se agrega en el Slice 6, donde la tarjeta del swipe lo necesita de verdad.
 
 ## Slice 6 — Matching tipo swipe
 **Demo:** una persona busca un tema, ve tarjetas de talleres y al dar like queda inscrita.
@@ -178,7 +201,7 @@ Es **el corazón del producto** según el acta: "Activa facilitará matches corp
 |---|---|---|
 | T6.1 | Migración: `Match` (estudiante, facilitador, taller, tema, score, estado) | un estudiante no repite tarjeta ya decidida |
 | T6.2 | Score de afinidad con dimensiones, nivel, área y valoración, con pesos en constantes | función pura con tests propios |
-| T6.3 | API del mazo: solo talleres de su empresa, futuros y con cupo | nunca aparecen talleres de otra empresa ni uno propio |
+| T6.3 | API del mazo: solo talleres de su empresa, futuros y con cupo (Q9 resuelta: no hay etapas que filtrar) | nunca aparecen talleres de otra empresa ni uno propio |
 | T6.4 | API de decisión: like inscribe de inmediato, descarte no vuelve a aparecer | inscripción idempotente; respeta el cupo |
 | T6.5 | Web: tarjetas con ♥ y ✕ como en el mockup, más estado vacío | funciona en móvil |
 
@@ -198,34 +221,24 @@ Es **el corazón del producto** según el acta: "Activa facilitará matches corp
 
 | # | Tarea | Criterio de aceptación |
 |---|---|---|
-| T8.1 | Migración: `ValoracionTaller` (estrellas por dimensión, asistencia), `Referencia` y `Token` | solo valora quien asistió, y una sola vez por taller |
-| T8.2 | Migración: puntuación del match (¿se reunieron?, ¿a la hora?, ¿como esperaban?, ¿repetirían?) | depende de Q15 |
+| T8.1 | Migración: `ValoracionTaller` (estrellas por dimensión, asistencia), `Referencia` y `Token` | solo valora quien asistió, y una sola vez por taller. Las 4 dimensiones van como **filas**, no como columnas: la clienta dijo que se pueden agregar más |
+| T8.2 | Migración: puntuación del match (¿se reunieron?, ¿a la hora?, ¿como esperaban?, ¿repetirían?) | la contestan **ambas partes** tras la primera reunión; con una sola respuesta el match ya queda puntuado |
 | T8.3 | API de valoración: estrellas, asistencia y referencia | la referencia se firma con el nombre de quien la escribe (ADR-0009) |
 | T8.4 | API de moderación para RRHH: ocultar una referencia, con auditoría | no se borra, se oculta |
-| T8.5 | Tokens del facilitador: contador por taller, sin valor canjeable | Q18 antes de ir más lejos |
+| T8.5 | Tokens del facilitador: recuento por taller, auditado y no editable a mano | el canje lo administra la empresa **fuera** de la plataforma (Q18); aquí no hay saldo, premios ni transferencias |
 | T8.6 | El promedio del facilitador alimenta el score de afinidad | matching lo pide por REST a learning |
 | T8.7 | Web: pantalla de valoración y tarjeta de perfil con estrellas, referencias y tokens | como el ejemplo que mandó la clienta |
 
-**Preguntas que lo bloquean:** Q15, Q16, Q17 y Q18.
+**Ya no lo bloquea nada del producto**, pero **no se publica sin el aviso de privacidad (Q3)**: este slice guarda texto libre de una persona sobre otra identificada, y eso hay que declararlo antes de que alguien lo escriba.
 
-## Slice 9 — Rúbrica y mediciones · ⏸️ EN ESPERA
-**Bloqueado por Q10.** La clienta lo confirmó en detalle el 2026-09-15, pero el acta del 2026-09-29 no lo
-menciona y describe un taller presencial único, donde medir en tres momentos no tiene un lugar evidente
-donde ocurrir. **No empezar sin su respuesta.**
+## ~~Slice 9 — Rúbrica y mediciones~~ · ⛔ ELIMINADO el 2026-10-13
 
-| # | Tarea | Criterio de aceptación |
-|---|---|---|
-| T9.1 | Migración: `Rubrica`, `Indicador`, `Medicion`, `PuntajeIndicador` | pesos enteros; umbral por rúbrica |
-| T9.2 | API de rúbrica: crear y editar en borrador; se congela al empezar | no se puede editar después; suma de pesos = 100 |
-| T9.3 | Cálculo de logro por dimensión y total, y delta relativo entre momentos | función pura con tests, incluido diagnóstico = 0 |
-| T9.4 | API de mediciones: registrar los momentos por estudiante | no se cierra una medición incompleta |
-| T9.5 | Web: rúbrica del taller y pantalla de evaluación | — |
+La clienta lo sacó del alcance (ADR-0010): *"los modelos chocan cuando hay mucho de capacitación
+tradicional. Por lo tanto, lo mejor es que sea sólo conectar y convocar"*. Las estrellas del Slice 8
+ocupan su lugar, pero miden **si el encuentro sirvió**, no cuánto aprendió alguien.
 
-**Preguntas que bloquean lo que queda:** Q9 (¿sobreviven las tres etapas?), Q10 (¿sobrevive la
-rúbrica?), Q11 (¿se renombra a taller/facilitador?) y Q15 a Q18 (valoración, referencias y tokens).
-Q4 depende de Q10.
-
----
+Con él caen la rúbrica, los indicadores, el umbral, el logro, el delta, las mediciones en tres
+momentos y los tests por nivel. Era la mitad del trabajo que quedaba por hacer.
 
 ## Pendientes antes de publicar (no bloquean el desarrollo local)
 - SPEC Q1: dominio de ENACTIVA y acceso a su DNS para correo real y subdominios `app.` / `api.`.
