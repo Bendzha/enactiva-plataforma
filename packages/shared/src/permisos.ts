@@ -15,6 +15,8 @@ export const PERMISOS = [
   'personas:gestionar',
   /** Agregar temas al catálogo de la empresa: Admin, RRHH y Capacitador (SPEC §3.6). */
   'temas:crear',
+  /** Publicar la ficha de un taller y declarar cuándo se puede enseñar (SPEC §3.2). */
+  'talleres:publicar',
 ] as const;
 export type Permiso = (typeof PERMISOS)[number];
 
@@ -41,7 +43,7 @@ const PERMISOS_POR_ROL: Record<Rol, readonly Permiso[]> = {
   // no el día a día de cada organización.
   RRHH: ['personas:gestionar', 'temas:crear'],
   // Quien enseña necesita poder nombrar lo que enseña; si no existiera el tema, no podría ofrecerlo.
-  CAPACITADOR: ['temas:crear'],
+  CAPACITADOR: ['temas:crear', 'talleres:publicar'],
   ESTUDIANTE: [],
 };
 

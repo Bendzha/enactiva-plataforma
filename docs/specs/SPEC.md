@@ -61,6 +61,13 @@ Los permisos se definen como un **mapa rol → permisos en código** (ver ADR-00
 
 - El facilitador publica una **ficha del taller** con: nombre, fecha, horario, cupo, objetivo,
   resultados esperados y **ubicación de la actividad presencial** **[C, acta 2026-09-29]**.
+- La ficha cuelga de un **tema del catálogo** de la empresa **[P]**: sin tema no habría con qué armar
+  el mazo del swipe, que es por donde la gente busca (§3.6). El tema no se cambia después, porque
+  quien se inscribió lo hizo por ese tema.
+- El taller se edita **mientras no haya empezado**, y el cupo nunca baja por debajo de la gente ya
+  inscrita **[P]**: dejar a alguien fuera sin avisarle no es editar, es cancelarle.
+- La **inscripción** es del tamaño del cupo y de nadie más: al llenarse, el taller deja de aceptar
+  gente **[C, acta 2026-09-29]**. Quien se arrepiente puede cancelar y libera su lugar **[P]**.
 - **No hay contenidos que subir.** Sin archivos, sin almacenamiento, sin descargas **[C, acta 2026-09-29]**.
   El ADR-0006 queda reemplazado por el ADR-0008.
 - **Cupo máximo: sí existe** **[C, acta 2026-09-29]**. Corrige la respuesta del 2026-09-15 ("sin cupo

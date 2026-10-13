@@ -33,6 +33,28 @@ export type TipoInteres = (typeof TIPOS_INTERES)[number];
 export const NIVELES_DOMINIO = ['BASICO', 'INTERMEDIO', 'AVANZADO'] as const;
 export type NivelDominio = (typeof NIVELES_DOMINIO)[number];
 
+/** Días en los que alguien puede declarar que está disponible para enseñar (acta 2026-09-29). */
+export const DIAS_SEMANA = [
+  'LUNES',
+  'MARTES',
+  'MIERCOLES',
+  'JUEVES',
+  'VIERNES',
+  'SABADO',
+  'DOMINGO',
+] as const;
+export type DiaSemana = (typeof DIAS_SEMANA)[number];
+
+export const ETIQUETAS_DIA_SEMANA: Record<DiaSemana, string> = {
+  LUNES: 'Lunes',
+  MARTES: 'Martes',
+  MIERCOLES: 'Miércoles',
+  JUEVES: 'Jueves',
+  VIERNES: 'Viernes',
+  SABADO: 'Sábado',
+  DOMINGO: 'Domingo',
+};
+
 export const ETIQUETAS_DIMENSION: Record<Dimension, string> = {
   HABILIDAD: 'Habilidad',
   CONTENIDO: 'Contenido',

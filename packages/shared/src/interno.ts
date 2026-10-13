@@ -66,3 +66,15 @@ export interface EstadoSesionInterno {
   empresaId: string | null;
   activo: boolean;
 }
+
+/**
+ * Tema del catálogo, tal como lo ve otro servicio. Solo el id y el nombre: learning-service
+ * guarda `temaId` y necesita el nombre para mostrarlo, nada más (ADR-0007).
+ */
+export interface TemaInterno {
+  id: string;
+  nombre: string;
+}
+
+/** Cuántos temas se piden de una vez; es el largo de una lista de talleres en pantalla. */
+export const MAXIMO_TEMAS_INTERNOS = 100;

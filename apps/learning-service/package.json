@@ -2,7 +2,7 @@
   "name": "learning-service",
   "private": true,
   "type": "module",
-  "description": "Cursos, etapas, contenidos, rúbricas, mediciones y agregación para dashboards (ADR-0007).",
+  "description": "Talleres convocados, inscripciones y disponibilidad del facilitador (ADR-0007).",
   "scripts": {
     "build": "nest build",
     "dev": "nest start --watch",
@@ -14,7 +14,9 @@
     "test:watch": "vitest",
     "db:migrate": "prisma migrate dev",
     "db:deploy": "prisma migrate deploy",
-    "db:reset": "prisma migrate reset"
+    "db:reset": "prisma migrate reset",
+    "postinstall": "prisma generate",
+    "prisma:generate": "prisma generate"
   },
   "dependencies": {
     "@enactiva/service-kit": "workspace:*",
@@ -23,7 +25,11 @@
     "@nestjs/core": "^12.0.3",
     "@nestjs/jwt": "^12.0.2",
     "@nestjs/platform-express": "^12.0.3",
+    "@nestjs/throttler": "^6.7.0",
+    "@prisma/adapter-pg": "7.10.0",
+    "@prisma/client": "7.10.0",
     "nestjs-cls": "^7.0.0",
+    "pg": "^8.23.0",
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.2",
     "zod": "^4.6.5"
@@ -32,12 +38,15 @@
     "@nestjs/cli": "^12.0.1",
     "@nestjs/schematics": "^12.0.2",
     "@nestjs/testing": "^12.0.3",
+    "@types/express": "^5.0.6",
     "@types/node": "^24.13.4",
+    "@types/pg": "^8.23.1",
     "@types/supertest": "^7.2.1",
     "dotenv": "^17.4.2",
     "prisma": "7.10.0",
     "supertest": "^7.2.2",
     "tslib": "^2.8.1",
+    "tsx": "^4.23.13",
     "typescript": "~6.0.3",
     "vitest": "~4.1.11"
   }
