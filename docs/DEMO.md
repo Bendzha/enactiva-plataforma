@@ -197,6 +197,11 @@ DELETE (ADR-0002).
 No hace falta apagar `pnpm dev`: lo probamos con todo corriendo y los servicios se reconectaron
 solos. Si algo responde raro después de un reset, reinicia `pnpm dev` y listo.
 
+> **Hay un solo Postgres por computador**, compartido por cualquier copia del repositorio que
+> tengas. Un reset borra las bases para todas: si además trabajas en otra carpeta del proyecto,
+> vas a tener que volver a correr su `pnpm --filter identity-service db:seed`. Nos pasó probando
+> esto y dejó los tests en rojo hasta que lo notamos.
+
 ---
 
 ## Cosas que pasan
