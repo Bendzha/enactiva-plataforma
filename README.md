@@ -86,9 +86,13 @@ pnpm dev            # la plataforma completa: web, gateway y los cuatro servicio
 
 ## Levantar la plataforma en local
 
+> Para una demo en otro computador, el paso a paso completo está en [docs/DEMO.md](docs/DEMO.md):
+> incluye datos de prueba, cuentas, respaldo de las bases y cómo correrla sin internet.
+
 ```bash
 docker compose up -d --wait                 # bases de datos y Mailpit
 pnpm --filter identity-service db:deploy    # solo la primera vez
+pnpm --filter learning-service db:deploy    # idem
 pnpm --filter identity-service db:seed      # crea el Admin Principal
 pnpm dev                                    # web, gateway y los cuatro servicios
 ```
