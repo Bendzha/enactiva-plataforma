@@ -24,7 +24,14 @@ largo en levantar su motor; si `docker info` da error, espera a que el icono dej
 
 ---
 
-## Levantar todo (unos 10 minutos la primera vez)
+## Levantar todo
+
+**Medido el 2026-10-21:** 1 minuto y medio desde `git clone` hasta la plataforma respondiendo,
+en un computador que ya tenía las imágenes de Docker descargadas y el almacén de pnpm con las
+dependencias. En un computador recién instalado hay que sumarle lo que tarde en bajar unos
+500 MB de imágenes y el `pnpm install` completo: cuenta **20 o 30 minutos con buena conexión**.
+
+Por eso conviene dejar todo descargado antes (ver [Demo sin internet](#demo-sin-internet)).
 
 ### 1. Clonar e instalar
 
@@ -90,8 +97,11 @@ pnpm --filter learning-service db:deploy
 pnpm demo:seed
 ```
 
-Deja dos empresas, diez personas, siete temas, doce declaraciones de perfil, tres talleres con
+Deja dos empresas, diez personas, siete temas, once declaraciones de perfil, tres talleres con
 sus inscripciones y la disponibilidad de dos facilitadores. Correrlo de nuevo no duplica nada.
+
+> El seed **agrega y actualiza, pero no borra**. Si alguien edita `tools/demo/datos.ts` y quita
+> algo, ese dato sigue en la base hasta que corras `pnpm demo:reset`.
 
 ### 6. Arrancar la plataforma
 
@@ -239,7 +249,15 @@ docker compose cp postgres:/tmp/matching.dump ../respaldos-enactiva/matching.dum
 ```
 
 En PowerShell es lo mismo, cambiando `mkdir -p` por `New-Item -ItemType Directory -Force` y las
-barras por `\`.
+barras por `\`. **En Windows conviene usar PowerShell para esto.**
+
+> **Si usas Git Bash en Windows**, `/tmp/identity.dump` no llega así al contenedor: Git Bash lo
+> convierte en una ruta de Windows y `pg_dump` falla con "could not open output file". Antepón
+> `MSYS_NO_PATHCONV=1` a cada comando que lleve una ruta del contenedor:
+>
+> ```bash
+> MSYS_NO_PATHCONV=1 docker compose exec -T postgres pg_dump -U enactiva -d identity_db -Fc -f /tmp/identity.dump
+> ```
 
 > **No uses `pg_dump ... > archivo.sql` en PowerShell.** La redirección de PowerShell guarda el
 > archivo en UTF-16 y `psql` después no lo puede leer. Por eso el dump se escribe dentro del
@@ -252,7 +270,10 @@ docker compose cp ../respaldos-enactiva/identity.dump postgres:/tmp/identity.dum
 docker compose exec -T postgres pg_restore -U enactiva -d identity_db --clean --if-exists /tmp/identity.dump
 ```
 
-Igual para `learning_db` y `matching_db`. Si la base no existe, créala antes:
+Igual para `learning_db` y `matching_db`. Probado el 2026-10-21: borramos todos los talleres y
+sus inscripciones, restauramos el respaldo y volvieron los tres talleres con sus siete inscritos.
+
+Si la base no existe, créala antes:
 
 ```bash
 docker compose exec -T postgres psql -U enactiva -d postgres -c 'CREATE DATABASE identity_db OWNER svc_identity;'
@@ -275,6 +296,8 @@ docker pull postgres:18-alpine
 docker pull axllent/mailpit:v1.31
 docker save postgres:18-alpine axllent/mailpit:v1.31 -o imagenes-enactiva.tar
 ```
+
+El archivo pesa unos **128 MB** y tarda segundos en generarse. Cabe en cualquier pendrive.
 
 En el computador de la demo:
 
