@@ -79,8 +79,15 @@ jobs:
       - name: Crear las bases de los microservicios
         run: psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f docker/postgres/00-bases.sql
 
-      - name: Aplicar migraciones
+      # Cada servicio tiene su propia base (ADR-0007), así que cada uno aplica las suyas con su
+      # propio DATABASE_URL. Van en pasos separados a propósito: si falla una migración, el log
+      # dice de qué servicio es sin tener que leer el error de Prisma.
+      # matching-service todavía no tiene tablas; su paso entra con el Slice 6 (T6.6).
+      - name: Migrar identity_db
         run: pnpm --filter identity-service db:deploy
+
+      - name: Migrar learning_db
+        run: pnpm --filter learning-service db:deploy
 
       - name: Sembrar el Admin Principal
         run: pnpm --filter identity-service db:seed

@@ -204,6 +204,7 @@ Es **el corazón del producto** según el acta: "Activa facilitará matches corp
 | T6.3 | API del mazo: solo talleres de su empresa, futuros y con cupo (Q9 resuelta: no hay etapas que filtrar) | nunca aparecen talleres de otra empresa ni uno propio |
 | T6.4 | API de decisión: like inscribe de inmediato, descarte no vuelve a aparecer | inscripción idempotente; respeta el cupo |
 | T6.5 | Web: tarjetas con ♥ y ✕ como en el mockup, más estado vacío | funciona en móvil |
+| T6.6 | Agregar el paso de migración de `matching-service` a `ci.yml` | la CI aplica las migraciones de las tres bases, cada una en su propio paso |
 
 ## Slice 7 — Agenda y recordatorios
 **Demo:** el facilitador y los inscritos ven el taller en su agenda y reciben el recordatorio por correo.
