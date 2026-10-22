@@ -43,10 +43,13 @@ interface Resultado {
 
 const resultados: Resultado[] = [];
 
+/** El aviso de "esperando" solo tiene sentido en una terminal; en un archivo de log estorba. */
+const enTerminal = Boolean(process.stdout.isTTY);
+
 function anotar(que: string, ok: boolean, detalle: string): void {
   resultados.push({ que, ok, detalle });
   // Borra el "…esperando a X" antes de escribir el resultado donde estaba.
-  process.stdout.write(`\r${' '.repeat(60)}\r`);
+  if (enTerminal) process.stdout.write(`\r${' '.repeat(60)}\r`);
   console.log(`${ok ? '  ok  ' : ' FALLA'}  ${que.padEnd(34)} ${detalle}`);
 }
 
@@ -74,8 +77,8 @@ async function esperarA(url: string, nombre: string, hasta = 30000): Promise<boo
       // Todavía no levanta.
     }
     if (Date.now() > limite) return false;
-    if (!aviso) {
-      process.stdout.write(`  …esperando a ${nombre}\r`);
+    if (!aviso && enTerminal) {
+      process.stdout.write(`  …esperando a ${nombre}`);
       aviso = true;
     }
     await new Promise((seguir) => setTimeout(seguir, 1000));
