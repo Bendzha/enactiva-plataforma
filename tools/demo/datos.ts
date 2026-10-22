@@ -234,6 +234,9 @@ const CL = EMPRESAS.comercialLin.id;
  * - "Inglés técnico" y "Hablar en público" los quieren varios y **nadie** los enseña: brechas.
  * - "Excel avanzado" tiene oferta y demanda: es lo que más se ofrece.
  * - "Mantención eléctrica básica" no lo declaró nadie: está en el catálogo y no es brecha.
+ *
+ * Diego (07) va a talleres pero no declaró nada: así RRHH ve "5 de 6 con perfil" en vez de un
+ * 100% que no le diría nada.
  */
 export const INTERESES: readonly InteresDemo[] = [
   {
@@ -307,15 +310,6 @@ export const INTERESES: readonly InteresDemo[] = [
     tipo: 'ENSENAR',
     dimensiones: ['HABILIDAD'],
     nivel: 'AVANZADO',
-  },
-  {
-    id: `${I}09`,
-    usuarioId: `${U}07`,
-    temaId: TEMAS.hablar.id,
-    empresaId: PN,
-    tipo: 'APRENDER',
-    dimensiones: ['ACTITUD'],
-    nivel: 'BASICO',
   },
   {
     id: `${I}10`,

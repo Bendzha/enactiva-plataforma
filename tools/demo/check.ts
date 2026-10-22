@@ -45,6 +45,8 @@ const resultados: Resultado[] = [];
 
 function anotar(que: string, ok: boolean, detalle: string): void {
   resultados.push({ que, ok, detalle });
+  // Borra el "…esperando a X" antes de escribir el resultado donde estaba.
+  process.stdout.write(`\r${' '.repeat(60)}\r`);
   console.log(`${ok ? '  ok  ' : ' FALLA'}  ${que.padEnd(34)} ${detalle}`);
 }
 
