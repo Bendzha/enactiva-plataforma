@@ -15,7 +15,10 @@
     "build:paquetes": "pnpm --filter @enactiva/shared build && pnpm --filter @enactiva/service-kit build",
     "typecheck": "pnpm build:paquetes && pnpm -r --if-present typecheck",
     "test": "pnpm build:paquetes && pnpm -r --workspace-concurrency=1 --if-present test",
-    "prepare": "pnpm build:paquetes"
+    "prepare": "pnpm build:paquetes",
+    "demo:seed": "pnpm --filter @enactiva/demo seed",
+    "demo:reset": "pnpm --filter @enactiva/demo reset",
+    "demo:check": "pnpm --filter @enactiva/demo check"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",

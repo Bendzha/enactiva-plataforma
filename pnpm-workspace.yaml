@@ -1,6 +1,8 @@
 packages:
   - apps/*
   - packages/*
+  # Herramientas que no son parte del producto (los comandos de la demo).
+  - tools/*
 allowBuilds:
   '@prisma/engines': true
   bcrypt: true

@@ -12,6 +12,15 @@ apps/*/src/generated/
 .env.*
 !.env.example
 
+# Respaldos de las bases: traen hashes de contraseña y datos personales. Guárdalos FUERA del
+# repositorio (ver docs/DEMO.md).
+respaldos/
+*.dump
+*.sql.gz
+
+# Marca de la última siembra de demo (la escribe pnpm demo:seed)
+tools/demo/.ultimo-seed.json
+
 # Archivos temporales de Office y del sistema
 ~$*
 .DS_Store

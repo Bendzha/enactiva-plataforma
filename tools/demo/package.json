@@ -1,0 +1,23 @@
+{
+  "name": "@enactiva/demo",
+  "private": true,
+  "type": "module",
+  "description": "Datos y comandos de la demo presencial (docs/DEMO.md). No es parte del producto.",
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "seed": "tsx seed.ts",
+    "reset": "tsx reset.ts",
+    "check": "tsx check.ts"
+  },
+  "dependencies": {
+    "@prisma/adapter-pg": "7.10.0",
+    "dotenv": "^17.4.2",
+    "identity-service": "workspace:*",
+    "learning-service": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/node": "^24.13.4",
+    "tsx": "^4.23.13",
+    "typescript": "~6.0.3"
+  }
+}
