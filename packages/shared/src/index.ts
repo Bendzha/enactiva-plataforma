@@ -4,6 +4,7 @@ export * from './auth.js';
 export * from './empresas.js';
 export * from './interno.js';
 export * from './invitaciones.js';
+export * from './matching.js';
 export * from './metricas.js';
 export * from './perfiles.js';
 export * from './permisos.js';

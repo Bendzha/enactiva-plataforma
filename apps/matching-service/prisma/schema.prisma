@@ -1,14 +1,96 @@
 // Modelo de datos de matching-service — ADR-0002 (dominio) y ADR-0007 (reparto entre servicios).
 //
-// Fase M0: la base existe y el servicio sabe llegar a ella, pero todavía no hay tablas.
-// Se construyen en M3, con el Slice 6:
-//   Match · RegistroAuditoria
+// Aquí vive lo que alguien **decidió** sobre una tarjeta del mazo. Lo que podría mostrarse no se
+// guarda: se calcula en cada consulta pidiéndole los talleres a learning y los perfiles a
+// identity. Guardar el mazo sería guardar una foto que envejece sola.
 //
-// `estudianteId`, `capacitadorId`, `cursoId` y `temaId` se guardan sin clave foránea: viven en
-// identity_db y learning_db, y Postgres no puede validarlos entre bases distintas (ADR-0007).
-//
-// El bloque `generator` se agrega junto con la primera tabla.
+// `estudianteId`, `capacitadorId`, `tallerId` y `temaId` se guardan sin clave foránea: esos datos
+// viven en identity_db y learning_db, y Postgres no puede validarlos entre bases distintas.
+
+generator client {
+  provider     = "prisma-client"
+  output       = "../src/generated/prisma"
+  moduleFormat = "esm"
+}
 
 datasource db {
   provider = "postgresql"
+}
+
+// ── Enums ────────────────────────────────────────────────────────────────────
+
+/// Copia del enum de identity_db: el registro de auditoría de este servicio necesita saber con
+/// qué rol actuó alguien, y cada base es independiente.
+enum Rol {
+  ADMIN_ENACTIVA
+  RRHH
+  CAPACITADOR
+  ESTUDIANTE
+}
+
+enum AccionAuditoria {
+  LOGIN
+  LOGIN_FALLIDO
+  LEER
+  CREAR
+  ACTUALIZAR
+  ELIMINAR
+  EXPORTAR
+  ANONIMIZAR
+}
+
+/// Qué hizo la persona con la tarjeta.
+enum DecisionMatch {
+  INTERESADO
+  DESCARTADO
+}
+
+// ── Decisiones del swipe ─────────────────────────────────────────────────────
+
+/// Una tarjeta ya decidida: alguien dijo que sí o que no a un taller.
+///
+/// El par (persona, taller) es único: una tarjeta se decide una vez. Un descarte no vuelve a
+/// aparecer en el mazo (SPEC §3.6) y un "me interesa" ya inscribió a la persona, así que tampoco
+/// tiene sentido volver a mostrarla.
+///
+/// Se guarda el `score` con el que se tomó la decisión, no para recalcularlo después sino para
+/// poder responder más adelante si el orden que propusimos tenía algo que ver con lo que la
+/// gente eligió. Los pesos se ajustan con datos reales (SPEC §3.6) y estos son esos datos.
+model Match {
+  id            String        @id @default(uuid(7)) @db.Uuid
+  empresaId     String        @map("empresa_id") @db.Uuid
+  estudianteId  String        @map("estudiante_id") @db.Uuid
+  capacitadorId String        @map("capacitador_id") @db.Uuid
+  tallerId      String        @map("taller_id") @db.Uuid
+  temaId        String        @map("tema_id") @db.Uuid
+  score         Int
+  decision      DecisionMatch
+  decididoAt    DateTime      @default(now()) @map("decidido_at") @db.Timestamptz(3)
+
+  @@unique([estudianteId, tallerId])
+  @@index([empresaId, estudianteId])
+  @@index([empresaId, tallerId])
+  @@map("match")
+}
+
+// ── Cumplimiento Ley 21.719 ──────────────────────────────────────────────────
+
+/// Append-only: un trigger en la base rechaza UPDATE y DELETE.
+/// Cada servicio tiene su propia copia de esta tabla en su base (ADR-0007).
+/// Nunca guarda valores de datos personales, solo nombres de campos.
+model RegistroAuditoria {
+  id                BigInt          @id @default(autoincrement())
+  actorId           String?         @map("actor_id") @db.Uuid
+  actorRol          Rol?            @map("actor_rol")
+  empresaId         String?         @map("empresa_id") @db.Uuid
+  accion            AccionAuditoria
+  entidad           String
+  entidadId         String?         @map("entidad_id")
+  camposModificados String[]        @map("campos_modificados")
+  ip                String?
+  createdAt         DateTime        @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  @@index([empresaId, createdAt])
+  @@index([actorId, createdAt])
+  @@map("registro_auditoria")
 }

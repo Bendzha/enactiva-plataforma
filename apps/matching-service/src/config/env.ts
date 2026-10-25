@@ -17,7 +17,7 @@ const esquema = esquemaEnvBase.extend({
   JWT_ACCESS_SECRET: secretoJwtSchema,
   /** Personas, áreas, temas y perfiles de interés para calcular la afinidad. */
   URL_IDENTITY_SERVICE: urlServicioSchema.default('http://localhost:3102'),
-  /** Cursos en etapa Diagnóstico y valoración de cada capacitador. */
+  /** Talleres convocados con cupo libre, para armar el mazo. */
   URL_LEARNING_SERVICE: urlServicioSchema.default('http://localhost:3103'),
 });
 
