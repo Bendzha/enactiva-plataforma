@@ -2,6 +2,7 @@ import { Navigate, Route, Routes } from 'react-router';
 import { RutaProtegida } from '@/auth/RutaProtegida';
 import { Layout } from '@/components/Layout';
 import { ActivarPage } from '@/pages/ActivarPage';
+import { DescubrirPage } from '@/pages/DescubrirPage';
 import { EmpresasPage } from '@/pages/EmpresasPage';
 import { EquipoPage } from '@/pages/EquipoPage';
 import { InicioPage } from '@/pages/InicioPage';
@@ -32,6 +33,7 @@ export function App() {
         <Route path="/mi-perfil" element={<MiPerfilPage />} />
         {/* Sin permiso: cualquiera de una empresa mira los talleres y se inscribe. */}
         <Route path="/talleres" element={<TalleresPage />} />
+        <Route path="/descubrir" element={<DescubrirPage />} />
         <Route
           path="/empresas"
           element={

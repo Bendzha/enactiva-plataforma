@@ -27,8 +27,8 @@ export function InicioPage() {
             <Link to="/mi-perfil" className={botonVariants()}>
               Completar mi perfil
             </Link>
-            <Link to="/talleres" className={botonVariants({ variant: 'outline' })}>
-              Ver talleres
+            <Link to="/descubrir" className={botonVariants({ variant: 'outline' })}>
+              Descubrir talleres
             </Link>
           </div>
         </Card>

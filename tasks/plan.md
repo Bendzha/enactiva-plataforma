@@ -12,7 +12,8 @@
 - ✅ **Slice 4 completo** (T4.1 a T4.5): catálogo de temas y perfil corporativo en `identity-service`.
 - ✅ **Métricas de intereses** (compromiso del acta): el panel de RRHH y el global de ENACTIVA ya muestran perfiles completos, oferta, demanda y brechas.
 - ✅ **Slice 5 completo** (T5.1 a T5.5): talleres convocados, inscripciones y disponibilidad, ya en `learning-service`.
-- ⏭️ Siguiente: **Slice 6** (matching tipo swipe), el corazón del producto según el acta.
+- ✅ **Slice 6 completo** (T6.1 a T6.6): el mazo del swipe, el score de afinidad y las decisiones, en `matching-service`.
+- ⏭️ Siguiente: **exportación y supresión de datos por usuario** (Ley 21.719), que es criterio de éxito del MVP, y después los Slices 7 y 8.
 - 🔴 **El 2026-09-29 la clienta cambió el alcance** (ADR-0008): la plataforma no aloja clases. Cae la subida de contenidos; aparecen la ficha del taller, el cupo, la ubicación, la disponibilidad, la agenda y los recordatorios.
 - 🎮 **Segundo eje del producto** (WhatsApp de la clienta, 2026-09-29, ADR-0009): valoración del encuentro con estrellas, referencias públicas y tokens de reconocimiento. "Match corporativo + gamificación corporativa". Es el Slice 8.
 - 🟢 **El 2026-10-13 la clienta cerró el alcance** (ADR-0010): se elimina el modelo de evaluación —etapas, rúbrica, logro, delta, mediciones y tests—. *"Lo mejor es que sea sólo conectar y convocar"*. Cae el Slice 9 completo.
@@ -193,18 +194,25 @@ Lo que apareció al construirlo:
 - **El cupo se decide en una transacción serializable.** Contar y crear son dos pasos; con dos personas entrando al último lugar al mismo tiempo, ambas verían cupo libre. Dentro de la transacción los filtros por empresa van escritos a mano, para que el aislamiento no dependa de la extensión de Prisma.
 - **Falta el nombre de quien dicta.** La tarjeta muestra el tema, la fecha y el lugar, pero no quién enseña: eso es un dato personal que cruza servicios y se agrega en el Slice 6, donde la tarjeta del swipe lo necesita de verdad.
 
-## Slice 6 — Matching tipo swipe
-**Demo:** una persona busca un tema, ve tarjetas de talleres y al dar like queda inscrita.
+## Slice 6 — Matching tipo swipe ✅
+**Demo:** una persona abre Descubrir, ve el taller que más le calza y al dar like queda inscrita.
 Es **el corazón del producto** según el acta: "Activa facilitará matches corporativos entre colaboradores".
 
-| # | Tarea | Criterio de aceptación |
-|---|---|---|
-| T6.1 | Migración: `Match` (estudiante, facilitador, taller, tema, score, estado) | un estudiante no repite tarjeta ya decidida |
-| T6.2 | Score de afinidad con dimensiones, nivel, área y valoración, con pesos en constantes | función pura con tests propios |
-| T6.3 | API del mazo: solo talleres de su empresa, futuros y con cupo (Q9 resuelta: no hay etapas que filtrar) | nunca aparecen talleres de otra empresa ni uno propio |
-| T6.4 | API de decisión: like inscribe de inmediato, descarte no vuelve a aparecer | inscripción idempotente; respeta el cupo |
-| T6.5 | Web: tarjetas con ♥ y ✕ como en el mockup, más estado vacío | funciona en móvil |
-| T6.6 | Agregar el paso de migración de `matching-service` a `ci.yml` | la CI aplica las migraciones de las tres bases, cada una en su propio paso |
+| # | Tarea | Criterio de aceptación | Estado |
+|---|---|---|---|
+| T6.1 | Migración: `Match` (estudiante, facilitador, taller, tema, score, decisión) | una persona no repite tarjeta ya decidida | ✅ |
+| T6.2 | Score de afinidad con dimensiones, nivel, área y valoración, con pesos en constantes | función pura con 16 tests propios | ✅ |
+| T6.3 | API del mazo: solo talleres de su empresa, futuros y con cupo | nunca aparecen talleres de otra empresa ni uno propio | ✅ |
+| T6.4 | API de decisión: like inscribe de inmediato, descarte no vuelve a aparecer | el cupo lo sigue decidiendo learning | ✅ |
+| T6.5 | Web: una tarjeta a la vez, con ♥ y ✕, filtro por tema y estado vacío | — | ✅ |
+| T6.6 | Paso de migración de `matching-service` en `ci.yml` | la CI migra las tres bases, cada una en su paso | ✅ |
+
+Lo que apareció al construirlo:
+
+- **El mazo no es una consulta SQL.** Los talleres viven en `learning_db` y los perfiles en `identity_db`: matching pide las dos piezas con el token de quien mira y las junta. Es la primera pantalla del producto que necesita tres servicios para existir.
+- **El filtro de qué está abierto vive en learning**, no en matching: las reglas de la fecha y del cupo son del servicio dueño del taller. matching ordena lo que recibe.
+- **El like no reimplementa la inscripción**: llama al mismo endpoint que usa la pantalla de Talleres, con el token de la persona. Si el cupo se llenó entremedio, lo dice y no guarda la decisión, para que la tarjeta pueda volver si alguien cancela.
+- **"Misma área suma" quedó como decisión del equipo.** Preguntada, la clienta respondió que las dos opciones le parecían bien; está marcado como `[E]` en la SPEC y son dos constantes.
 
 ## Slice 7 — Agenda y recordatorios
 **Demo:** el facilitador y los inscritos ven el taller en su agenda y reciben el recordatorio por correo.

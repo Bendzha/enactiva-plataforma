@@ -13,6 +13,7 @@ interface Pestana {
 }
 
 const PESTANAS: Pestana[] = [
+  { a: '/descubrir', texto: 'Descubrir', requiereEmpresa: true },
   { a: '/mi-perfil', texto: 'Mi perfil', requiereEmpresa: true },
   { a: '/talleres', texto: 'Talleres', requiereEmpresa: true },
   { a: '/personas', texto: 'Personas', permiso: 'personas:gestionar' },
