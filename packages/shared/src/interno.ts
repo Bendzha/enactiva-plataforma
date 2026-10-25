@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { emailSchema } from './auth.js';
-import type { NivelAdmin, Rol } from './enums.js';
+import type { Dimension, NivelAdmin, NivelDominio, Rol, TipoInteres } from './enums.js';
 import { aceptarInvitacionSchema } from './invitaciones.js';
 import type { UsuarioSesion } from './sesion.js';
 
@@ -78,3 +78,55 @@ export interface TemaInterno {
 
 /** Cuántos temas se piden de una vez; es el largo de una lista de talleres en pantalla. */
 export const MAXIMO_TEMAS_INTERNOS = 100;
+
+/**
+ * Lo que matching-service necesita saber de las personas para armar el mazo (ADR-0007).
+ *
+ * Trae nombre, cargo y área porque la tarjeta del swipe muestra **quién** dicta el taller: sin
+ * eso la persona no tiene cómo decidir. No trae email ni nada que no se vea en la tarjeta.
+ */
+export interface PersonaInterna {
+  id: string;
+  nombre: string | null;
+  apellido: string | null;
+  cargo: string | null;
+  areaId: string | null;
+  areaNombre: string | null;
+}
+
+/** Una declaración del perfil, como la ve otro servicio. */
+export interface DeclaracionInterna {
+  usuarioId: string;
+  temaId: string;
+  tipo: TipoInteres;
+  dimensiones: Dimension[];
+  nivel: NivelDominio;
+}
+
+/** Todo lo que identity responde de una vez para que matching pueda calcular la afinidad. */
+export interface ContextoAfinidad {
+  personas: PersonaInterna[];
+  declaraciones: DeclaracionInterna[];
+  temas: TemaInterno[];
+}
+
+/**
+ * Un taller al que esta persona **podría** entrar, según learning-service: de su empresa, que
+ * todavía no ocurre, con cupo libre, que no dicta ella y en el que no está inscrita.
+ *
+ * El filtro lo hace learning y no matching a propósito: las reglas del cupo y de la fecha son
+ * del servicio que es dueño del taller.
+ */
+export interface TallerAbierto {
+  id: string;
+  temaId: string;
+  capacitadorId: string;
+  nombre: string;
+  objetivo: string;
+  resultadosEsperados: string;
+  ubicacion: string;
+  inicioAt: string;
+  finAt: string;
+  cupo: number;
+  inscritos: number;
+}

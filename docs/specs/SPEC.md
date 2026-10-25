@@ -21,7 +21,7 @@
 > mantiene el vocabulario actual (curso, capacitador), y las respuestas sobre valoración,
 > referencias y tokens (§3.5).
 
-> Trazabilidad (mismo marco del informe): **[C]** confirmado por la clienta · **[S]** supuesto del equipo, por validar · **[P]** propuesta técnica del equipo.
+> Trazabilidad (mismo marco del informe): **[C]** confirmado por la clienta · **[S]** supuesto del equipo, por validar · **[P]** propuesta técnica del equipo · **[E]** decisión del equipo que la clienta delegó.
 > `docs/requerimientos.xlsx` es **histórico** (describe el concepto previo de cartografía de red / simulador) y no es fuente de verdad.
 
 ---
@@ -125,7 +125,7 @@ arreglar unos lentes de META.
 ```
 
 - **Dimensiones en estrellas** **[C]**: claridad, seguridad percibida, aplicación y uso de
-  materiales. Escala de 1 a 5 **[S]** (el ejemplo llega a 5; sigue abierta como Q5). **Son siempre esas
+  materiales. **Escala de 1 a 5** **[C, 2026-10-24]**. **Son siempre esas
   cuatro** **[C, 2026-10-13]**: *"Son siempre esas 4, se pueden agrega o cambiar en un futuro"*, así que
   se guardan como datos y no como columnas, para que sumar una quinta no sea una migración. Q16 resuelta.
 - **Asistencia**, marcada por el participante **[C]**.
@@ -170,7 +170,11 @@ no puede dejar a nadie esperando **[P]**. Q15 resuelta.
 - Grafo: nodos = personas; arista potencial = A enseña tema T y B quiere aprender T (se calcula); arista decidida = `Match` (se guarda) **[P]**.
 - Cada tarjeta del swipe es **facilitador + taller convocado** **[C]**, con su fecha, su cupo y su lugar. Al mazo entran los talleres **que todavía no ocurren y tienen cupo** **[P]**: sin etapas, no hay otro estado que filtrar (Q9 resuelta, ADR-0010).
 - Like = **inscripción inmediata** al taller, sin aprobación del facilitador **[C]**. Descarte = no se vuelve a mostrar esa tarjeta **[P]**. Al llenarse el cupo el taller sale del mazo **[P, acta 2026-09-29]**.
-- Score de afinidad simple (sin ML) con **todos** los criterios **[C]**: dimensiones coincidentes, nivel, área, valoración del capacitador. Pesos iniciales iguales, constantes en código, ajustados con datos reales **[C]**. Signo del criterio área (misma área suma) **[S]**.
+- Score de afinidad simple (sin ML) con **todos** los criterios **[C]**: dimensiones coincidentes, nivel, área, valoración del capacitador. Pesos iniciales iguales, constantes en código, ajustados con datos reales **[C]**.
+- **Un criterio que todavía no existe no participa del promedio** **[P]**: la valoración llega con el Slice 8, y hasta entonces su peso se reparte entre los otros tres en vez de arrastrar a todos con un cero que no significa nada.
+- **Misma área suma** **[E — decisión del equipo, 2026-10-24]**: preguntada, la clienta respondió que las dos opciones le parecían bien. Se mantiene el supuesto porque el taller es presencial y coordinarse en el mismo piso es una ventaja real; quien está en otra área igual aparece, más abajo. Son dos constantes en `apps/matching-service/src/afinidad/score.ts`.
+- El mazo **se arma en cada consulta y no se guarda** **[P]**: un mazo guardado envejece solo —el cupo se llena, el taller ocurre— y mostraría tarjetas que ya no existen. Lo único que se guarda es la decisión.
+- Cada tarjeta **explica en una línea por qué apareció ahí** **[P]**: si el orden no se puede explicar, nadie confía en él.
 - Catálogo de temas: lo crean Admin, RRHH y Capacitador **[C]**. Temas **por empresa**, con nombre normalizado único y buscador que sugiere existentes antes de crear **[P]** (evita duplicados que romperían el matching).
 
 #### Perfil corporativo (construido en el Slice 4)
@@ -278,8 +282,8 @@ El 2026-10-13 la clienta contestó las nueve que bloqueaban el desarrollo
 | # | Pregunta | Bloquea |
 |---|---|---|
 | Q1 | Nombre del dominio de ENACTIVA y quién administra su DNS (para SPF/DKIM). **Por ahora todo se trabaja en local** (correos en Mailpit); se define al publicar | Despliegue público |
-| **Q3** | **Texto del aviso de privacidad y de los términos legales.** Karina quedó de revisarlo (acta 2026-09-29). Ahora pesa más: tiene que declarar las referencias públicas entre colegas (Q17) y los tokens | Publicación |
-| Q5 | Escala de las estrellas: ¿1 a 5? El ejemplo de la clienta llega a 5 pero no lo dice | Slice 8 |
+| **Q3** | **Texto del aviso de privacidad y de los términos legales.** Karina quedó de revisarlo (acta 2026-09-29) y pidió avanzar con un texto de ejemplo mientras tanto (2026-10-24). El texto real tiene que declarar las referencias públicas entre colegas (Q17) y los tokens **antes** de que alguien escriba la primera | Publicación |
+
 | Q13 | ¿Cómo se enlaza con la web de ENACTIVA: botón de acceso, redirección, o software aparte? Karina quedó de averiguarlo | Despliegue público |
 | Q14 | Modelo comercial: ¿se vende la aplicación completa o se incorpora una empresa como cliente? Quedó pendiente en el acta | Fuera del MVP |
 
@@ -301,3 +305,4 @@ El 2026-10-13 la clienta contestó las nueve que bloqueaban el desarrollo
 | ~~Q17~~ | ✅ 2026-10-13: la referencia se ve dentro de la empresa, firmada, y RRHH puede ocultarla; se trata como dato sensible (ADR-0009) |
 | ~~Q18~~ | ✅ 2026-10-13: los tokens sirven para canjear, pero **el canje lo administra cada empresa fuera de la plataforma**; aquí solo se lleva el recuento (ADR-0009) |
 | ~~Q19~~ | ✅ 2026-10-13: la escala de nivel queda en básico / intermedio / avanzado |
+| ~~Q5~~ | ✅ 2026-10-24: las estrellas van **de 1 a 5** |

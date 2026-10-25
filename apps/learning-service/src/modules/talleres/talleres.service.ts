@@ -5,7 +5,12 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import type { CrearTallerInput, EditarTallerInput, TallerResumen } from '@enactiva/shared';
+import type {
+  CrearTallerInput,
+  EditarTallerInput,
+  TallerAbierto,
+  TallerResumen,
+} from '@enactiva/shared';
 import { type SesionActual } from '@enactiva/service-kit';
 import { IdentityCliente } from '../../identity.cliente.js';
 import { PrismaService } from '../../prisma/prisma.service.js';
@@ -71,6 +76,48 @@ export class TalleresService {
       orderBy: { inicioAt: 'asc' },
     });
     return this.aResumenes(talleres, sesion);
+  }
+
+  /**
+   * Los talleres a los que esta persona **podría** entrar: de su empresa, que todavía no
+   * ocurren, con cupo libre, que no dicta ella y en los que no está inscrita.
+   *
+   * Lo consume matching-service para armar el mazo del swipe (ADR-0007). El filtro vive aquí
+   * porque las reglas de la fecha y del cupo son de este servicio; matching ordena lo que
+   * recibe, no decide qué está abierto.
+   *
+   * No devuelve el nombre del tema ni el del facilitador: esos datos viven en identity y los
+   * pide quien arma la tarjeta. Este servicio no los tiene y no debería ir a buscarlos para
+   * después pasarlos a otro.
+   */
+  async abiertosPara(sesion: SesionActual): Promise<TallerAbierto[]> {
+    this.empresaDe(sesion);
+
+    const talleres = await this.prisma.acotado.taller.findMany({
+      where: {
+        inicioAt: { gte: new Date() },
+        capacitadorId: { not: sesion.usuarioId },
+        inscripciones: { none: { usuarioId: sesion.usuarioId } },
+      },
+      include: { _count: { select: { inscripciones: true } } },
+      orderBy: { inicioAt: 'asc' },
+    });
+
+    return talleres
+      .filter((taller) => taller._count.inscripciones < taller.cupo)
+      .map((taller) => ({
+        id: taller.id,
+        temaId: taller.temaId,
+        capacitadorId: taller.capacitadorId,
+        nombre: taller.nombre,
+        objetivo: taller.objetivo,
+        resultadosEsperados: taller.resultadosEsperados,
+        ubicacion: taller.ubicacion,
+        inicioAt: taller.inicioAt.toISOString(),
+        finAt: taller.finAt.toISOString(),
+        cupo: taller.cupo,
+        inscritos: taller._count.inscripciones,
+      }));
   }
 
   async crear(datos: CrearTallerInput, sesion: SesionActual): Promise<TallerResumen> {
