@@ -34,13 +34,21 @@ export class MazoService {
     const abiertos = await this.clientes.talleresAbiertos();
     if (abiertos.length === 0) return [];
 
-    // Lo ya decidido no vuelve: un descarte se respeta y un "me interesa" ya inscribió.
-    const decididos = await this.prisma.acotado.match.findMany({
-      where: { estudianteId: sesion.usuarioId },
+    /**
+     * Solo se esconde lo que la persona **descartó**: eso sí es una decisión suya de no verlo
+     * más (SPEC §3.6).
+     *
+     * Un "me interesa" no se esconde aquí. La razón para no mostrarlo es que ya está inscrita,
+     * y de eso sabe learning, que es quien lleva las inscripciones: si cancela, el taller vuelve
+     * a estar abierto para ella y la tarjeta tiene que volver. Esconderlo desde este lado dejaba
+     * talleres en el limbo: cancelabas y no aparecían en ninguna parte.
+     */
+    const descartados = await this.prisma.acotado.match.findMany({
+      where: { estudianteId: sesion.usuarioId, decision: 'DESCARTADO' },
       select: { tallerId: true },
     });
-    const yaVistos = new Set(decididos.map((match) => match.tallerId));
-    const candidatos = abiertos.filter((taller) => !yaVistos.has(taller.id));
+    const sinInteres = new Set(descartados.map((match) => match.tallerId));
+    const candidatos = abiertos.filter((taller) => !sinInteres.has(taller.id));
     if (candidatos.length === 0) return [];
 
     const contexto = await this.clientes.contextoAfinidad(

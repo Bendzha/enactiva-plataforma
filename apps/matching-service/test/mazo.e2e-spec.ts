@@ -263,16 +263,45 @@ describe('Mazo del swipe (e2e)', () => {
       expect(match.decision).toBe('DESCARTADO');
     });
 
-    it('lo decidido no vuelve a aparecer en el mazo', async () => {
+    it('lo descartado no vuelve a aparecer en el mazo', async () => {
       await decidir(TALLER_EXCEL, 'DESCARTADO').expect(201);
 
       const tarjetas = (await pedirMazo().expect(200)).body as TarjetaMazo[];
       expect(tarjetas.map((t) => t.tallerId)).toEqual([TALLER_INGLES]);
     });
 
-    it('no se decide dos veces la misma tarjeta', async () => {
+    it('si cancela la inscripción, la tarjeta vuelve al mazo', async () => {
       await decidir(TALLER_EXCEL, 'INTERESADO').expect(201);
-      await decidir(TALLER_EXCEL, 'DESCARTADO').expect(409);
+
+      // Mientras está inscrita, learning no devuelve ese taller y la tarjeta no aparece.
+      clientes.talleres = clientes.talleres.filter((taller) => taller.id !== TALLER_EXCEL);
+      let tarjetas = (await pedirMazo().expect(200)).body as TarjetaMazo[];
+      expect(tarjetas.map((t) => t.tallerId)).toEqual([TALLER_INGLES]);
+
+      // Cancela desde Talleres: para learning vuelve a estar abierto, y el mazo tiene que
+      // mostrarlo de nuevo. Esconderlo por el "me interesa" anterior lo dejaba en el limbo.
+      clientes.talleres = [
+        taller({ id: TALLER_EXCEL, temaId: TEMA_EXCEL, nombre: 'Excel para turnos' }),
+        ...clientes.talleres,
+      ];
+      tarjetas = (await pedirMazo().expect(200)).body as TarjetaMazo[];
+      expect(tarjetas.map((t) => t.tallerId)).toContain(TALLER_EXCEL);
+    });
+
+    it('se puede volver a tomar un taller que se había cancelado', async () => {
+      await decidir(TALLER_EXCEL, 'INTERESADO').expect(201);
+      // Vuelve a dar "me interesa" después de cancelar: vale la última decisión, no choca.
+      const res = await decidir(TALLER_EXCEL, 'INTERESADO').expect(201);
+
+      expect(res.body as ResultadoDecision).toMatchObject({ inscrito: true });
+      const matches = await prisma.match.findMany({ where: { tallerId: TALLER_EXCEL } });
+      expect(matches).toHaveLength(1);
+      expect(matches[0]!.decision).toBe('INTERESADO');
+    });
+
+    it('un taller descartado ya no se puede decidir: no está en el mazo', async () => {
+      await decidir(TALLER_EXCEL, 'DESCARTADO').expect(201);
+      await decidir(TALLER_EXCEL, 'INTERESADO').expect(404);
     });
 
     it('si el cupo se llenó entremedio, lo dice y no guarda la decisión', async () => {

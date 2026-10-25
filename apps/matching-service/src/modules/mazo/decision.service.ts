@@ -1,9 +1,4 @@
-import {
-  ConflictException,
-  ForbiddenException,
-  Injectable,
-  NotFoundException,
-} from '@nestjs/common';
+import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import type { DecisionMazo, ResultadoDecision, TarjetaMazo } from '@enactiva/shared';
 import { ErrorServicioInterno, type SesionActual } from '@enactiva/service-kit';
 import { ClientesInternos } from '../../clientes.js';
@@ -33,15 +28,9 @@ export class DecisionService {
   ): Promise<ResultadoDecision> {
     const empresaId = this.empresaDe(sesion);
 
-    const yaDecidido = await this.prisma.acotado.match.findFirst({
-      where: { estudianteId: sesion.usuarioId, tallerId },
-    });
-    if (yaDecidido) {
-      throw new ConflictException('Ya decidiste sobre este taller');
-    }
-
     // La tarjeta se vuelve a buscar en el mazo en vez de confiar en lo que mandó el navegador:
-    // el score y el taller tienen que salir de los servicios dueños, no del cliente.
+    // el score y el taller tienen que salir de los servicios dueños, no del cliente. Y como el
+    // mazo ya esconde lo descartado, lo que no está ahí no se puede decidir.
     const tarjeta = await this.tarjeta(tallerId, sesion);
 
     if (decision === 'DESCARTADO') {
@@ -103,8 +92,19 @@ export class DecisionService {
     sesion: SesionActual,
     empresaId: string,
   ): Promise<void> {
-    const match = await this.prisma.acotado.match.create({
-      data: {
+    /**
+     * Vale la última decisión.
+     *
+     * Alguien puede inscribirse desde el mazo, arrepentirse y cancelar desde Talleres: ahí el
+     * taller vuelve a aparecerle, y si lo vuelve a tomar no puede chocar contra su propia
+     * decisión anterior. El par (persona, taller) es único a propósito, así que se actualiza.
+     */
+    const match = await this.prisma.acotado.match.upsert({
+      where: {
+        estudianteId_tallerId: { estudianteId: sesion.usuarioId, tallerId: tarjeta.tallerId },
+      },
+      update: { decision, score: tarjeta.score, decididoAt: new Date() },
+      create: {
         empresaId,
         estudianteId: sesion.usuarioId,
         capacitadorId: tarjeta.facilitador.id,
