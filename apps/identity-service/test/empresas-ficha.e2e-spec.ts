@@ -6,6 +6,7 @@ import request from 'supertest';
 import { AppModule } from '../src/app.module.js';
 import { hashPassword } from '../src/common/password.js';
 import { PrismaService } from '../src/prisma/prisma.service.js';
+import { esperarCorreos, vaciarBandeja } from './mailpit.js';
 import { ALMACEN_SIN_LIMITE, tokenDe } from './utilidades.js';
 
 const EMAIL_ADMIN = process.env.SEED_ADMIN_EMAIL!.trim().toLowerCase();
@@ -13,13 +14,6 @@ const PASSWORD_PRUEBA = 'clave-de-prueba-larga';
 const EMAIL_OPERATIVO = 'operativo.ficha@plataforma.local';
 const EMAIL_CONTACTO = 'contacto.ficha@plataforma.local';
 const NOMBRE_EMPRESA = 'Manufacturas Aconcagua (ficha e2e)';
-const MAILPIT = process.env.MAILPIT_API_URL ?? 'http://localhost:8025';
-
-const contarCorreos = async (email: string): Promise<number> => {
-  const res = await fetch(`${MAILPIT}/api/v1/search?query=${encodeURIComponent(`to:${email}`)}`);
-  const datos = (await res.json()) as { messages?: unknown[] };
-  return datos.messages?.length ?? 0;
-};
 
 describe('Ficha, activación y reenvío de invitación (e2e)', () => {
   let app: INestApplication;
@@ -64,7 +58,7 @@ describe('Ficha, activación y reenvío de invitación (e2e)', () => {
     tokenPrincipal = await tokenDe(app, EMAIL_ADMIN);
     tokenOperativo = await tokenDe(app, EMAIL_OPERATIVO);
 
-    await fetch(`${MAILPIT}/api/v1/messages`, { method: 'DELETE' });
+    await vaciarBandeja();
 
     const creada = await request(app.getHttpServer())
       .post('/empresas')
@@ -160,7 +154,7 @@ describe('Ficha, activación y reenvío de invitación (e2e)', () => {
     expect(despues[1]!.revocadoAt).toBeNull();
     expect(despues[1]!.tokenHash).not.toBe(despues[0]!.tokenHash);
 
-    expect(await contarCorreos(EMAIL_CONTACTO)).toBe(2);
+    expect(await esperarCorreos(EMAIL_CONTACTO, 2)).toHaveLength(2);
   });
 
   it('no se puede reenviar la invitación a alguien que ya activó su cuenta', async () => {

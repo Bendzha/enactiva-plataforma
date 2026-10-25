@@ -6,6 +6,7 @@ import request from 'supertest';
 import { AppModule } from '../src/app.module.js';
 import { hashPassword } from '../src/common/password.js';
 import { PrismaService } from '../src/prisma/prisma.service.js';
+import { esperarCorreos, vaciarBandeja } from './mailpit.js';
 import { ALMACEN_SIN_LIMITE, tokenDe } from './utilidades.js';
 
 const EMAIL_ADMIN = process.env.SEED_ADMIN_EMAIL!.trim().toLowerCase();
@@ -13,13 +14,6 @@ const PASSWORD_PRUEBA = 'clave-de-prueba-larga';
 const EMAIL_OPERATIVO = 'operativo.equipo@plataforma.local';
 const EMAIL_INVITADO = 'nuevo.admin@plataforma.local';
 const EMAILS_PRUEBA = [EMAIL_OPERATIVO, EMAIL_INVITADO];
-const MAILPIT = process.env.MAILPIT_API_URL ?? 'http://localhost:8025';
-
-const contarCorreos = async (email: string): Promise<number> => {
-  const res = await fetch(`${MAILPIT}/api/v1/search?query=${encodeURIComponent(`to:${email}`)}`);
-  const datos = (await res.json()) as { messages?: unknown[] };
-  return datos.messages?.length ?? 0;
-};
 
 describe('Equipo de ENACTIVA (e2e)', () => {
   let app: INestApplication;
@@ -55,7 +49,7 @@ describe('Equipo de ENACTIVA (e2e)', () => {
 
     tokenPrincipal = await tokenDe(app, EMAIL_ADMIN);
     tokenOperativo = await tokenDe(app, EMAIL_OPERATIVO);
-    await fetch(`${MAILPIT}/api/v1/messages`, { method: 'DELETE' });
+    await vaciarBandeja();
   });
 
   afterAll(async () => {
@@ -105,7 +99,7 @@ describe('Equipo de ENACTIVA (e2e)', () => {
       estado: 'INVITADO',
     });
     expect(res.body.invitacionExpiraAt).not.toBeNull();
-    expect(await contarCorreos(EMAIL_INVITADO)).toBe(1);
+    expect(await esperarCorreos(EMAIL_INVITADO)).toHaveLength(1);
 
     const invitado = await prisma.usuario.findUniqueOrThrow({
       where: { email: EMAIL_INVITADO },

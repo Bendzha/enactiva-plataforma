@@ -5,23 +5,12 @@ import { AVISO_PRIVACIDAD_VERSION, type EmpresaDetalle } from '@enactiva/shared'
 import request from 'supertest';
 import { AppModule } from '../src/app.module.js';
 import { PrismaService } from '../src/prisma/prisma.service.js';
+import { tokenDesdeElCorreo, vaciarBandeja } from './mailpit.js';
 import { ALMACEN_SIN_LIMITE, tokenDe } from './utilidades.js';
 
 const EMAIL_ADMIN = process.env.SEED_ADMIN_EMAIL!.trim().toLowerCase();
 const EMAIL_CONTACTO = 'contacto.activacion@plataforma.local';
 const NOMBRE_EMPRESA = 'Grupo Andesco (activacion e2e)';
-const MAILPIT = process.env.MAILPIT_API_URL ?? 'http://localhost:8025';
-
-const tokenDesdeElCorreo = async (email: string): Promise<string> => {
-  const busqueda = await fetch(
-    `${MAILPIT}/api/v1/search?query=${encodeURIComponent(`to:${email}`)}`,
-  );
-  const { messages } = (await busqueda.json()) as { messages: { ID: string }[] };
-  const mensaje = await fetch(`${MAILPIT}/api/v1/message/${messages[0]!.ID}`);
-  const { HTML, Text } = (await mensaje.json()) as { HTML?: string; Text?: string };
-  const enlace = /\/activar\?token=([A-Za-z0-9_-]+)/.exec(`${HTML ?? ''}${Text ?? ''}`);
-  return enlace![1]!;
-};
 
 /**
  * Lo que identity-service aporta al flujo de activación: la invitación sale por correo y el
@@ -55,7 +44,7 @@ describe('Invitación por correo (e2e)', () => {
     await app.init();
     prisma = app.get(PrismaService);
     await limpiar();
-    await fetch(`${MAILPIT}/api/v1/messages`, { method: 'DELETE' });
+    await vaciarBandeja();
 
     const empresa = await request(app.getHttpServer())
       .post('/empresas')
