@@ -6,12 +6,12 @@ import request from 'supertest';
 import { AppModule } from '../src/app.module.js';
 import { hashPassword } from '../src/common/password.js';
 import { PrismaService } from '../src/prisma/prisma.service.js';
+import { esperarCorreos, vaciarBandeja } from './mailpit.js';
 import { ALMACEN_SIN_LIMITE, tokenDe } from './utilidades.js';
 
 const EMAIL_ADMIN = process.env.SEED_ADMIN_EMAIL!.trim().toLowerCase();
 const PASSWORD_PRUEBA = 'clave-de-prueba-larga';
 const EMAIL_RRHH = 'rrhh.importar@plataforma.local';
-const MAILPIT = process.env.MAILPIT_API_URL ?? 'http://localhost:8025';
 
 // Una fila con coma dentro de comillas, una repetida, un email malo y un rol inexistente.
 const CSV = [
@@ -72,7 +72,7 @@ describe('Carga masiva de colaboradores (e2e)', () => {
     });
 
     token = await tokenDe(app, EMAIL_RRHH);
-    await fetch(`${MAILPIT}/api/v1/messages`, { method: 'DELETE' });
+    await vaciarBandeja();
   });
 
   afterAll(async () => {
@@ -134,13 +134,10 @@ describe('Carga masiva de colaboradores (e2e)', () => {
   });
 
   it('cada persona importada recibe su correo de invitación', async () => {
-    const res = await fetch(
-      `${MAILPIT}/api/v1/search?query=${encodeURIComponent('to:luis.soto@planta.cl')}`,
-    );
-    const { messages } = (await res.json()) as { messages: { Subject: string }[] };
+    const mensajes = await esperarCorreos('luis.soto@planta.cl');
 
-    expect(messages).toHaveLength(1);
-    expect(messages[0]!.Subject).toContain('Planta Norte (importar e2e)');
+    expect(mensajes).toHaveLength(1);
+    expect(mensajes[0]!.Subject).toContain('Planta Norte (importar e2e)');
   });
 
   it('al reimportar el mismo archivo no duplica a nadie', async () => {

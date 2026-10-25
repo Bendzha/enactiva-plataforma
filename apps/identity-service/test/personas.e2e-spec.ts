@@ -6,6 +6,7 @@ import request from 'supertest';
 import { AppModule } from '../src/app.module.js';
 import { hashPassword } from '../src/common/password.js';
 import { PrismaService } from '../src/prisma/prisma.service.js';
+import { esperarCorreos, vaciarBandeja } from './mailpit.js';
 import { ALMACEN_SIN_LIMITE, tokenDe } from './utilidades.js';
 
 const EMAIL_ADMIN = process.env.SEED_ADMIN_EMAIL!.trim().toLowerCase();
@@ -13,13 +14,6 @@ const PASSWORD_PRUEBA = 'clave-de-prueba-larga';
 const EMAIL_RRHH_A = 'rrhh.personas.a@plataforma.local';
 const EMAIL_RRHH_B = 'rrhh.personas.b@plataforma.local';
 const EMAIL_NUEVA_PERSONA = 'colaborador.nuevo@plataforma.local';
-const MAILPIT = process.env.MAILPIT_API_URL ?? 'http://localhost:8025';
-
-const contarCorreos = async (email: string): Promise<number> => {
-  const res = await fetch(`${MAILPIT}/api/v1/search?query=${encodeURIComponent(`to:${email}`)}`);
-  const datos = (await res.json()) as { messages?: unknown[] };
-  return datos.messages?.length ?? 0;
-};
 
 describe('Personas y áreas de una empresa (e2e)', () => {
   let app: INestApplication;
@@ -92,7 +86,7 @@ describe('Personas y áreas de una empresa (e2e)', () => {
     tokenRrhhA = await tokenDe(app, EMAIL_RRHH_A);
     tokenRrhhB = await tokenDe(app, EMAIL_RRHH_B);
     tokenAdmin = await tokenDe(app, EMAIL_ADMIN);
-    await fetch(`${MAILPIT}/api/v1/messages`, { method: 'DELETE' });
+    await vaciarBandeja();
   });
 
   afterAll(async () => {
@@ -153,7 +147,7 @@ describe('Personas y áreas de una empresa (e2e)', () => {
       cargo: 'Analista de Procesos',
     });
     expect(persona.roles.sort()).toEqual(['CAPACITADOR', 'ESTUDIANTE']);
-    expect(await contarCorreos(EMAIL_NUEVA_PERSONA)).toBe(1);
+    expect(await esperarCorreos(EMAIL_NUEVA_PERSONA)).toHaveLength(1);
   });
 
   it('no permite asignar un área de otra empresa', async () => {
@@ -208,7 +202,7 @@ describe('Personas y áreas de una empresa (e2e)', () => {
     expect(tokens).toHaveLength(2);
     expect(tokens[0]!.revocadoAt).not.toBeNull();
     expect(tokens[1]!.revocadoAt).toBeNull();
-    expect(await contarCorreos(EMAIL_NUEVA_PERSONA)).toBe(2);
+    expect(await esperarCorreos(EMAIL_NUEVA_PERSONA, 2)).toHaveLength(2);
   });
 
   it('RRHH de otra empresa no puede tocar a esa persona', async () => {

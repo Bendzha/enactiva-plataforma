@@ -7,6 +7,7 @@ import { AppModule } from '../src/app.module.js';
 import { hashPassword } from '../src/common/password.js';
 import { hashToken } from '../src/common/tokens.js';
 import { PrismaService } from '../src/prisma/prisma.service.js';
+import { cuerpoDelCorreo, esperarCorreos, vaciarBandeja } from './mailpit.js';
 import { ALMACEN_SIN_LIMITE, serializar, tokenDe } from './utilidades.js';
 
 const EMAIL_ADMIN = process.env.SEED_ADMIN_EMAIL!.trim().toLowerCase();
@@ -16,27 +17,6 @@ const EMAIL_RRHH_EXISTENTE = 'rrhh.existente@plataforma.local';
 const EMAIL_NUEVO_RRHH = 'contacto.nuevo@plataforma.local';
 const EMAIL_SEGUNDO_RRHH = 'contacto.segundo@plataforma.local';
 const NOMBRE_EMPRESA = 'Comercial Rioclaro (e2e)';
-const MAILPIT = process.env.MAILPIT_API_URL ?? 'http://localhost:8025';
-
-interface MensajeMailpit {
-  ID: string;
-  Subject: string;
-}
-
-const vaciarBandeja = () => fetch(`${MAILPIT}/api/v1/messages`, { method: 'DELETE' });
-
-const buscarCorreo = async (email: string): Promise<MensajeMailpit[]> => {
-  const res = await fetch(`${MAILPIT}/api/v1/search?query=${encodeURIComponent(`to:${email}`)}`);
-  const datos = (await res.json()) as { messages?: MensajeMailpit[] };
-  return datos.messages ?? [];
-};
-
-const cuerpoDelCorreo = async (id: string): Promise<string> => {
-  const res = await fetch(`${MAILPIT}/api/v1/message/${id}`);
-  const datos = (await res.json()) as { HTML?: string; Text?: string };
-  return `${datos.HTML ?? ''}${datos.Text ?? ''}`;
-};
-
 describe('Alta de empresa con invitación a RRHH (e2e)', () => {
   let app: INestApplication;
   let prisma: PrismaService;
@@ -138,7 +118,7 @@ describe('Alta de empresa con invitación a RRHH (e2e)', () => {
   });
 
   it('envía el correo de invitación con un enlace de activación válido', async () => {
-    const mensajes = await buscarCorreo(EMAIL_NUEVO_RRHH);
+    const mensajes = await esperarCorreos(EMAIL_NUEVO_RRHH);
     expect(mensajes).toHaveLength(1);
     expect(mensajes[0]!.Subject).toContain(NOMBRE_EMPRESA);
 
