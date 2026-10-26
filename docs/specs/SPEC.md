@@ -75,6 +75,9 @@ Los permisos se definen como un **mapa rol → permisos en código** (ver ADR-00
 - **Disponibilidad horaria del facilitador**: declara cuándo puede enseñar, y los participantes lo ven
   **[C, acta 2026-09-29]**.
 - **Agenda y recordatorios por correo** para facilitador y participantes **[C, acta 2026-09-29]**.
+- La agenda junta en una sola lista **lo que dicta y a lo que va** cada persona **[P]**: quien enseña también aprende, y dos pantallas para "el martes a las 10 tengo algo" serían pedirle a la gente que lleve la cuenta en su cabeza. Lo que viene primero y el historial abajo, que es donde la valoración va a colgar (Slice 8).
+- **Dos recordatorios por taller** **[E — decisión del equipo, 2026-10-25]**: uno el día antes, para reorganizar la agenda, y otro una hora antes, que es el que hace que la gente llegue. Las ventanas no se solapan: un taller publicado media hora antes recibe solo el de una hora.
+- Los manda un **reloj dentro de learning-service** que despierta cada pocos minutos **[P]**. Es lo primero del sistema que ocurre sin que nadie lo pida. Si el servicio está caído a esa hora, ese correo no sale: es el costo de no tener una cola, y para un piloto es aceptable.
 - ~~Etapas fijas **Diagnóstico → Clase → Monitoreo**~~ ⛔ **Eliminadas el 2026-10-13** **[C]**: *"lo mejor
   es que sea sólo conectar y convocar"*. El taller es una actividad única (ADR-0010). Q9 resuelta.
 

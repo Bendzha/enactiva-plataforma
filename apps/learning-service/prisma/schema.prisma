@@ -41,6 +41,13 @@ enum AccionAuditoria {
   ANONIMIZAR
 }
 
+/// Cuándo se mandó un recordatorio. Son dos: uno el día antes, para reorganizar la agenda,
+/// y otro una hora antes, que es el que de verdad hace que la gente llegue.
+enum MomentoRecordatorio {
+  VEINTICUATRO_HORAS
+  UNA_HORA
+}
+
 enum DiaSemana {
   LUNES
   MARTES
@@ -75,7 +82,8 @@ model Taller {
   createdAt           DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
   updatedAt           DateTime @updatedAt @map("updated_at") @db.Timestamptz(3)
 
-  inscripciones Inscripcion[]
+  inscripciones  Inscripcion[]
+  recordatorios  RecordatorioTaller[]
 
   @@index([empresaId, inicioAt])
   @@index([empresaId, capacitadorId])
@@ -97,6 +105,27 @@ model Inscripcion {
   @@unique([tallerId, usuarioId])
   @@index([empresaId, usuarioId])
   @@map("inscripcion")
+}
+
+/// Constancia de que un recordatorio ya salió, para no mandarlo dos veces.
+///
+/// Se anota por taller y no por persona: los correos salen todos juntos cuando el taller entra
+/// en ventana. Quien se inscribe después de que salió el de 24 horas no lo recibe —a esa altura
+/// ya no tendría sentido— pero sí el de una hora antes, que todavía no ha salido.
+model RecordatorioTaller {
+  id        String              @id @default(uuid(7)) @db.Uuid
+  empresaId String              @map("empresa_id") @db.Uuid
+  tallerId  String              @map("taller_id") @db.Uuid
+  momento   MomentoRecordatorio
+  /// Cuántos correos salieron. Si fueron cero, igual se anota: el taller no tenía a nadie.
+  enviados  Int
+  enviadoAt DateTime            @default(now()) @map("enviado_at") @db.Timestamptz(3)
+
+  taller Taller @relation(fields: [tallerId], references: [id], onDelete: Cascade)
+
+  @@unique([tallerId, momento])
+  @@index([empresaId])
+  @@map("recordatorio_taller")
 }
 
 /// Cuándo puede enseñar una persona, semana a semana (acta 2026-09-29).

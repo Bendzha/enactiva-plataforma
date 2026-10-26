@@ -16,6 +16,7 @@ import {
   guardarDisponibilidadSchema,
   type CrearTallerInput,
   type EditarTallerInput,
+  type Agenda,
   type FranjaDisponibilidad,
   type GuardarDisponibilidadInput,
   type TallerResumen,
@@ -27,6 +28,7 @@ import {
   ZodValidationPipe,
   type SesionActual,
 } from '@enactiva/service-kit';
+import { AgendaService } from './agenda.service.js';
 import { DisponibilidadService } from './disponibilidad.service.js';
 import { TalleresService } from './talleres.service.js';
 
@@ -35,7 +37,15 @@ export class TalleresController {
   constructor(
     private readonly talleres: TalleresService,
     private readonly disponibilidad: DisponibilidadService,
+    private readonly agenda: AgendaService,
   ) {}
+
+  /** Lo que esta persona tiene por delante: lo que dicta y a lo que va. */
+  @Get('agenda')
+  @SoloSesion()
+  miAgenda(@Sesion() sesion: SesionActual): Promise<Agenda> {
+    return this.agenda.mia(sesion);
+  }
 
   /** Los talleres de mi empresa que todavía no ocurren. Cualquiera con sesión puede mirarlos. */
   @Get('talleres')

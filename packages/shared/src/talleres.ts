@@ -130,3 +130,26 @@ export const guardarDisponibilidadSchema = z.object({
     ),
 });
 export type GuardarDisponibilidadInput = z.infer<typeof guardarDisponibilidadSchema>;
+
+/** Un taller en la agenda de alguien, con el papel que tiene en él. */
+export interface ItemAgenda {
+  tallerId: string;
+  temaNombre: string;
+  nombre: string;
+  ubicacion: string;
+  inicioAt: string;
+  finAt: string;
+  /** Si lo dicta o si va a asistir. */
+  papel: 'DICTO' | 'VOY';
+  inscritos: number;
+  cupo: number;
+}
+
+/**
+ * Lo que viene primero, porque es a lo que uno entra a mirar; el historial abajo, porque es
+ * donde la valoración del encuentro va a colgar (Slice 8).
+ */
+export interface Agenda {
+  proximos: ItemAgenda[];
+  pasados: ItemAgenda[];
+}
