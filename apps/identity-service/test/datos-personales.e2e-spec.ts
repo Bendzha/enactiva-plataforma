@@ -219,7 +219,10 @@ describe('Exportar y suprimir datos personales en identity (e2e)', () => {
     await suprimir(token).expect(200);
 
     // El guard resuelve el estado contra esta base en cada petición, y ANONIMIZADO no es activo.
-    await request(app.getHttpServer()).get(RUTA).set('Authorization', `Bearer ${token}`).expect(401);
+    await request(app.getHttpServer())
+      .get(RUTA)
+      .set('Authorization', `Bearer ${token}`)
+      .expect(401);
   });
 
   it('una cuenta del equipo ENACTIVA no se suprime desde aquí', async () => {

@@ -1,9 +1,5 @@
 import { Controller, Delete, Get } from '@nestjs/common';
-import {
-  PREFIJO_INTERNO,
-  type DatosDeServicio,
-  type SupresionDeServicio,
-} from '@enactiva/shared';
+import { PREFIJO_INTERNO, type DatosDeServicio, type SupresionDeServicio } from '@enactiva/shared';
 import { Sesion, SoloSesion, type SesionActual } from '@enactiva/service-kit';
 import { DatosPersonalesService } from './datos-personales.service.js';
 

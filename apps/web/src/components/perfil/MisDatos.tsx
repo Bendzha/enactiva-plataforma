@@ -71,8 +71,8 @@ export function MisDatos({ puedeEliminar }: MisDatosProps) {
         </div>
 
         <p className="mt-3 text-xs text-texto-suave">
-          El archivo trae lo que guardan los tres servicios: tu cuenta y tu perfil, los talleres
-          que dictas y a los que vas, y lo que decidiste en Descubrir.
+          El archivo trae lo que guardan los tres servicios: tu cuenta y tu perfil, los talleres que
+          dictas y a los que vas, y lo que decidiste en Descubrir.
         </p>
 
         {!puedeEliminar && (
@@ -95,9 +95,8 @@ export function MisDatos({ puedeEliminar }: MisDatosProps) {
           <div className="text-sm text-texto-suave">
             <p>Se borran tu nombre, tu correo, tu contraseña, tu perfil y tus inscripciones.</p>
             <p className="mt-2">
-              Quedan los talleres que dictaste, porque otras personas se inscribieron en ellos, y
-              el registro de auditoría que exige la Ley 21.719. Ninguno de los dos dirá quién
-              eras.
+              Quedan los talleres que dictaste, porque otras personas se inscribieron en ellos, y el
+              registro de auditoría que exige la Ley 21.719. Ninguno de los dos dirá quién eras.
             </p>
           </div>
 
