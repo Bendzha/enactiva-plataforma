@@ -64,6 +64,31 @@ export async function pedir<T>(ruta: string, opciones: RequestInit = {}): Promis
   return res.status === 204 ? (undefined as T) : ((await res.json()) as T);
 }
 
+/** Saca el nombre del archivo de `Content-Disposition`, que es donde lo pone el servidor. */
+function nombreDeArchivo(res: Response): string | null {
+  const cabecera = res.headers.get('content-disposition');
+  return /filename="([^"]+)"/.exec(cabecera ?? '')?.[1] ?? null;
+}
+
+/**
+ * Igual que `pedir`, pero devuelve el archivo tal como vino.
+ *
+ * La exportación de datos personales no es un JSON para mostrar en pantalla: es un archivo que
+ * la persona se lleva (Ley 21.719), y hasta su nombre lo decide el servidor.
+ */
+export async function descargar(ruta: string): Promise<{ blob: Blob; nombre: string }> {
+  let res = await ejecutar(ruta, {});
+
+  if (res.status === 401 && accessToken) {
+    const renovado = await renovarSesion();
+    if (!renovado) throw await aError(res);
+    res = await ejecutar(ruta, {});
+  }
+
+  if (!res.ok) throw await aError(res);
+  return { blob: await res.blob(), nombre: nombreDeArchivo(res) ?? 'mis-datos.json' };
+}
+
 interface RespuestaSesion {
   accessToken: string;
   usuario: unknown;

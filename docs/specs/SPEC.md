@@ -191,12 +191,18 @@ no puede dejar a nadie esperando **[P]**. Q15 resuelta.
 - Sobre estas declaraciones se calculan las **métricas de intereses** que la clienta pidió ver cuando la gente registrara sus temas **[C, acta 2026-09-29]**: cuánta gente tiene perfil, qué se ofrece, qué se busca y las **brechas** (temas que alguien quiere aprender y nadie de la empresa puede enseñar). Son agregados: nunca dicen quién declaró qué **[P]**.
 
 ### 3.7 Privacidad y cumplimiento (Ley 21.719)
-- Registro de auditoría append-only desde el Slice 0 **[C]**.
-- Exportación y supresión de datos por usuario **[C]**.
-- En supresión las mediciones **se conservan** **[C]**, **anonimizadas** (desvinculadas de la persona) **[P — requisito legal]**: conservarlas ligadas a la persona no sería supresión.
-- RRHH ve resultados nominativos **[C]** → el aviso de privacidad debe declararlo explícitamente, y esas lecturas se auditan **[P]**. El texto del aviso debe aprobarlo ENACTIVA (Q3).
+- Registro de auditoría append-only desde el Slice 0 **[C]**. Guarda la acción, la entidad y los **nombres** de los campos tocados, nunca su contenido **[P]**: así sobrevive a la supresión sin volver a identificar a nadie.
+- **Exportación y supresión de datos por usuario** **[C]**, y las ejerce la persona sola desde «Mi perfil» **[P]**: un derecho que depende de que alguien conteste un correo no es algo que la persona pueda ejercer.
+- Los datos de alguien viven repartidos en tres bases que no se ven entre sí (ADR-0007), así que ninguna de las dos operaciones cabe en un servicio: el **gateway** le pregunta a cada uno por `/interno/datos-personales` y junta las respuestas **[P]**. Es lo único que el gateway compone en vez de reenviar.
+- En los tres servicios el usuario sale del **token verificado**, nunca de la URL **[P]**: aunque el gateway se equivocara, nadie puede exportar ni borrar los datos de otro.
+- La exportación se entrega como **archivo descargable** con un aviso dentro de qué incluye y qué no **[P]**: quien lo abre tiene que entender qué tiene en la mano.
+- La supresión **anonimiza en vez de borrar la fila** de la persona **[P — requisito legal]**: se van su nombre, su correo, su contraseña, su perfil, sus declaraciones, sus inscripciones, su disponibilidad y sus decisiones del mazo; su id queda porque de él cuelgan cosas de otros (los talleres que dictó, donde otros se inscribieron, y el registro de auditoría). Conservar algo **ligado** a la persona no sería supresión; conservarlo **desvinculado** sí es lo que la ley pide.
+- El orden importa y está fijado: identity va **al final**. Apenas anonimiza la cuenta la sesión muere, y cualquier llamada posterior dejaría datos a medio borrar **[P]**. Si un servicio no responde, no se borra nada y la cuenta sigue en pie.
+- Una cuenta del equipo ENACTIVA no se suprime desde ahí **[P]**: si el único Admin Principal se borrara, nadie podría volver a administrar el piloto. Sí puede exportar.
+- La frase `ELIMINAR MI CUENTA` hay que escribirla **[P]**: un botón solo es muy poco para algo irreversible.
+- RRHH ve la participación nominativa **[C]** → el aviso de privacidad lo declara explícitamente, y esas lecturas se auditan **[P]**. El texto del aviso sigue siendo **borrador** y debe aprobarlo ENACTIVA (Q3).
 - Minimización: no se recolecta RUT, teléfono, fecha de nacimiento ni foto **[P]**.
-- HTTPS obligatorio. Sin cifrado a nivel de campo para puntajes (rompe agregaciones); se reevalúa si se agregan comentarios libres **[P]**.
+- HTTPS obligatorio. Sin cifrado a nivel de campo (rompe agregaciones); se reevalúa si se agregan comentarios libres **[P]**.
 
 ## 4. Fuera de alcance
 **Alojar clases o material: la plataforma no es un Moodle** **[C, acta 2026-09-29]** ·

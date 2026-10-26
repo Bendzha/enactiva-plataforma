@@ -7,6 +7,7 @@ import { env } from './config/env.js';
 import { ErrorInternoFiltro } from './error-interno.filtro.js';
 import { PrismaModule } from './prisma/prisma.module.js';
 import { AuditoriaModule } from './modules/auditoria/auditoria.module.js';
+import { DatosPersonalesModule } from './modules/datos-personales/datos-personales.module.js';
 import { RecordatoriosModule } from './modules/recordatorios/recordatorios.module.js';
 import { TalleresModule } from './modules/talleres/talleres.module.js';
 
@@ -29,6 +30,7 @@ import { TalleresModule } from './modules/talleres/talleres.module.js';
     ScheduleModule.forRoot(),
     PrismaModule,
     AuditoriaModule,
+    DatosPersonalesModule,
     TalleresModule,
     RecordatoriosModule,
     SaludModule.paraServicio('learning-service'),

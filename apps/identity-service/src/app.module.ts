@@ -7,6 +7,7 @@ import { PrismaModule } from './prisma/prisma.module.js';
 import { AdminsModule } from './modules/admins/admins.module.js';
 import { AuditoriaModule } from './modules/auditoria/auditoria.module.js';
 import { CorreoModule } from './modules/correo/correo.module.js';
+import { DatosPersonalesModule } from './modules/datos-personales/datos-personales.module.js';
 import { EmpresasModule } from './modules/empresas/empresas.module.js';
 import { InvitacionesModule } from './modules/invitaciones/invitaciones.module.js';
 import { MetricasModule } from './modules/metricas/metricas.module.js';
@@ -36,6 +37,7 @@ import { SesionesModule } from './modules/sesiones/sesiones.module.js';
     AuditoriaModule,
     CorreoModule,
     AdminsModule,
+    DatosPersonalesModule,
     EmpresasModule,
     InvitacionesModule,
     MetricasModule,

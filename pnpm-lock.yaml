@@ -205,6 +205,9 @@ importers:
       http-proxy-middleware:
         specifier: ^3.0.5
         version: 3.0.7
+      nestjs-cls:
+        specifier: ^7.0.0
+        version: 7.0.0(@nestjs/common@12.0.3(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/core@12.0.3)(reflect-metadata@0.2.2)(rxjs@7.8.2)
       reflect-metadata:
         specifier: ^0.2.2
         version: 0.2.2
@@ -218,6 +221,9 @@ importers:
       '@nestjs/cli':
         specifier: ^12.0.1
         version: 12.0.1(@types/node@24.13.4)(prettier@3.9.6)
+      '@nestjs/jwt':
+        specifier: ^12.0.2
+        version: 12.0.2(@nestjs/common@12.0.3(reflect-metadata@0.2.2)(rxjs@7.8.2))
       '@nestjs/schematics':
         specifier: ^12.0.2
         version: 12.0.2(chokidar@5.0.0)(prettier@3.9.6)(typescript@6.0.3)
@@ -248,6 +254,12 @@ importers:
       identity-service:
         specifier: workspace:*
         version: link:../identity-service
+      learning-service:
+        specifier: workspace:*
+        version: link:../learning-service
+      matching-service:
+        specifier: workspace:*
+        version: link:../matching-service
       supertest:
         specifier: ^7.2.2
         version: 7.2.2

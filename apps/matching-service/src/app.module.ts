@@ -6,6 +6,7 @@ import { env } from './config/env.js';
 import { ErrorInternoFiltro } from './error-interno.filtro.js';
 import { PrismaModule } from './prisma/prisma.module.js';
 import { AuditoriaModule } from './modules/auditoria/auditoria.module.js';
+import { DatosPersonalesModule } from './modules/datos-personales/datos-personales.module.js';
 import { MazoModule } from './modules/mazo/mazo.module.js';
 
 /**
@@ -23,6 +24,7 @@ import { MazoModule } from './modules/mazo/mazo.module.js';
     ThrottlerModule.forRoot([{ name: 'default', ttl: 60_000, limit: 120 }]),
     PrismaModule,
     AuditoriaModule,
+    DatosPersonalesModule,
     MazoModule,
     SaludModule.paraServicio('matching-service'),
   ],

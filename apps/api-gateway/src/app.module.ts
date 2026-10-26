@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 import { ContextoModule, SaludModule } from '@enactiva/service-kit';
+import { DatosPersonalesController } from './datos-personales.js';
 
 /**
  * api-gateway (ADR-0007): único punto de entrada del frontend.
@@ -9,10 +10,12 @@ import { ContextoModule, SaludModule } from '@enactiva/service-kit';
  * guard. Cada servicio verifica su propio token, para que ninguna petición dependa de que
  * auth-service esté arriba.
  *
- * Fase M0: solo responde `/health`. El enrutamiento por prefijo (`/auth/*`, `/identity/*`,
- * `/learning/*`, `/matching/*`) llega en M2.
+ * Enruta por prefijo (`/auth/*`, `/identity/*`, `/learning/*`, `/matching/*`) y compone una sola
+ * cosa: la exportación y la supresión de datos de una persona, que viven repartidas en tres
+ * bases y no se pueden resolver en un solo servicio (Ley 21.719).
  */
 @Module({
   imports: [ContextoModule.forRoot(), SaludModule.paraServicio('api-gateway')],
+  controllers: [DatosPersonalesController],
 })
 export class AppModule {}

@@ -78,9 +78,16 @@ export async function sembrarIdentity(): Promise<void> {
     for (const usuario of USUARIOS) {
       await prisma.usuario.upsert({
         where: { id: usuario.id },
+        // Se reponen también el nombre y el correo, no solo la contraseña: si en la demo
+        // alguien usó "Eliminar mi cuenta", la fila quedó anonimizada y sin correo, y sin esto
+        // volver a sembrar no la dejaría utilizable (Ley 21.719, SPEC §3.7).
         update: {
+          email: usuario.email,
           passwordHash,
+          nombre: usuario.nombre,
+          apellido: usuario.apellido,
           estado: 'ACTIVO',
+          anonimizadoAt: null,
           empresaId: usuario.empresaId,
           areaId: usuario.areaId,
           cargo: usuario.cargo,
