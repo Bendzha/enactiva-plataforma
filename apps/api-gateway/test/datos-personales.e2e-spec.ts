@@ -1,7 +1,11 @@
 import type { INestApplication } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 import { ThrottlerStorage } from '@nestjs/throttler';
-import { CONFIRMACION_SUPRESION, type ExportacionDatos, type ResultadoSupresion } from '@enactiva/shared';
+import {
+  CONFIRMACION_SUPRESION,
+  type ExportacionDatos,
+  type ResultadoSupresion,
+} from '@enactiva/shared';
 import type { AddressInfo } from 'node:net';
 import request from 'supertest';
 
@@ -52,16 +56,14 @@ describe('Datos personales a través del gateway (e2e)', () => {
     return app;
   };
 
-  const puertoDe = (app: INestApplication) =>
-    (app.getHttpServer().address() as AddressInfo).port;
+  const puertoDe = (app: INestApplication) => (app.getHttpServer().address() as AddressInfo).port;
 
   beforeAll(async () => {
     // identity primero: los otros dos le preguntan por la sesión, y la URL se fija al importar
     // su módulo. Por eso cada uno se importa recién cuando su dependencia ya tiene puerto.
     const { AppModule: IdentityAppModule } = await import('identity-service/src/app.module.js');
-    const { PrismaService: IdentityPrisma } = await import(
-      'identity-service/src/prisma/prisma.service.js'
-    );
+    const { PrismaService: IdentityPrisma } =
+      await import('identity-service/src/prisma/prisma.service.js');
     identityApp = await levantar(IdentityAppModule);
     identityPrisma = identityApp.get(IdentityPrisma);
     process.env.URL_IDENTITY_SERVICE = `http://localhost:${puertoDe(identityApp)}`;
@@ -69,9 +71,8 @@ describe('Datos personales a través del gateway (e2e)', () => {
     const { limpiarCacheEnv: limpiarLearning } = await import('learning-service/src/config/env.js');
     limpiarLearning();
     const { AppModule: LearningAppModule } = await import('learning-service/src/app.module.js');
-    const { PrismaService: LearningPrisma } = await import(
-      'learning-service/src/prisma/prisma.service.js'
-    );
+    const { PrismaService: LearningPrisma } =
+      await import('learning-service/src/prisma/prisma.service.js');
     learningApp = await levantar(LearningAppModule);
     learningPrisma = learningApp.get(LearningPrisma);
     process.env.URL_LEARNING_SERVICE = `http://localhost:${puertoDe(learningApp)}`;
@@ -79,9 +80,8 @@ describe('Datos personales a través del gateway (e2e)', () => {
     const { limpiarCacheEnv: limpiarMatching } = await import('matching-service/src/config/env.js');
     limpiarMatching();
     const { AppModule: MatchingAppModule } = await import('matching-service/src/app.module.js');
-    const { PrismaService: MatchingPrisma } = await import(
-      'matching-service/src/prisma/prisma.service.js'
-    );
+    const { PrismaService: MatchingPrisma } =
+      await import('matching-service/src/prisma/prisma.service.js');
     matchingApp = await levantar(MatchingAppModule);
     matchingPrisma = matchingApp.get(MatchingPrisma);
     process.env.URL_MATCHING_SERVICE = `http://localhost:${puertoDe(matchingApp)}`;

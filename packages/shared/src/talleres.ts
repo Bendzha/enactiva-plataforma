@@ -143,11 +143,19 @@ export interface ItemAgenda {
   papel: 'DICTO' | 'VOY';
   inscritos: number;
   cupo: number;
+  /**
+   * Si esta persona todavía puede valorar este taller (SPEC §3.5).
+   *
+   * Lo decide learning y no la pantalla, porque son tres condiciones suyas: que el taller haya
+   * terminado, que ella fuera a aprender —nadie valora lo que dictó— y que no lo haya valorado
+   * ya. Resolverlo aquí evita una consulta por fila en la agenda.
+   */
+  puedeValorar: boolean;
 }
 
 /**
  * Lo que viene primero, porque es a lo que uno entra a mirar; el historial abajo, porque es
- * donde la valoración del encuentro va a colgar (Slice 8).
+ * donde cuelga la valoración del encuentro (SPEC §3.5).
  */
 export interface Agenda {
   proximos: ItemAgenda[];

@@ -2,7 +2,9 @@ import { Injectable } from '@nestjs/common';
 import {
   CABECERA_INTERNO,
   PREFIJO_INTERNO,
+  type ContextoAfinidad,
   type DestinatarioInterno,
+  type PersonaInterna,
   type TemaInterno,
 } from '@enactiva/shared';
 import {
@@ -39,6 +41,23 @@ export class IdentityCliente {
       `/${PREFIJO_INTERNO}/temas?ids=${unicos.map(encodeURIComponent).join(',')}`,
     );
     return new Map(temas.map((tema) => [tema.id, tema.nombre]));
+  }
+
+  /**
+   * Cómo se llaman unas personas, para firmar las referencias que escribieron (SPEC §3.5).
+   *
+   * Reusa la misma ruta que arma el mazo en vez de abrir otra: devuelve exactamente lo que se
+   * muestra en pantalla —nombre, cargo y área— y ya está acotada por empresa con el token de
+   * quien pide. Una ruta nueva sería una segunda puerta a los mismos datos.
+   */
+  async personasPorIds(ids: readonly string[]): Promise<Map<string, PersonaInterna>> {
+    const unicos = [...new Set(ids)];
+    if (unicos.length === 0) return new Map();
+
+    const contexto = await this.cliente.get<ContextoAfinidad>(
+      `/${PREFIJO_INTERNO}/perfiles/contexto?personas=${unicos.map(encodeURIComponent).join(',')}`,
+    );
+    return new Map(contexto.personas.map((persona) => [persona.id, persona]));
   }
 
   /**

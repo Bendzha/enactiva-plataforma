@@ -15,7 +15,8 @@
 - ✅ **Slice 6 completo** (T6.1 a T6.6): el mazo del swipe, el score de afinidad y las decisiones, en `matching-service`.
 - ✅ **Slice 7 completo** (T7.1 a T7.3): la agenda de cada persona y los recordatorios por correo.
 - ✅ **Exportación y supresión de datos por usuario** (Ley 21.719, criterio 7 de SPEC §10): cada persona se lleva sus datos y borra su cuenta desde «Mi perfil», orquestado en el gateway.
-- ⏭️ Siguiente: el **Slice 8** (valoración con estrellas, referencias y tokens), con el aviso de privacidad como texto de ejemplo (Q3, 2026-10-24).
+- ✅ **Slice 8 completo** (T8.1 a T8.7): estrellas, referencias firmadas, tokens, puntuación del match y el cuarto criterio del score.
+- ⏭️ Siguiente: la **fase M4** (pipeline de CI por servicio y README de despliegue), que es lo único que queda sin construir.
 - 🔴 **El 2026-09-29 la clienta cambió el alcance** (ADR-0008): la plataforma no aloja clases. Cae la subida de contenidos; aparecen la ficha del taller, el cupo, la ubicación, la disponibilidad, la agenda y los recordatorios.
 - 🎮 **Segundo eje del producto** (WhatsApp de la clienta, 2026-09-29, ADR-0009): valoración del encuentro con estrellas, referencias públicas y tokens de reconocimiento. "Match corporativo + gamificación corporativa". Es el Slice 8.
 - 🟢 **El 2026-10-13 la clienta cerró el alcance** (ADR-0010): se elimina el modelo de evaluación —etapas, rúbrica, logro, delta, mediciones y tests—. *"Lo mejor es que sea sólo conectar y convocar"*. Cae el Slice 9 completo.
@@ -266,21 +267,47 @@ Lo que apareció al construirlo:
   individuales, "puedes pedir" por correo). Se reescribió el borrador y subió a `2026-10-borrador`.
   **Sigue siendo borrador y Karina tiene que aprobarlo** (Q3).
 
-## Slice 8 — Valoración del encuentro y gamificación
-**Demo:** al terminar un taller, quien asistió lo valora con estrellas, deja su referencia y el facilitador recibe sus tokens; RRHH ve en el dashboard si los matches funcionaron.
+## Slice 8 — Valoración del encuentro y gamificación ✅
+**Demo:** al terminar un taller, quien asistió lo valora con estrellas, deja su referencia y el facilitador recibe su token; después se le pregunta si el match funcionó. RRHH ve el agregado y puede ocultar una referencia.
 **Slice nuevo**, pedido por la clienta por WhatsApp el 2026-09-29 (ADR-0009). Es el segundo eje del producto: "gamificación corporativa".
 
-| # | Tarea | Criterio de aceptación |
-|---|---|---|
-| T8.1 | Migración: `ValoracionTaller` (estrellas por dimensión, asistencia), `Referencia` y `Token` | solo valora quien asistió, y una sola vez por taller. Las 4 dimensiones van como **filas**, no como columnas: la clienta dijo que se pueden agregar más |
-| T8.2 | Migración: puntuación del match (¿se reunieron?, ¿a la hora?, ¿como esperaban?, ¿repetirían?) | la contestan **ambas partes** tras la primera reunión; con una sola respuesta el match ya queda puntuado |
-| T8.3 | API de valoración: estrellas, asistencia y referencia | la referencia se firma con el nombre de quien la escribe (ADR-0009) |
-| T8.4 | API de moderación para RRHH: ocultar una referencia, con auditoría | no se borra, se oculta |
-| T8.5 | Tokens del facilitador: recuento por taller, auditado y no editable a mano | el canje lo administra la empresa **fuera** de la plataforma (Q18); aquí no hay saldo, premios ni transferencias |
-| T8.6 | El promedio del facilitador alimenta el score de afinidad | matching lo pide por REST a learning |
-| T8.7 | Web: pantalla de valoración y tarjeta de perfil con estrellas, referencias y tokens | como el ejemplo que mandó la clienta |
+| # | Tarea | Criterio de aceptación | Estado |
+|---|---|---|---|
+| T8.1 | Migración: `ValoracionTaller` (estrellas por dimensión, asistencia), `Referencia` y `Token` | solo valora quien asistió, y una sola vez por taller. Las 4 dimensiones van como **filas**, no como columnas | ✅ |
+| T8.2 | Migración: puntuación del match (¿se reunieron?, ¿a la hora?, ¿como esperaban?, ¿repetirían?) | la contestan **ambas partes** tras la primera reunión; con una sola respuesta el match ya queda puntuado | ✅ |
+| T8.3 | API de valoración: estrellas, asistencia y referencia | la referencia se firma con el nombre de quien la escribe | ✅ |
+| T8.4 | API de moderación para RRHH: ocultar una referencia, con auditoría | no se borra, se oculta, y el motivo queda guardado | ✅ |
+| T8.5 | Tokens del facilitador: recuento por taller, auditado y no editable a mano | **uno por taller** con al menos una valoración; el canje lo administra la empresa fuera de la plataforma (Q18) | ✅ |
+| T8.6 | El promedio del facilitador alimenta el score de afinidad | matching lo pide por REST a learning; cuenta **desde la tercera valoración** | ✅ |
+| T8.7 | Web: valorar desde la agenda, y tarjeta de reconocimiento con estrellas, referencias y tokens | como el ejemplo que mandó la clienta | ✅ |
 
-**Ya no lo bloquea nada del producto**, pero **no se publica sin el aviso de privacidad (Q3)**: este slice guarda texto libre de una persona sobre otra identificada, y eso hay que declararlo antes de que alguien lo escriba.
+Lo que apareció al construirlo:
+
+- **Valorar el taller y puntuar el match son dos pasos, no uno.** Las estrellas dicen si el taller
+  estuvo bueno; las cuatro preguntas, si el emparejamiento funcionó. Un match puede fallar —nunca
+  se reunieron— con un taller impecable, y al revés. En pantalla son dos pantallas seguidas, y la
+  segunda solo aparece si hay un match: quien se inscribió desde Talleres no hizo match con nadie.
+- **Un 403 también filtra información.** Al puntuar el match de otra persona, el servicio
+  respondía 403 "no eres parte" en vez de 404. Esa diferencia le decía a cualquiera de la empresa
+  que esas dos personas habían hecho match en ese taller, y lo que cada quien decide en Descubrir
+  es suyo. La condición de ser parte se movió a la consulta.
+- **Las estrellas no cuentan hasta la tercera valoración.** Era el riesgo que dejó anotado el
+  ADR-0009: con una sola opinión mala, alguien perdía un cuarto de su score en Descubrir para
+  siempre. El mecanismo ya existía —un criterio en `null` reparte su peso— y solo hubo que
+  decidir el umbral. La pantalla lo dice: "falta una valoración más para que tus estrellas
+  influyan".
+- **El token es uno por taller y lo garantiza la base.** Una clave única sobre `taller_id` hace
+  que tres personas valorando a la vez no puedan crear tres tokens. Era la forma más simple de
+  cumplir "nadie lo edita a mano" ahora que el recuento vale algo fuera de la plataforma.
+- **Las referencias entraron en la Ley 21.719.** Al suprimir una cuenta se van las que escribió
+  **y** las que hablan de ella. Sus estrellas se quedan, porque son un agregado sobre un taller
+  que otras personas vivieron y ya no apuntan a nadie.
+- **Pendiente para Karina:** el recuento de tokens se ve dentro de toda la empresa, que es una
+  lectura del equipo de su *"visibles pero privados"*. Está marcado `[E]` en la SPEC.
+
+**Sigue sin publicarse hasta el aviso de privacidad (Q3)**: este slice guarda texto libre de una
+persona sobre otra identificada. El borrador de `2026-10-borrador` ya lo menciona, pero la clienta
+tiene que aprobarlo.
 
 ## ~~Slice 9 — Rúbrica y mediciones~~ · ⛔ ELIMINADO el 2026-10-13
 

@@ -17,6 +17,11 @@ export const PERMISOS = [
   'temas:crear',
   /** Publicar la ficha de un taller y declarar cuándo se puede enseñar (SPEC §3.2). */
   'talleres:publicar',
+  /**
+   * Ocultar una referencia escrita sobre un colega, dejando registro (SPEC §3.5, Q17).
+   * Solo RRHH: es una decisión laboral dentro de la empresa, no de quien opera la plataforma.
+   */
+  'referencias:moderar',
 ] as const;
 export type Permiso = (typeof PERMISOS)[number];
 
@@ -41,7 +46,7 @@ const PERMISOS_POR_ROL: Record<Rol, readonly Permiso[]> = {
   ADMIN_ENACTIVA: [],
   // Gestionar la gente de su empresa es de RRHH; el equipo de ENACTIVA administra el piloto,
   // no el día a día de cada organización.
-  RRHH: ['personas:gestionar', 'temas:crear'],
+  RRHH: ['personas:gestionar', 'temas:crear', 'referencias:moderar'],
   // Quien enseña necesita poder nombrar lo que enseña; si no existiera el tema, no podría ofrecerlo.
   CAPACITADOR: ['temas:crear', 'talleres:publicar'],
   ESTUDIANTE: [],

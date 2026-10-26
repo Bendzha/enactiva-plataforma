@@ -12,3 +12,4 @@ export * from './permisos.js';
 export * from './personas.js';
 export * from './sesion.js';
 export * from './talleres.js';
+export * from './valoracion.js';

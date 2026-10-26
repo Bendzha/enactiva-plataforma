@@ -39,6 +39,12 @@ enum AccionAuditoria {
   ANONIMIZAR
 }
 
+/// Desde qué lado se contesta la puntuación del match: quien fue a aprender o quien enseñó.
+enum PapelEnElMatch {
+  ESTUDIANTE
+  CAPACITADOR
+}
+
 /// Qué hizo la persona con la tarjeta.
 enum DecisionMatch {
   INTERESADO
@@ -67,10 +73,42 @@ model Match {
   decision      DecisionMatch
   decididoAt    DateTime      @default(now()) @map("decidido_at") @db.Timestamptz(3)
 
+  puntuaciones PuntuacionMatch[]
+
   @@unique([estudianteId, tallerId])
   @@index([empresaId, estudianteId])
   @@index([empresaId, tallerId])
   @@map("match")
+}
+
+/// Lo que una de las dos partes dijo sobre un match, después de la primera reunión
+/// (SPEC §3.5, WhatsApp de la clienta 2026-09-29).
+///
+/// Mide si el **emparejamiento** funcionó, no si el taller estuvo bueno: eso son las estrellas y
+/// viven en learning (ADR-0009). Un match puede fallar —nunca se reunieron— con un taller
+/// impecable, y al revés.
+///
+/// Una fila por persona y por match: la clienta pidió que contesten **ambas**, y si solo
+/// responde una, el match igual queda puntuado con esa respuesta (Q15).
+model PuntuacionMatch {
+  id              String         @id @default(uuid(7)) @db.Uuid
+  empresaId       String         @map("empresa_id") @db.Uuid
+  matchId         String         @map("match_id") @db.Uuid
+  /// Quien contesta. Vive en identity_db.
+  autorId         String         @map("autor_id") @db.Uuid
+  papel           PapelEnElMatch
+  seReunieron     Boolean        @map("se_reunieron")
+  aLaHoraAcordada Boolean        @map("a_la_hora_acordada")
+  comoLoEsperaban Boolean        @map("como_lo_esperaban")
+  repetirian      Boolean
+  createdAt       DateTime       @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  match Match @relation(fields: [matchId], references: [id], onDelete: Cascade)
+
+  @@unique([matchId, autorId])
+  @@index([empresaId, matchId])
+  @@index([empresaId, autorId])
+  @@map("puntuacion_match")
 }
 
 // ── Cumplimiento Ley 21.719 ──────────────────────────────────────────────────

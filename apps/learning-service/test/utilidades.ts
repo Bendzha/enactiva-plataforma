@@ -1,6 +1,7 @@
 import type { INestApplication } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import type { EstadoSesion, ProveedorEstadoSesion } from '@enactiva/service-kit';
+import type { PersonaInterna } from '@enactiva/shared';
 import { IdentityCliente } from '../src/identity.cliente.js';
 
 /**
@@ -24,13 +25,35 @@ export class ProveedorEstadoSesionFalso implements ProveedorEstadoSesion {
   }
 }
 
-/** Catálogo de temas falso: responde como identity, acotado a lo que el test declaró. */
+/** Catálogo de temas y personas falso: responde como identity, acotado a lo que el test declaró. */
 export class IdentityClienteFalso {
   private readonly temas = new Map<string, string>();
+  private readonly personas = new Map<string, PersonaInterna>();
 
   agregarTema(id: string, nombre: string): string {
     this.temas.set(id, nombre);
     return id;
+  }
+
+  agregarPersona(id: string, nombre: string, apellido = ''): string {
+    this.personas.set(id, {
+      id,
+      nombre,
+      apellido,
+      cargo: null,
+      areaId: null,
+      areaNombre: null,
+    });
+    return id;
+  }
+
+  personasPorIds(ids: readonly string[]): Promise<Map<string, PersonaInterna>> {
+    const encontradas = new Map<string, PersonaInterna>();
+    for (const id of new Set(ids)) {
+      const persona = this.personas.get(id);
+      if (persona) encontradas.set(id, persona);
+    }
+    return Promise.resolve(encontradas);
   }
 
   temasPorIds(ids: readonly string[]): Promise<Map<string, string>> {

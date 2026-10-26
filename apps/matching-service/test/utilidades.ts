@@ -1,7 +1,7 @@
 import type { INestApplication } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import type { EstadoSesion, ProveedorEstadoSesion } from '@enactiva/service-kit';
-import type { ContextoAfinidad, TallerAbierto } from '@enactiva/shared';
+import type { ContextoAfinidad, TallerAbierto, TallerInterno } from '@enactiva/shared';
 
 /**
  * matching-service no es dueño de casi nada: los talleres son de learning y los perfiles de
@@ -48,6 +48,26 @@ export class ClientesInternosFalsos {
           personas.includes(declaracion.usuarioId) && temas.includes(declaracion.temaId),
       ),
       temas: this.contexto.temas.filter((tema) => temas.includes(tema.id)),
+    });
+  }
+
+  /** Promedio por facilitador; lo que no esté aquí vuelve como null, igual que learning. */
+  valoraciones = new Map<string, number | null>();
+
+  valoracionesDeFacilitadores(ids: readonly string[]): Promise<Map<string, number | null>> {
+    return Promise.resolve(new Map(ids.map((id) => [id, this.valoraciones.get(id) ?? null])));
+  }
+
+  /** Los talleres que este doble conoce, por id, con su fecha de término. */
+  tallerPorId(id: string): Promise<TallerInterno | null> {
+    const taller = this.talleres.find((fila) => fila.id === id);
+    if (!taller) return Promise.resolve(null);
+    return Promise.resolve({
+      id: taller.id,
+      nombre: taller.nombre,
+      capacitadorId: taller.capacitadorId,
+      inicioAt: taller.inicioAt,
+      finAt: taller.finAt,
     });
   }
 

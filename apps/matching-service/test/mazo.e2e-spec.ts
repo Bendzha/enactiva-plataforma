@@ -204,6 +204,31 @@ describe('Mazo del swipe (e2e)', () => {
       expect(ingles!.porQue).toContain('no habías declarado');
     });
 
+    it('las estrellas del facilitador bajan el score cuando ya cuentan', async () => {
+      const sinEstrellas = ((await pedirMazo().expect(200)).body as TarjetaMazo[])[0]!.score;
+
+      // learning solo devuelve un promedio cuando la persona junta suficientes valoraciones;
+      // mientras devuelva null, el criterio no participa y el score no se mueve.
+      clientes.valoraciones.set(LUIS, 1);
+      const conMalas = ((await pedirMazo().expect(200)).body as TarjetaMazo[])[0]!.score;
+      expect(conMalas).toBeLessThan(sinEstrellas);
+
+      clientes.valoraciones.set(LUIS, 5);
+      const conBuenas = ((await pedirMazo().expect(200)).body as TarjetaMazo[])[0]!.score;
+      expect(conBuenas).toBe(sinEstrellas);
+
+      clientes.valoraciones.clear();
+    });
+
+    it('lo valoran bien se dice en la tarjeta, para que el orden no sea una caja negra', async () => {
+      clientes.valoraciones.set(LUIS, 4.5);
+
+      const [excel] = (await pedirMazo().expect(200)).body as TarjetaMazo[];
+      expect(excel!.porQue).toContain('lo valoran bien quienes fueron');
+
+      clientes.valoraciones.clear();
+    });
+
     it('el filtro por tema es opcional y busca sin tildes', async () => {
       const filtrado = (await pedirMazo(tokenAna, '?buscar=ingles').expect(200))
         .body as TarjetaMazo[];

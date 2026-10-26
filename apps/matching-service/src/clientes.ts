@@ -1,9 +1,16 @@
 import { Injectable } from '@nestjs/common';
-import { PREFIJO_INTERNO, type ContextoAfinidad, type TallerAbierto } from '@enactiva/shared';
+import {
+  PREFIJO_INTERNO,
+  type ContextoAfinidad,
+  type TallerAbierto,
+  type TallerInterno,
+  type ValoracionDeFacilitador,
+} from '@enactiva/shared';
 import {
   ClienteInterno,
   CLS_REQUEST_ID,
   CLS_TOKEN_ACCESO,
+  ErrorServicioInterno,
   type ContextoPeticion,
 } from '@enactiva/service-kit';
 import { ClsService } from 'nestjs-cls';
@@ -47,6 +54,38 @@ export class ClientesInternos {
     return this.identity.get<ContextoAfinidad>(
       `/${PREFIJO_INTERNO}/perfiles/contexto?${parametros.toString()}`,
     );
+  }
+
+  /**
+   * Un taller puntual: lo necesita la puntuación del match para no aceptar una respuesta sobre
+   * un encuentro que todavía no ocurrió. Devuelve null si no existe en la empresa de quien pide.
+   */
+  async tallerPorId(id: string): Promise<TallerInterno | null> {
+    try {
+      return await this.learning.get<TallerInterno>(`/${PREFIJO_INTERNO}/talleres/${id}`);
+    } catch (error) {
+      if (error instanceof ErrorServicioInterno && error.status === 404) return null;
+      throw error;
+    }
+  }
+
+  /**
+   * El promedio de estrellas de cada facilitador, para el cuarto criterio del score (ADR-0009).
+   *
+   * learning devuelve `null` para quien todavía no junta suficientes valoraciones, y el score
+   * reparte ese peso entre los demás criterios. Ese umbral lo decide learning, que es quien
+   * tiene las valoraciones; aquí no se vuelve a juzgar.
+   */
+  async valoracionesDeFacilitadores(
+    capacitadorIds: readonly string[],
+  ): Promise<Map<string, number | null>> {
+    const unicos = [...new Set(capacitadorIds)];
+    if (unicos.length === 0) return new Map();
+
+    const valoraciones = await this.learning.get<ValoracionDeFacilitador[]>(
+      `/${PREFIJO_INTERNO}/valoraciones/facilitadores?ids=${unicos.map(encodeURIComponent).join(',')}`,
+    );
+    return new Map(valoraciones.map((fila) => [fila.capacitadorId, fila.promedio]));
   }
 
   /**

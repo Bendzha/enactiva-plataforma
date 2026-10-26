@@ -411,6 +411,49 @@ export const TALLERES: readonly TallerDemo[] = [
   },
 ];
 
+/**
+ * Valoraciones del taller que ya pasó, para que la demo no muestre cero estrellas.
+ *
+ * Van **dos** de los tres asistentes a propósito: la tercera se hace en vivo con la cuenta de
+ * Sofía, y ahí se ve el momento en que el promedio empieza a contar en Descubrir
+ * (VALORACIONES_PARA_CONTAR_EN_EL_SCORE es 3).
+ */
+export interface ValoracionDemo {
+  id: string;
+  tallerId: string;
+  empresaId: string;
+  usuarioId: string;
+  capacitadorId: string;
+  asistio: boolean;
+  estrellas: Record<string, number>;
+  referencia: string;
+}
+
+const V = '01993000-0006-7000-8000-0000000000';
+
+export const VALORACIONES: readonly ValoracionDemo[] = [
+  {
+    id: `${V}01`,
+    tallerId: `${W}03`,
+    empresaId: PN,
+    usuarioId: `${U}05`,
+    capacitadorId: `${U}06`,
+    asistio: true,
+    estrellas: { CLARIDAD: 5, SEGURIDAD: 5, APLICACION: 4, USO_DE_MATERIALES: 4 },
+    referencia: 'Explicó el tablero paso a paso y nos dejó tocarlo con el equipo apagado.',
+  },
+  {
+    id: `${V}02`,
+    tallerId: `${W}03`,
+    empresaId: PN,
+    usuarioId: `${U}07`,
+    capacitadorId: `${U}06`,
+    asistio: true,
+    estrellas: { CLARIDAD: 4, SEGURIDAD: 5, APLICACION: 5, USO_DE_MATERIALES: 3 },
+    referencia: '',
+  },
+];
+
 export const DISPONIBILIDAD = [
   { usuarioId: `${U}04`, empresaId: PN, dia: 'LUNES', horaInicio: '09:00', horaFin: '11:00' },
   { usuarioId: `${U}04`, empresaId: PN, dia: 'MIERCOLES', horaInicio: '15:00', horaFin: '17:00' },

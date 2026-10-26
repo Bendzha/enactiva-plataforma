@@ -1,11 +1,14 @@
 import type { ItemAgenda } from '@enactiva/shared';
+import { useState } from 'react';
 import { Link } from 'react-router';
 import { useSesion } from '@/auth/sesion';
+import { ValorarTaller } from '@/components/valoracion/ValorarTaller';
 import { Alert } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
-import { botonVariants } from '@/components/ui/button';
+import { Button, botonVariants } from '@/components/ui/button';
 import { Card, CardDescription, CardTitle } from '@/components/ui/card';
 import { useAgenda } from '@/lib/agenda';
+import { usePuntuacionesPendientes } from '@/lib/valoracion';
 
 const FECHA = new Intl.DateTimeFormat('es-CL', { weekday: 'long', day: 'numeric', month: 'long' });
 const HORA = new Intl.DateTimeFormat('es-CL', { hour: '2-digit', minute: '2-digit' });
@@ -25,7 +28,7 @@ function cuantoFalta(item: ItemAgenda): string | null {
   return null;
 }
 
-function Fila({ item }: { item: ItemAgenda }) {
+function Fila({ item, onValorar }: { item: ItemAgenda; onValorar?: () => void }) {
   const falta = cuantoFalta(item);
 
   return (
@@ -45,6 +48,11 @@ function Fila({ item }: { item: ItemAgenda }) {
       <span className="text-xs text-texto-suave">
         {item.inscritos} de {item.cupo} inscritos
       </span>
+      {onValorar && (
+        <Button variant="outline" size="sm" onClick={onValorar}>
+          Valorar
+        </Button>
+      )}
     </li>
   );
 }
@@ -59,6 +67,9 @@ export function AgendaPage() {
   const { usuario } = useSesion();
   const deUnaEmpresa = Boolean(usuario?.empresaId);
   const { data: agenda, isPending, isError } = useAgenda(deUnaEmpresa);
+  const { data: pendientes } = usePuntuacionesPendientes(deUnaEmpresa);
+  const [valorando, setValorando] = useState<ItemAgenda | null>(null);
+  const [aviso, setAviso] = useState<string | null>(null);
 
   if (!deUnaEmpresa) {
     return (
@@ -82,9 +93,15 @@ export function AgendaPage() {
         <h1 className="text-2xl font-extrabold tracking-tight">Mi agenda</h1>
         <p className="text-sm text-texto-suave">
           Lo que dictas y a lo que vas. Te llegará un recordatorio por correo el día antes y una
-          hora antes de cada uno.
+          hora antes de cada uno. Cuando un taller termina, lo puedes valorar.
         </p>
       </header>
+
+      {aviso && (
+        <div className="mb-4 rounded-md border border-marca/30 bg-marca-suave px-3 py-2 text-sm">
+          {aviso}
+        </div>
+      )}
 
       {isPending && <p className="text-sm text-texto-suave">Cargando tu agenda…</p>}
       {isError && <Alert>No pudimos cargar tu agenda. Actualiza la página.</Alert>}
@@ -117,12 +134,29 @@ export function AgendaPage() {
       {agenda && agenda.pasados.length > 0 && (
         <>
           <h2 className="mb-3 text-lg font-bold">Ya ocurrieron</h2>
-          <ul className="space-y-3 opacity-75">
+          <ul className="space-y-3">
             {agenda.pasados.map((item) => (
-              <Fila key={item.tallerId} item={item} />
+              <Fila
+                key={item.tallerId}
+                item={item}
+                onValorar={item.puedeValorar ? () => setValorando(item) : undefined}
+              />
             ))}
           </ul>
         </>
+      )}
+
+      {valorando && (
+        <ValorarTaller
+          tallerId={valorando.tallerId}
+          tallerNombre={valorando.nombre}
+          conMatchPendiente={pendientes?.includes(valorando.tallerId) ?? false}
+          onCerrar={() => setValorando(null)}
+          onListo={(mensaje) => {
+            setValorando(null);
+            setAviso(mensaje);
+          }}
+        />
       )}
     </section>
   );

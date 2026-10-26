@@ -41,6 +41,16 @@ enum AccionAuditoria {
   ANONIMIZAR
 }
 
+/// Las cuatro dimensiones del ejemplo que mandó la clienta (WhatsApp 2026-09-29, Q16).
+/// Van como filas de `estrella_valoracion` y no como columnas: ella dijo que se pueden agregar
+/// o cambiar más adelante, y eso no puede costar una migración.
+enum DimensionValoracion {
+  CLARIDAD
+  SEGURIDAD
+  APLICACION
+  USO_DE_MATERIALES
+}
+
 /// Cuándo se mandó un recordatorio. Son dos: uno el día antes, para reorganizar la agenda,
 /// y otro una hora antes, que es el que de verdad hace que la gente llegue.
 enum MomentoRecordatorio {
@@ -82,8 +92,9 @@ model Taller {
   createdAt           DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
   updatedAt           DateTime @updatedAt @map("updated_at") @db.Timestamptz(3)
 
-  inscripciones  Inscripcion[]
-  recordatorios  RecordatorioTaller[]
+  inscripciones Inscripcion[]
+  recordatorios RecordatorioTaller[]
+  valoraciones  ValoracionTaller[]
 
   @@index([empresaId, inicioAt])
   @@index([empresaId, capacitadorId])
@@ -133,17 +144,100 @@ model RecordatorioTaller {
 /// Las horas se guardan como texto "HH:MM" en 24 horas: así se leen directo en la base y, al
 /// llevar cero a la izquierda, ordenarlas alfabéticamente las ordena por hora.
 model Disponibilidad {
-  id          String    @id @default(uuid(7)) @db.Uuid
-  empresaId   String    @map("empresa_id") @db.Uuid
-  usuarioId   String    @map("usuario_id") @db.Uuid
-  dia         DiaSemana
-  horaInicio  String    @map("hora_inicio")
-  horaFin     String    @map("hora_fin")
-  createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamptz(3)
+  id         String    @id @default(uuid(7)) @db.Uuid
+  empresaId  String    @map("empresa_id") @db.Uuid
+  usuarioId  String    @map("usuario_id") @db.Uuid
+  dia        DiaSemana
+  horaInicio String    @map("hora_inicio")
+  horaFin    String    @map("hora_fin")
+  createdAt  DateTime  @default(now()) @map("created_at") @db.Timestamptz(3)
 
   @@unique([usuarioId, dia, horaInicio, horaFin])
   @@index([empresaId, usuarioId])
   @@map("disponibilidad")
+}
+
+// ── Valoración del encuentro y reconocimiento (SPEC §3.5, ADR-0009) ──────────
+
+/// Lo que una persona respondió al cerrar un taller.
+///
+/// Una por persona y por taller: valorar dos veces el mismo encuentro inflaría el promedio de
+/// quien lo dictó, que es un número con consecuencias (ordena el mazo y da tokens).
+model ValoracionTaller {
+  id        String   @id @default(uuid(7)) @db.Uuid
+  empresaId String   @map("empresa_id") @db.Uuid
+  tallerId  String   @map("taller_id") @db.Uuid
+  /// Quien valora. Vive en identity_db.
+  usuarioId String   @map("usuario_id") @db.Uuid
+  /// "Mi asistencia al taller ✅": la marca quien asistió, no el facilitador.
+  asistio   Boolean
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  taller     Taller               @relation(fields: [tallerId], references: [id], onDelete: Cascade)
+  estrellas  EstrellaValoracion[]
+  referencia Referencia?
+
+  @@unique([tallerId, usuarioId])
+  @@index([empresaId, tallerId])
+  @@index([empresaId, usuarioId])
+  @@map("valoracion_taller")
+}
+
+/// Una estrella por dimensión, de 1 a 5 (escala confirmada el 2026-10-24).
+model EstrellaValoracion {
+  valoracionId String              @map("valoracion_id") @db.Uuid
+  dimension    DimensionValoracion
+  estrellas    Int
+
+  valoracion ValoracionTaller @relation(fields: [valoracionId], references: [id], onDelete: Cascade)
+
+  @@id([valoracionId, dimension])
+  @@map("estrella_valoracion")
+}
+
+/// Texto libre de una persona sobre otra, dentro de su trabajo. Lo más delicado que guarda la
+/// plataforma (ADR-0009), así que va firmado y RRHH puede ocultarlo.
+///
+/// Ocultar **no borra**: borrar la evidencia de un conflicto laboral es peor que conservarla.
+model Referencia {
+  id            String    @id @default(uuid(7)) @db.Uuid
+  empresaId     String    @map("empresa_id") @db.Uuid
+  valoracionId  String    @unique @map("valoracion_id") @db.Uuid
+  tallerId      String    @map("taller_id") @db.Uuid
+  /// Quien la escribe. Se publica con su nombre y lo sabe antes de escribirla.
+  autorId       String    @map("autor_id") @db.Uuid
+  /// Sobre quién es: el facilitador del taller, copiado para no rehacer el join en cada lectura.
+  capacitadorId String    @map("capacitador_id") @db.Uuid
+  texto         String
+  ocultaAt      DateTime? @map("oculta_at") @db.Timestamptz(3)
+  ocultaPorId   String?   @map("oculta_por_id") @db.Uuid
+  motivoOculta  String?   @map("motivo_oculta")
+  createdAt     DateTime  @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  valoracion ValoracionTaller @relation(fields: [valoracionId], references: [id], onDelete: Cascade)
+
+  @@index([empresaId, capacitadorId])
+  @@index([empresaId, tallerId])
+  @@map("referencia")
+}
+
+/// El recuento de tokens de quien enseñó (Q18).
+///
+/// La plataforma lleva la cuenta y nada más: el canje lo administra cada empresa fuera de aquí.
+/// Como afuera valen algo, nadie lo edita a mano: **una fila por taller**, creada con la primera
+/// valoración que recibe. La clave única sobre `taller_id` es lo que hace que no se pueda
+/// duplicar aunque tres personas valoren a la vez.
+model Token {
+  id            String   @id @default(uuid(7)) @db.Uuid
+  empresaId     String   @map("empresa_id") @db.Uuid
+  /// Quien lo recibe. Vive en identity_db.
+  capacitadorId String   @map("capacitador_id") @db.Uuid
+  tallerId      String   @unique @map("taller_id") @db.Uuid
+  cantidad      Int      @default(1)
+  createdAt     DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  @@index([empresaId, capacitadorId])
+  @@map("token")
 }
 
 // ── Cumplimiento Ley 21.719 ──────────────────────────────────────────────────

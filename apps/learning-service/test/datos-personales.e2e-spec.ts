@@ -28,6 +28,9 @@ describe('Exportar y suprimir datos personales en learning (e2e)', () => {
   let tokenOtra: string;
 
   const limpiar = async () => {
+    await prisma.referencia.deleteMany({ where: { empresaId: EMPRESA } });
+    await prisma.valoracionTaller.deleteMany({ where: { empresaId: EMPRESA } });
+    await prisma.token.deleteMany({ where: { empresaId: EMPRESA } });
     await prisma.inscripcion.deleteMany({ where: { empresaId: EMPRESA } });
     await prisma.taller.deleteMany({ where: { empresaId: EMPRESA } });
     await prisma.disponibilidad.deleteMany({ where: { empresaId: EMPRESA } });
@@ -102,6 +105,47 @@ describe('Exportar y suprimir datos personales en learning (e2e)', () => {
         horaFin: '11:00',
       },
     });
+
+    // Camila valoró el taller de Otra y dejó una referencia; y recibió una por el suyo.
+    await prisma.valoracionTaller.create({
+      data: {
+        empresaId: EMPRESA,
+        tallerId: alQueVa.id,
+        usuarioId: CAMILA,
+        asistio: true,
+        estrellas: { create: [{ dimension: 'CLARIDAD', estrellas: 5 }] },
+        referencia: {
+          create: {
+            empresaId: EMPRESA,
+            tallerId: alQueVa.id,
+            autorId: CAMILA,
+            capacitadorId: OTRA,
+            texto: 'Explicó todo con calma.',
+          },
+        },
+      },
+    });
+    await prisma.valoracionTaller.create({
+      data: {
+        empresaId: EMPRESA,
+        tallerId: queDicta.id,
+        usuarioId: OTRA,
+        asistio: true,
+        estrellas: { create: [{ dimension: 'CLARIDAD', estrellas: 4 }] },
+        referencia: {
+          create: {
+            empresaId: EMPRESA,
+            tallerId: queDicta.id,
+            autorId: OTRA,
+            capacitadorId: CAMILA,
+            texto: 'Se nota que sabe del tema.',
+          },
+        },
+      },
+    });
+    await prisma.token.create({
+      data: { empresaId: EMPRESA, capacitadorId: CAMILA, tallerId: queDicta.id },
+    });
   });
 
   afterAll(async () => {
@@ -150,12 +194,31 @@ describe('Exportar y suprimir datos personales en learning (e2e)', () => {
     expect(datos.contenido.miDisponibilidad).toEqual([]);
   });
 
+  it('entrega lo que valoró, lo que escribieron de ella y sus tokens', async () => {
+    const datos = await exportar(tokenCamila);
+
+    expect(datos.contenido.loQueValore).toMatchObject([
+      { taller: 'Primeros auxilios', asisti: true },
+    ]);
+    expect(datos.contenido.referenciasQueEscribi).toMatchObject([
+      { texto: 'Explicó todo con calma.' },
+    ]);
+    // Las escribió otra persona, pero hablan de ella: le corresponden igual (Ley 21.719).
+    expect(datos.contenido.referenciasQueRecibi).toMatchObject([
+      { texto: 'Se nota que sabe del tema.' },
+    ]);
+    expect(datos.contenido.misTokens).toHaveLength(1);
+  });
+
   it('al suprimir se van las inscripciones y la disponibilidad', async () => {
     const { body } = await suprimir(tokenCamila).expect(200);
 
     expect((body as SupresionDeServicio).borrado).toEqual({
       inscripciones: 1,
       franjasDeDisponibilidad: 1,
+      valoracionesQueEscribiste: 1,
+      referenciasSobreTi: 1,
+      tokensDeReconocimiento: 1,
     });
     expect(await prisma.inscripcion.count({ where: { usuarioId: CAMILA } })).toBe(0);
     expect(await prisma.disponibilidad.count({ where: { usuarioId: CAMILA } })).toBe(0);
@@ -171,11 +234,25 @@ describe('Exportar y suprimir datos personales en learning (e2e)', () => {
     expect((body as SupresionDeServicio).conservado[0]).toMatch(/otras personas se inscribieron/);
   });
 
+  it('al suprimir no queda texto libre que hable de ella ni escrito por ella', async () => {
+    await suprimir(tokenCamila).expect(200);
+
+    expect(await prisma.referencia.count({ where: { autorId: CAMILA } })).toBe(0);
+    expect(await prisma.referencia.count({ where: { capacitadorId: CAMILA } })).toBe(0);
+    expect(await prisma.valoracionTaller.count({ where: { usuarioId: CAMILA } })).toBe(0);
+    expect(await prisma.token.count({ where: { capacitadorId: CAMILA } })).toBe(0);
+  });
+
   it('suprimir lo de una persona no toca lo de otra', async () => {
     await suprimir(tokenCamila).expect(200);
 
     expect(await prisma.inscripcion.count({ where: { usuarioId: OTRA } })).toBe(1);
     expect(await prisma.taller.count({ where: { capacitadorId: OTRA } })).toBe(1);
+    // Las estrellas que puso Otra se quedan, igual que el taller del que cuelgan: son un
+    // agregado sobre una actividad que otras personas vivieron, y ya no apuntan a nadie. Lo que
+    // sí se va es su texto libre, porque ese sí hablaba de Camila.
+    expect(await prisma.valoracionTaller.count({ where: { usuarioId: OTRA } })).toBe(1);
+    expect(await prisma.referencia.count({ where: { autorId: OTRA } })).toBe(0);
   });
 
   it('sin token no se exporta ni se suprime', async () => {

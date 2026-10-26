@@ -48,11 +48,18 @@ export class AgendaService {
       return { proximos: [], pasados: [] };
     }
 
-    const nombres = await this.identity.temasPorIds(talleres.map((taller) => taller.temaId));
+    const [nombres, yaValorados] = await Promise.all([
+      this.identity.temasPorIds(talleres.map((taller) => taller.temaId)),
+      this.prisma.acotado.valoracionTaller.findMany({
+        where: { usuarioId: sesion.usuarioId, tallerId: { in: talleres.map((t) => t.id) } },
+        select: { tallerId: true },
+      }),
+    ]);
+    const valorados = new Set(yaValorados.map((fila) => fila.tallerId));
     const ahora = Date.now();
 
     const items = talleres.map((taller: TallerDeAgenda) => ({
-      item: this.aItem(taller, nombres, sesion),
+      item: this.aItem(taller, nombres, valorados, ahora, sesion),
       // El corte es el **término** del taller: mientras está ocurriendo sigue siendo lo próximo,
       // no historia. A las 10:30 de un taller de 10 a 12 nadie quiere buscarlo en el pasado.
       pasado: taller.finAt.getTime() < ahora,
@@ -71,8 +78,11 @@ export class AgendaService {
   private aItem(
     taller: TallerDeAgenda,
     nombres: Map<string, string>,
+    valorados: Set<string>,
+    ahora: number,
     sesion: SesionActual,
   ): ItemAgenda {
+    const dicta = taller.capacitadorId === sesion.usuarioId;
     return {
       tallerId: taller.id,
       temaNombre: nombres.get(taller.temaId) ?? 'Tema no disponible',
@@ -80,9 +90,10 @@ export class AgendaService {
       ubicacion: taller.ubicacion,
       inicioAt: taller.inicioAt.toISOString(),
       finAt: taller.finAt.toISOString(),
-      papel: taller.capacitadorId === sesion.usuarioId ? 'DICTO' : 'VOY',
+      papel: dicta ? 'DICTO' : 'VOY',
       inscritos: taller._count.inscripciones,
       cupo: taller.cupo,
+      puedeValorar: !dicta && taller.finAt.getTime() < ahora && !valorados.has(taller.id),
     };
   }
 

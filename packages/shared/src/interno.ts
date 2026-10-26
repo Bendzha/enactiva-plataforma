@@ -132,6 +132,21 @@ export interface TallerAbierto {
 }
 
 /**
+ * Lo mínimo que otro servicio necesita saber de un taller puntual.
+ *
+ * Lo pide matching para la puntuación del match: necesita el nombre para mostrarlo y el término
+ * para no dejar que alguien puntúe un encuentro que todavía no ocurrió. La regla de qué taller
+ * existe sigue siendo de learning, que es su dueño (ADR-0007).
+ */
+export interface TallerInterno {
+  id: string;
+  nombre: string;
+  capacitadorId: string;
+  inicioAt: string;
+  finAt: string;
+}
+
+/**
  * Lo mínimo para mandarle un correo a alguien: a dónde y cómo saludarlo.
  *
  * Lo pide learning-service para los recordatorios de taller. Va por la ruta protegida con el

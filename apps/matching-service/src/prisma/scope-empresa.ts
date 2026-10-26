@@ -14,6 +14,7 @@ import type { PrismaClient } from '../generated/prisma/client.js';
  */
 export const MODELOS_ACOTADOS: ModelosAcotados = {
   Match: 'empresaId',
+  PuntuacionMatch: 'empresaId',
 };
 
 /**

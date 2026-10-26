@@ -25,6 +25,7 @@ const DICTO: ItemAgenda = {
   papel: 'DICTO',
   inscritos: 3,
   cupo: 8,
+  puedeValorar: false,
 };
 
 const VOY_MANANA: ItemAgenda = {
@@ -43,6 +44,7 @@ const PASADO: ItemAgenda = {
   papel: 'VOY',
   inicioAt: enHoras(-50),
   finAt: enHoras(-48),
+  puedeValorar: true,
 };
 
 const AGENDA: Agenda = { proximos: [VOY_MANANA, DICTO], pasados: [PASADO] };
