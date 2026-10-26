@@ -13,12 +13,12 @@ export function AvisoPrivacidad() {
       </p>
       <p className="mb-2">
         <strong>Qué datos se tratan.</strong> Tu nombre, tu correo, tu cargo y tu área, lo que
-        declaras que puedes enseñar y que quieres aprender, y los talleres que dictas o a los que
-        te inscribes.
+        declaras que puedes enseñar y que quieres aprender, y los talleres que dictas o a los que te
+        inscribes.
       </p>
       <p className="mb-2">
-        <strong>Para qué.</strong> Conectarte con quien puede enseñarte o aprender de ti, y
-        convocar los talleres internos de tu organización.
+        <strong>Para qué.</strong> Conectarte con quien puede enseñarte o aprender de ti, y convocar
+        los talleres internos de tu organización.
       </p>
       <p className="mb-2">
         <strong>Quién los ve.</strong> El área de Recursos Humanos de tu organización puede ver tu
@@ -27,9 +27,9 @@ export function AvisoPrivacidad() {
       </p>
       <p className="mb-2">
         <strong>Tus derechos.</strong> En «Mi perfil» puedes descargar todo lo que la plataforma
-        guarda sobre ti y eliminar tu cuenta, sin pedírselo a nadie. Al eliminarla, los talleres
-        que dictaste se conservan sin vincularse a tu identidad, porque otras personas
-        participaron en ellos.
+        guarda sobre ti y eliminar tu cuenta, sin pedírselo a nadie. Al eliminarla, los talleres que
+        dictaste se conservan sin vincularse a tu identidad, porque otras personas participaron en
+        ellos.
       </p>
       <p>
         <strong>Registro.</strong> Se guarda un registro de quién accede o modifica cada dato, según

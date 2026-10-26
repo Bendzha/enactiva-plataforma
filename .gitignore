@@ -25,3 +25,7 @@ tools/demo/.ultimo-seed.json
 ~$*
 .DS_Store
 Thumbs.db
+
+# La exportación de datos personales que baja el navegador (Ley 21.719). Trae el nombre y el
+# correo de una persona real: no se versiona, igual que los respaldos.
+mis-datos*.json
