@@ -1,11 +1,13 @@
 import { Module } from '@nestjs/common';
 import { APP_FILTER, APP_GUARD } from '@nestjs/core';
+import { ScheduleModule } from '@nestjs/schedule';
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { proveedorEstadoSesionRemoto, SaludModule, ServiceKitModule } from '@enactiva/service-kit';
 import { env } from './config/env.js';
 import { ErrorInternoFiltro } from './error-interno.filtro.js';
 import { PrismaModule } from './prisma/prisma.module.js';
 import { AuditoriaModule } from './modules/auditoria/auditoria.module.js';
+import { RecordatoriosModule } from './modules/recordatorios/recordatorios.module.js';
 import { TalleresModule } from './modules/talleres/talleres.module.js';
 
 /**
@@ -23,9 +25,12 @@ import { TalleresModule } from './modules/talleres/talleres.module.js';
       proveedorEstadoSesion: proveedorEstadoSesionRemoto(env().URL_IDENTITY_SERVICE),
     }),
     ThrottlerModule.forRoot([{ name: 'default', ttl: 60_000, limit: 120 }]),
+    // El reloj de los recordatorios: lo primero del sistema que ocurre sin que nadie lo pida.
+    ScheduleModule.forRoot(),
     PrismaModule,
     AuditoriaModule,
     TalleresModule,
+    RecordatoriosModule,
     SaludModule.paraServicio('learning-service'),
   ],
   providers: [

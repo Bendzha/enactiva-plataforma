@@ -13,7 +13,8 @@
 - ✅ **Métricas de intereses** (compromiso del acta): el panel de RRHH y el global de ENACTIVA ya muestran perfiles completos, oferta, demanda y brechas.
 - ✅ **Slice 5 completo** (T5.1 a T5.5): talleres convocados, inscripciones y disponibilidad, ya en `learning-service`.
 - ✅ **Slice 6 completo** (T6.1 a T6.6): el mazo del swipe, el score de afinidad y las decisiones, en `matching-service`.
-- ⏭️ Siguiente: **exportación y supresión de datos por usuario** (Ley 21.719), que es criterio de éxito del MVP, y después los Slices 7 y 8.
+- ✅ **Slice 7 completo** (T7.1 a T7.3): la agenda de cada persona y los recordatorios por correo.
+- ⏭️ Siguiente: **exportación y supresión de datos por usuario** (Ley 21.719), que es criterio de éxito del MVP, y después el Slice 8.
 - 🔴 **El 2026-09-29 la clienta cambió el alcance** (ADR-0008): la plataforma no aloja clases. Cae la subida de contenidos; aparecen la ficha del taller, el cupo, la ubicación, la disponibilidad, la agenda y los recordatorios.
 - 🎮 **Segundo eje del producto** (WhatsApp de la clienta, 2026-09-29, ADR-0009): valoración del encuentro con estrellas, referencias públicas y tokens de reconocimiento. "Match corporativo + gamificación corporativa". Es el Slice 8.
 - 🟢 **El 2026-10-13 la clienta cerró el alcance** (ADR-0010): se elimina el modelo de evaluación —etapas, rúbrica, logro, delta, mediciones y tests—. *"Lo mejor es que sea sólo conectar y convocar"*. Cae el Slice 9 completo.
@@ -214,15 +215,23 @@ Lo que apareció al construirlo:
 - **El like no reimplementa la inscripción**: llama al mismo endpoint que usa la pantalla de Talleres, con el token de la persona. Si el cupo se llenó entremedio, lo dice y no guarda la decisión, para que la tarjeta pueda volver si alguien cancela.
 - **"Misma área suma" quedó como decisión del equipo.** Preguntada, la clienta respondió que las dos opciones le parecían bien; está marcado como `[E]` en la SPEC y son dos constantes.
 
-## Slice 7 — Agenda y recordatorios
+## Slice 7 — Agenda y recordatorios ✅
 **Demo:** el facilitador y los inscritos ven el taller en su agenda y reciben el recordatorio por correo.
 **Slice nuevo**, pedido en el acta del 2026-09-29.
 
-| # | Tarea | Criterio de aceptación |
-|---|---|---|
-| T7.1 | Agenda de la persona: lo que enseña y lo que va a aprender, ordenado por fecha | muestra lugar y horario |
-| T7.2 | Recordatorio por correo al facilitador y a los inscritos | reutiliza el correo del Slice 1 (ADR-0004) |
-| T7.3 | Web: pantalla de agenda | funciona en móvil |
+| # | Tarea | Criterio de aceptación | Estado |
+|---|---|---|---|
+| T7.1 | Agenda de la persona: lo que enseña y lo que va a aprender, ordenado por fecha | muestra lugar y horario | ✅ |
+| T7.2 | Recordatorio por correo al facilitador y a los inscritos, 24 h y 1 h antes | no se manda dos veces; las ventanas no se solapan | ✅ |
+| T7.3 | Web: pantalla de agenda, con lo que viene y el historial | — | ✅ |
+
+Lo que apareció al construirlo:
+
+- **Es lo primero del sistema que ocurre sin que nadie lo pida.** Hasta ahora todo pasaba porque alguien hacía clic. El reloj vive en `learning-service` y se mantiene tonto a propósito —despierta, pregunta qué falta, se duerme—: toda la decisión está en el servicio, que sí se puede probar sin esperar una hora.
+- **Un reloj no tiene token de usuario.** Las llamadas entre servicios reenviaban la sesión de quien pedía; a las 9 de la mañana no hay nadie conectado. El reloj usa el secreto compartido, igual que las rutas anteriores al login, para pedirle a identity los correos de los inscritos.
+- **El recordatorio dejó de pedir el nombre del tema.** Lo pedía por una ruta que exige sesión y fallaba. El taller ya tiene nombre propio: menos acoplamiento en lo único que corre desatendido.
+- **Se anota aunque no salga ningún correo.** Si no, el reloj revisaría el mismo taller cada cinco minutos hasta que ocurriera.
+- El corte entre "lo que viene" y "lo que pasó" es el **término** del taller: a las 10:30 de uno que va de 10 a 12, nadie quiere buscarlo en el historial.
 
 ## Slice 8 — Valoración del encuentro y gamificación
 **Demo:** al terminar un taller, quien asistió lo valora con estrellas, deja su referencia y el facilitador recibe sus tokens; RRHH ve en el dashboard si los matches funcionaron.

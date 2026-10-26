@@ -130,3 +130,16 @@ export interface TallerAbierto {
   cupo: number;
   inscritos: number;
 }
+
+/**
+ * Lo mínimo para mandarle un correo a alguien: a dónde y cómo saludarlo.
+ *
+ * Lo pide learning-service para los recordatorios de taller. Va por la ruta protegida con el
+ * secreto compartido y **no con el token de una persona**, porque quien la llama es un reloj:
+ * a las 9 de la mañana no hay nadie conectado que preste su sesión.
+ */
+export interface DestinatarioInterno {
+  id: string;
+  email: string;
+  nombre: string | null;
+}

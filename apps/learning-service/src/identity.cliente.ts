@@ -1,5 +1,10 @@
 import { Injectable } from '@nestjs/common';
-import { PREFIJO_INTERNO, type TemaInterno } from '@enactiva/shared';
+import {
+  CABECERA_INTERNO,
+  PREFIJO_INTERNO,
+  type DestinatarioInterno,
+  type TemaInterno,
+} from '@enactiva/shared';
 import {
   ClienteInterno,
   CLS_REQUEST_ID,
@@ -34,6 +39,26 @@ export class IdentityCliente {
       `/${PREFIJO_INTERNO}/temas?ids=${unicos.map(encodeURIComponent).join(',')}`,
     );
     return new Map(temas.map((tema) => [tema.id, tema.nombre]));
+  }
+
+  /**
+   * A dónde mandarle el correo a un grupo de personas.
+   *
+   * Esta va con el **secreto compartido** y no con el token de nadie: quien la llama es el reloj
+   * de los recordatorios, que corre sin que haya una sesión abierta (ADR-0007).
+   */
+  async destinatarios(ids: readonly string[]): Promise<DestinatarioInterno[]> {
+    const unicos = [...new Set(ids)];
+    if (unicos.length === 0) return [];
+
+    const url = new URL(`/${PREFIJO_INTERNO}/destinatarios`, env().URL_IDENTITY_SERVICE);
+    url.searchParams.set('ids', unicos.join(','));
+
+    const res = await fetch(url, { headers: { [CABECERA_INTERNO]: env().INTERNO_SECRETO } });
+    if (!res.ok) {
+      throw new Error(`identity-service respondió ${res.status} al pedir destinatarios`);
+    }
+    return (await res.json()) as DestinatarioInterno[];
   }
 
   private contexto(): ContextoPeticion {
