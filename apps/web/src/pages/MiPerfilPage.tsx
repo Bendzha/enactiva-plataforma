@@ -9,6 +9,7 @@ import {
 import { useEffect, useState, type FormEvent } from 'react';
 import { useSesion } from '@/auth/sesion';
 import { AgregarInteres } from '@/components/perfil/AgregarInteres';
+import { MisDatos } from '@/components/perfil/MisDatos';
 import { Alert } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -39,13 +40,17 @@ export function MiPerfilPage() {
         <header className="mb-6">
           <h1 className="text-2xl font-extrabold tracking-tight">Mi perfil</h1>
         </header>
-        <Card>
-          <CardTitle>Tu cuenta es del equipo ENACTIVA</CardTitle>
-          <CardDescription>
-            El perfil corporativo lo completa cada colaborador dentro de su empresa: qué puede
-            enseñar y qué quiere aprender.
-          </CardDescription>
-        </Card>
+        <div className="space-y-6">
+          <Card>
+            <CardTitle>Tu cuenta es del equipo ENACTIVA</CardTitle>
+            <CardDescription>
+              El perfil corporativo lo completa cada colaborador dentro de su empresa: qué puede
+              enseñar y qué quiere aprender.
+            </CardDescription>
+          </Card>
+          {/* Llevarse sus datos es derecho de cualquiera, también de quien opera la plataforma. */}
+          <MisDatos puedeEliminar={false} />
+        </div>
       </section>
     );
   }
@@ -178,6 +183,7 @@ export function MiPerfilPage() {
             perfil.quieroAprender,
             'Todavía no declaraste nada que quieras aprender.',
           )}
+          <MisDatos puedeEliminar />
         </div>
       )}
 

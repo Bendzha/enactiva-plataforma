@@ -41,9 +41,12 @@ describe('Activación de cuenta desde el correo', () => {
 
     expect(await screen.findByText(/Planta Norte S\.A\./)).toBeInTheDocument();
     expect(screen.getByText(/pendiente de aprobación por ENACTIVA/i)).toBeInTheDocument();
+    // Lo que la Ley 21.719 obliga a decir antes de aceptar: quién ve sus datos con nombre, y
+    // que puede llevárselos y borrarlos.
     expect(
-      screen.getByText(/Recursos Humanos de tu organización puede ver tus/i),
+      screen.getByText(/Recursos Humanos de tu organización puede ver tu participación/i),
     ).toBeInTheDocument();
+    expect(screen.getByText(/puedes descargar todo lo que la plataforma/i)).toBeInTheDocument();
   });
 
   it('avisa si el enlace ya no sirve', async () => {

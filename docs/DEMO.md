@@ -172,6 +172,9 @@ credenciales de tu `.env` y no están en este documento a propósito.
 6. **Facilitador** → *Talleres*: publicar una ficha nueva (fecha, cupo, lugar) y su disponibilidad.
 7. **Participante** → *Talleres*: inscribirse en "Excel para turnos". El contador sube.
    "Qué hacer antes de que pase" ya está lleno: muestra que el cupo manda.
+8. **Participante** → *Mi perfil*, abajo del todo: **"Descargar mis datos"**. Baja un archivo con
+   lo que guardan los tres servicios, con un aviso adentro de qué incluye y qué no (Ley 21.719).
+   Es el criterio 7 de la SPEC y lo más probable que pregunten.
 
 ---
 
@@ -230,6 +233,17 @@ sesión se cortó sola. Vuelve a entrar.
 
 **Los talleres se ven con fechas viejas.** El seed calcula las fechas relativas al día en que se
 corre. Si sembraste hace una semana, corre `pnpm demo:seed` otra vez.
+
+**Alguien eliminó su cuenta en la demo.** Es de verdad: la cuenta queda anonimizada y ya no puede
+entrar. No hace falta recrear las bases, basta con volver a sembrar, que repone el nombre y el
+correo de las cuentas de demo:
+
+```bash
+pnpm demo:seed
+```
+
+Si vas a mostrar "Eliminar mi cuenta" en vivo, hazlo con **Sofía Leiva** o con otra de las cuentas
+de relleno, nunca con el Participante ni el Facilitador: el recorrido de arriba los usa.
 
 ---
 

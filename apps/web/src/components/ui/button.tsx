@@ -12,6 +12,8 @@ export const botonVariants = cva(
         outline: 'border border-borde bg-white text-texto hover:bg-marca-suave',
         ghost: 'text-texto-suave hover:bg-marca-suave hover:text-marca',
         acento: 'bg-acento text-texto hover:brightness-95',
+        /** Para lo que no se puede deshacer. No es el color de un error: es una advertencia. */
+        peligro: 'bg-peligro text-white hover:brightness-110',
       },
       size: {
         default: 'h-10 px-4',

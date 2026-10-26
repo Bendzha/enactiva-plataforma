@@ -6,7 +6,7 @@ import { passwordNuevoSchema } from './auth.js';
  * El texto actual es un BORRADOR del equipo: ENACTIVA debe aprobar el definitivo
  * antes del piloto con datos reales (SPEC Q3). Al cambiar el texto, cambiar esta versión.
  */
-export const AVISO_PRIVACIDAD_VERSION = '2026-09-borrador';
+export const AVISO_PRIVACIDAD_VERSION = '2026-10-borrador';
 
 export const aceptarInvitacionSchema = z.object({
   token: z.string().min(20, 'El enlace de invitación no es válido'),

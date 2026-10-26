@@ -14,7 +14,8 @@
 - ✅ **Slice 5 completo** (T5.1 a T5.5): talleres convocados, inscripciones y disponibilidad, ya en `learning-service`.
 - ✅ **Slice 6 completo** (T6.1 a T6.6): el mazo del swipe, el score de afinidad y las decisiones, en `matching-service`.
 - ✅ **Slice 7 completo** (T7.1 a T7.3): la agenda de cada persona y los recordatorios por correo.
-- ⏭️ Siguiente: **exportación y supresión de datos por usuario** (Ley 21.719), que es criterio de éxito del MVP, y después el Slice 8.
+- ✅ **Exportación y supresión de datos por usuario** (Ley 21.719, criterio 7 de SPEC §10): cada persona se lleva sus datos y borra su cuenta desde «Mi perfil», orquestado en el gateway.
+- ⏭️ Siguiente: el **Slice 8** (valoración con estrellas, referencias y tokens), con el aviso de privacidad como texto de ejemplo (Q3, 2026-10-24).
 - 🔴 **El 2026-09-29 la clienta cambió el alcance** (ADR-0008): la plataforma no aloja clases. Cae la subida de contenidos; aparecen la ficha del taller, el cupo, la ubicación, la disponibilidad, la agenda y los recordatorios.
 - 🎮 **Segundo eje del producto** (WhatsApp de la clienta, 2026-09-29, ADR-0009): valoración del encuentro con estrellas, referencias públicas y tokens de reconocimiento. "Match corporativo + gamificación corporativa". Es el Slice 8.
 - 🟢 **El 2026-10-13 la clienta cerró el alcance** (ADR-0010): se elimina el modelo de evaluación —etapas, rúbrica, logro, delta, mediciones y tests—. *"Lo mejor es que sea sólo conectar y convocar"*. Cae el Slice 9 completo.
@@ -81,7 +82,7 @@ Slice 4 (temas y perfiles) → `identity-service`. Slices 5 y 7 (cursos, conteni
 A diseñar antes de empezar: el mazo del swipe deja de ser una consulta SQL y pasa a componerse con llamadas a identity y learning (ADR-0007).
 
 ## Fase M4 — CI/CD y cierre
-Pipeline por servicio (matriz), README de despliegue, y la exportación y supresión de datos por usuario orquestada en el gateway (Ley 21.719, criterio 6 de SPEC §10).
+Pipeline por servicio (matriz) y README de despliegue. La exportación y supresión de datos por usuario ya está hecha (ver "Ley 21.719" más abajo).
 
 ---
 
@@ -232,6 +233,38 @@ Lo que apareció al construirlo:
 - **El recordatorio dejó de pedir el nombre del tema.** Lo pedía por una ruta que exige sesión y fallaba. El taller ya tiene nombre propio: menos acoplamiento en lo único que corre desatendido.
 - **Se anota aunque no salga ningún correo.** Si no, el reloj revisaría el mismo taller cada cinco minutos hasta que ocurriera.
 - El corte entre "lo que viene" y "lo que pasó" es el **término** del taller: a las 10:30 de uno que va de 10 a 12, nadie quiere buscarlo en el historial.
+
+## Ley 21.719 — Exportar mis datos y eliminar mi cuenta ✅
+**Demo:** una persona descarga un archivo con todo lo que la plataforma guarda sobre ella, escribe
+`ELIMINAR MI CUENTA` y su cuenta desaparece de las tres bases sin llevarse los talleres de nadie.
+Es el **criterio 7** de SPEC §10 y lo que más probablemente se pregunte en la defensa.
+
+| # | Tarea | Criterio de aceptación | Estado |
+|---|---|---|---|
+| TL.1 | Contratos en `shared` y `/interno/datos-personales` (GET y DELETE) en identity, learning y matching | el usuario sale del token verificado, nunca de la URL | ✅ |
+| TL.2 | identity: exporta cuenta, roles, perfil, declaraciones y avisos; **anonimiza** en vez de borrar la fila | queda sin nombre, correo ni contraseña, con `estado = ANONIMIZADO`; el token deja de servir al instante | ✅ |
+| TL.3 | learning: exporta lo que dicta, a lo que va y su disponibilidad; borra inscripciones y disponibilidad | los talleres que dictó **quedan**, porque otras personas se inscribieron en ellos | ✅ |
+| TL.4 | matching: exporta y borra sus decisiones del mazo | lo que otros decidieron sobre sus talleres no es suyo y se queda | ✅ |
+| TL.5 | Gateway: `GET /datos/exportar` y `DELETE /datos/suprimir` | identity va **al final**; si un servicio no responde no se borra nada | ✅ |
+| TL.6 | Web: «Descargar mis datos» y «Eliminar mi cuenta» en Mi perfil, con la frase escrita a mano | al eliminar, cierra la sesión y vuelve al login | ✅ |
+
+Lo que apareció al construirlo:
+
+- **Anonimizar no es borrar, y la diferencia la decide de quién son los datos.** El id de la persona
+  se queda porque de él cuelgan cosas de otros: el taller al que fueron diez personas, el área que
+  creó, el registro de auditoría. Borrar la fila se llevaría datos ajenos por delante.
+- **El orden de las llamadas es parte del requisito.** Apenas identity anonimiza la cuenta la sesión
+  muere, así que va al final; si fuera primero, learning y matching responderían 401 y la persona
+  quedaría a medio borrar. Que los tres contesten es la prueba de que el orden es el correcto.
+- **El token seguía sirviendo 30 segundos** después de borrar la cuenta, lo que dura el caché de
+  sesión (ADR-0007, D2). identity ahora lo invalida al suprimir. En los otros dos el caché vence
+  solo, y para cuando lo haga ya no les queda nada de esa persona que mostrar.
+- **El gateway no leía el mensaje de los servicios.** Nest responde `message` y el proxy del
+  gateway `mensaje`; sin leer los dos, una cuenta de ENACTIVA que intentaba borrarse veía
+  "identity-service respondió 403" en vez de la explicación.
+- **El aviso de privacidad describía un producto que ya no existe** (mediciones, resultados
+  individuales, "puedes pedir" por correo). Se reescribió el borrador y subió a `2026-10-borrador`.
+  **Sigue siendo borrador y Karina tiene que aprobarlo** (Q3).
 
 ## Slice 8 — Valoración del encuentro y gamificación
 **Demo:** al terminar un taller, quien asistió lo valora con estrellas, deja su referencia y el facilitador recibe sus tokens; RRHH ve en el dashboard si los matches funcionaron.
