@@ -110,6 +110,36 @@ describe('Valorar un taller', () => {
     expect(api.veces('POST /matching/talleres/t-3/puntuacion')).toBe(0);
   });
 
+  it('después de valorar, el botón desaparece de la agenda', async () => {
+    const api = simularSesionIniciada(CAPACITADOR_PLANTA, {
+      ...rutasAgenda(),
+      // La segunda vez que se pide la agenda, el taller ya está valorado.
+      'GET /learning/agenda': (() => {
+        let llamadas = 0;
+        return () => {
+          llamadas += 1;
+          return {
+            status: 200,
+            cuerpo:
+              llamadas === 1
+                ? AGENDA
+                : { proximos: [], pasados: [{ ...PASADO, puedeValorar: false }, YA_VALORADO] },
+          };
+        };
+      })(),
+    });
+    renderizar(<App />, { ruta: '/agenda' });
+
+    await userEvent.click(await screen.findByRole('button', { name: 'Valorar' }));
+    await responderLasCuatro();
+    await userEvent.click(screen.getByRole('button', { name: 'Enviar valoración' }));
+
+    await waitFor(() => expect(api.veces('GET /learning/agenda')).toBe(2));
+    await waitFor(() =>
+      expect(screen.queryByRole('button', { name: 'Valorar' })).not.toBeInTheDocument(),
+    );
+  });
+
   it('con match pendiente, después pregunta si el emparejamiento funcionó', async () => {
     const api = simularSesionIniciada(CAPACITADOR_PLANTA, rutasAgenda(['t-3']));
     renderizar(<App />, { ruta: '/agenda' });

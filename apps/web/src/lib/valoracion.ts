@@ -64,6 +64,9 @@ export function useValorarTaller(tallerId: string) {
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: ['mi-valoracion', tallerId] });
       void queryClient.invalidateQueries({ queryKey: ['estrellas', tallerId] });
+      // La agenda trae `puedeValorar`: sin refrescarla, el botón seguiría ahí y el segundo
+      // clic daría 409.
+      void queryClient.invalidateQueries({ queryKey: ['agenda'] });
       // El token y el promedio del facilitador cambian con esto.
       void queryClient.invalidateQueries({ queryKey: ['reconocimiento'] });
       void queryClient.invalidateQueries({ queryKey: ['referencias'] });

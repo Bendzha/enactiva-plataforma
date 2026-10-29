@@ -18,9 +18,17 @@ function cuando(item: ItemAgenda): string {
   return `${FECHA.format(inicio)} · ${HORA.format(inicio)} a ${HORA.format(new Date(item.finAt))}`;
 }
 
-/** Cuánto falta, en palabras. "En 3 días" se entiende más rápido que una fecha. */
+/**
+ * Cuánto falta, en palabras. "En 3 días" se entiende más rápido que una fecha.
+ *
+ * Lo que ya terminó no lleva distintivo: la lista en la que está ya dice que ocurrió. Mirar solo
+ * la hora de inicio hacía que un taller de hace una semana dijera "Está ocurriendo".
+ */
 function cuantoFalta(item: ItemAgenda): string | null {
-  const horas = (new Date(item.inicioAt).getTime() - Date.now()) / 3_600_000;
+  const ahora = Date.now();
+  if (new Date(item.finAt).getTime() < ahora) return null;
+
+  const horas = (new Date(item.inicioAt).getTime() - ahora) / 3_600_000;
   if (horas < 0) return 'Está ocurriendo';
   if (horas < 1) return 'En menos de una hora';
   if (horas < 24) return `En ${Math.round(horas)} horas`;
