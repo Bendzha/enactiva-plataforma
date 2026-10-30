@@ -74,8 +74,10 @@ describe('Métricas globales del piloto', () => {
     });
     renderizar(<App />, { ruta: '/metricas' });
 
-    expect(
-      await screen.findByRole('heading', { name: 'Logro por empresa: aún sin mediciones' }),
-    ).toBeInTheDocument();
+    // La tarjeta de "logro por empresa" se fue con el modelo de evaluación (ADR-0010): la
+    // clienta lo sacó del alcance y dejarla reservaba espacio para algo que no va a existir.
+    await screen.findByRole('heading', { name: 'Métricas globales' });
+    expect(screen.queryByText(/logro por empresa/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/mediciones/i)).not.toBeInTheDocument();
   });
 });

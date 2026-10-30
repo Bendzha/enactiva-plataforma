@@ -71,14 +71,6 @@ export function MetricasPage() {
           )}
         </Card>
       )}
-
-      <Card>
-        <CardTitle>Logro por empresa: aún sin mediciones</CardTitle>
-        <CardDescription>
-          Los porcentajes de logro aparecerán cuando las empresas registren talleres y mediciones.
-          No se muestran cifras de ejemplo.
-        </CardDescription>
-      </Card>
     </section>
   );
 }

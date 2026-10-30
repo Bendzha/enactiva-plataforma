@@ -34,11 +34,10 @@ export function EmpresasPage() {
         </p>
       )}
 
-      <div className="mb-6 grid gap-4 sm:grid-cols-3">
+      {/* Dos y no tres: el "logro promedio" se fue con el modelo de evaluación (ADR-0010). */}
+      <div className="mb-6 grid gap-4 sm:grid-cols-2">
         <Kpi etiqueta="Empresas piloto" valor={empresas?.length ?? '—'} />
         <Kpi etiqueta="Personas activas" valor={empresas ? personasActivas : '—'} />
-        {/* Sin mediciones todavía: no se inventa un porcentaje (SPEC §9). */}
-        <Kpi etiqueta="Logro promedio global" valor="Aún sin mediciones" destacado={false} />
       </div>
 
       {isPending && <p className="text-sm text-texto-suave">Cargando empresas…</p>}
