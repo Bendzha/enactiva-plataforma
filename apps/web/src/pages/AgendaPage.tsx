@@ -2,6 +2,7 @@ import type { ItemAgenda } from '@enactiva/shared';
 import { useState } from 'react';
 import { Link } from 'react-router';
 import { useSesion } from '@/auth/sesion';
+import { PasarLista } from '@/components/valoracion/PasarLista';
 import { ValorarTaller } from '@/components/valoracion/ValorarTaller';
 import { Alert } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
@@ -36,7 +37,15 @@ function cuantoFalta(item: ItemAgenda): string | null {
   return null;
 }
 
-function Fila({ item, onValorar }: { item: ItemAgenda; onValorar?: () => void }) {
+function Fila({
+  item,
+  onValorar,
+  onPasarLista,
+}: {
+  item: ItemAgenda;
+  onValorar?: () => void;
+  onPasarLista?: () => void;
+}) {
   const falta = cuantoFalta(item);
 
   return (
@@ -61,6 +70,11 @@ function Fila({ item, onValorar }: { item: ItemAgenda; onValorar?: () => void })
           Valorar
         </Button>
       )}
+      {onPasarLista && (
+        <Button size="sm" onClick={onPasarLista}>
+          Pasar lista
+        </Button>
+      )}
     </li>
   );
 }
@@ -77,6 +91,7 @@ export function AgendaPage() {
   const { data: agenda, isPending, isError } = useAgenda(deUnaEmpresa);
   const { data: pendientes } = usePuntuacionesPendientes(deUnaEmpresa);
   const [valorando, setValorando] = useState<ItemAgenda | null>(null);
+  const [pasandoLista, setPasandoLista] = useState<ItemAgenda | null>(null);
   const [aviso, setAviso] = useState<string | null>(null);
 
   if (!deUnaEmpresa) {
@@ -101,7 +116,8 @@ export function AgendaPage() {
         <h1 className="text-2xl font-extrabold tracking-tight">Mi agenda</h1>
         <p className="text-sm text-texto-suave">
           Lo que dictas y a lo que vas. Te llegará un recordatorio por correo el día antes y una
-          hora antes de cada uno. Cuando un taller termina, lo puedes valorar.
+          hora antes de cada uno. Cuando un taller termina, pasas lista si lo dictaste, o lo valoras
+          si fuiste.
         </p>
       </header>
 
@@ -148,10 +164,23 @@ export function AgendaPage() {
                 key={item.tallerId}
                 item={item}
                 onValorar={item.puedeValorar ? () => setValorando(item) : undefined}
+                onPasarLista={item.puedePasarLista ? () => setPasandoLista(item) : undefined}
               />
             ))}
           </ul>
         </>
+      )}
+
+      {pasandoLista && (
+        <PasarLista
+          tallerId={pasandoLista.tallerId}
+          tallerNombre={pasandoLista.nombre}
+          onCerrar={() => setPasandoLista(null)}
+          onListo={(mensaje) => {
+            setPasandoLista(null);
+            setAviso(mensaje);
+          }}
+        />
       )}
 
       {valorando && (

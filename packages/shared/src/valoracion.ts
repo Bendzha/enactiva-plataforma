@@ -56,8 +56,6 @@ export const valorarTallerSchema = z.object({
     .refine((dado) => DIMENSIONES_VALORACION.every((dimension) => dado[dimension] !== undefined), {
       message: 'Responde las cuatro preguntas',
     }),
-  /** "Mi asistencia al taller ✅", en el ejemplo de la clienta: la marca quien asistió. */
-  asistio: z.boolean(),
   /**
    * Opcional: la clienta la pidió, pero obligarla llenaría la base de referencias de relleno.
    * Vacía equivale a no dejar ninguna.
@@ -78,7 +76,6 @@ export interface EstrellasPorDimension {
 /** Lo que una persona respondió sobre un taller. Solo lo ve quien lo escribió. */
 export interface MiValoracion {
   tallerId: string;
-  asistio: boolean;
   estrellas: EstrellasPorDimension[];
   referencia: string;
   createdAt: string;
@@ -93,6 +90,7 @@ export interface MiValoracion {
 export interface EstrellasDelTaller {
   tallerId: string;
   cuantasValoraciones: number;
+  /** De la lista que pasó quien dicta, que es la única fuente de verdad (2026-10-29). */
   asistieron: number;
   promedioGeneral: number | null;
   promedioPorDimension: EstrellasPorDimension[];

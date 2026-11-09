@@ -86,7 +86,6 @@ export class ValoracionService {
           empresaId,
           tallerId,
           usuarioId: sesion.usuarioId,
-          asistio: entrada.asistio,
           estrellas: {
             create: DIMENSIONES_VALORACION.map((dimension) => ({
               dimension,
@@ -110,14 +109,7 @@ export class ValoracionService {
         select: this.seleccionDeValoracion(),
       });
 
-      // El token del facilitador: uno por taller, con la primera valoración que recibe. La
-      // clave única sobre tallerId es la que impide duplicarlo si tres personas valoran a la
-      // vez; `skipDuplicates` deja que la segunda y la tercera pasen sin hacer nada.
-      await tx.token.createMany({
-        data: [{ empresaId, capacitadorId: taller.capacitadorId, tallerId }],
-        skipDuplicates: true,
-      });
-
+      // Los tokens ya no salen de aquí: nacen al cerrar la lista de asistencia (2026-10-29).
       return creada;
     });
 
@@ -128,9 +120,7 @@ export class ValoracionService {
       actorId: sesion.usuarioId,
       actorRol: sesion.roles[0] ?? null,
       empresaId,
-      camposModificados: referencia
-        ? ['estrellas', 'asistio', 'referencia']
-        : ['estrellas', 'asistio'],
+      camposModificados: referencia ? ['estrellas', 'referencia'] : ['estrellas'],
       ip: sesion.ip,
     });
 
@@ -156,15 +146,18 @@ export class ValoracionService {
   async delTaller(tallerId: string, sesion: SesionActual): Promise<EstrellasDelTaller> {
     this.empresaDe(sesion);
 
-    const valoraciones = await this.prisma.acotado.valoracionTaller.findMany({
-      where: { tallerId },
-      select: { asistio: true, estrellas: { select: { dimension: true, estrellas: true } } },
-    });
+    const [valoraciones, asistieron] = await Promise.all([
+      this.prisma.acotado.valoracionTaller.findMany({
+        where: { tallerId },
+        select: { estrellas: { select: { dimension: true, estrellas: true } } },
+      }),
+      this.prisma.acotado.inscripcion.count({ where: { tallerId, asistio: true } }),
+    ]);
 
     return {
       tallerId,
       cuantasValoraciones: valoraciones.length,
-      asistieron: valoraciones.filter((valoracion) => valoracion.asistio).length,
+      asistieron,
       promedioGeneral: promedio(valoraciones.flatMap((v) => v.estrellas.map((e) => e.estrellas))),
       promedioPorDimension: this.promediarPorDimension(valoraciones.flatMap((v) => v.estrellas)),
     };
@@ -186,7 +179,7 @@ export class ValoracionService {
 
     const [tokens, talleresDictados, estrellas] = await Promise.all([
       this.prisma.acotado.token.aggregate({
-        where: { capacitadorId: usuarioId },
+        where: { usuarioId },
         _sum: { cantidad: true },
       }),
       this.prisma.acotado.taller.count({ where: { capacitadorId: usuarioId } }),
@@ -198,7 +191,7 @@ export class ValoracionService {
 
     return {
       usuarioId,
-      tokens: tokens._sum.cantidad ?? 0,
+      tokens: tokens._sum?.cantidad ?? 0,
       talleresDictados,
       cuantasValoraciones: recibidas.cuantas,
       promedioEstrellas: promedio(recibidas.valores),
@@ -271,7 +264,6 @@ export class ValoracionService {
     return {
       id: true,
       tallerId: true,
-      asistio: true,
       createdAt: true,
       estrellas: { select: { dimension: true, estrellas: true } },
       referencia: { select: { texto: true } },
@@ -280,14 +272,12 @@ export class ValoracionService {
 
   private aMiValoracion(valoracion: {
     tallerId: string;
-    asistio: boolean;
     createdAt: Date;
     estrellas: { dimension: DimensionValoracion; estrellas: number }[];
     referencia: { texto: string } | null;
   }): MiValoracion {
     return {
       tallerId: valoracion.tallerId,
-      asistio: valoracion.asistio,
       // En el orden del formulario, no en el que los devolvió la base.
       estrellas: DIMENSIONES_VALORACION.map((dimension) => ({
         dimension,

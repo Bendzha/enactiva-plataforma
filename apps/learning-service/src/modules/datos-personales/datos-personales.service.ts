@@ -40,7 +40,6 @@ export class DatosPersonalesService {
         this.prisma.valoracionTaller.findMany({
           where: { usuarioId },
           select: {
-            asistio: true,
             createdAt: true,
             taller: { select: { nombre: true } },
             estrellas: { select: { dimension: true, estrellas: true } },
@@ -55,8 +54,8 @@ export class DatosPersonalesService {
           select: { texto: true, createdAt: true, ocultaAt: true },
         }),
         this.prisma.token.findMany({
-          where: { capacitadorId: usuarioId },
-          select: { cantidad: true, createdAt: true, tallerId: true },
+          where: { usuarioId },
+          select: { cantidad: true, motivo: true, createdAt: true, tallerId: true },
         }),
       ]);
 
@@ -82,7 +81,6 @@ export class DatosPersonalesService {
         miDisponibilidad: disponibilidad,
         loQueValore: valoraciones.map((valoracion) => ({
           taller: valoracion.taller.nombre,
-          asisti: valoracion.asistio,
           estrellas: valoracion.estrellas,
           valoradoEl: valoracion.createdAt,
         })),
@@ -111,7 +109,7 @@ export class DatosPersonalesService {
         // Las que hablan de esta persona también: son texto sobre ella, aunque las escribiera
         // otro. Las que escribió ella ya se fueron con su valoración.
         this.prisma.referencia.deleteMany({ where: { capacitadorId: usuarioId } }),
-        this.prisma.token.deleteMany({ where: { capacitadorId: usuarioId } }),
+        this.prisma.token.deleteMany({ where: { usuarioId } }),
       ]);
 
     await this.auditoria.registrar({

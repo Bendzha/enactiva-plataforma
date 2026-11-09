@@ -14,6 +14,7 @@ interface TallerDeAgenda {
   inicioAt: Date;
   finAt: Date;
   cupo: number;
+  asistenciaCerradaAt: Date | null;
   _count: { inscripciones: number };
 }
 
@@ -94,6 +95,8 @@ export class AgendaService {
       inscritos: taller._count.inscripciones,
       cupo: taller.cupo,
       puedeValorar: !dicta && taller.finAt.getTime() < ahora && !valorados.has(taller.id),
+      puedePasarLista:
+        dicta && taller.finAt.getTime() < ahora && taller.asistenciaCerradaAt === null,
     };
   }
 

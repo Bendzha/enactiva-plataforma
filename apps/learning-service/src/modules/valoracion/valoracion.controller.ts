@@ -1,9 +1,13 @@
-import { Body, Controller, Delete, Get, Param, ParseUUIDPipe, Post } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, ParseUUIDPipe, Post, Put } from '@nestjs/common';
 import {
+  marcarAsistenciaSchema,
   ocultarReferenciaSchema,
   valorarTallerSchema,
   type EstrellasDelTaller,
+  type ListaAsistencia,
+  type MarcarAsistenciaInput,
   type MiValoracion,
+  type ResultadoCierreAsistencia,
   type OcultarReferenciaInput,
   type ReconocimientoPersona,
   type ReferenciaPublicada,
@@ -16,6 +20,7 @@ import {
   ZodValidationPipe,
   type SesionActual,
 } from '@enactiva/service-kit';
+import { AsistenciaService } from './asistencia.service.js';
 import { ReferenciasService } from './referencias.service.js';
 import { ValoracionService } from './valoracion.service.js';
 
@@ -30,7 +35,32 @@ export class ValoracionController {
   constructor(
     private readonly valoracion: ValoracionService,
     private readonly referencias: ReferenciasService,
+    private readonly asistencia: AsistenciaService,
   ) {}
+
+  /**
+   * La lista de inscritos de un taller, con nombre y correo. **Solo para quien lo dicta**: a
+   * cualquier otro le responde 404, porque quiénes van a un taller no es información suya.
+   */
+  @Get('talleres/:id/asistencia')
+  @SoloSesion()
+  lista(
+    @Param('id', ParseUUIDPipe) tallerId: string,
+    @Sesion() sesion: SesionActual,
+  ): Promise<ListaAsistencia> {
+    return this.asistencia.lista(tallerId, sesion);
+  }
+
+  /** Pasa lista. Con `cerrar` entrega los tokens y congela la lista, una sola vez. */
+  @Put('talleres/:id/asistencia')
+  @SoloSesion()
+  marcar(
+    @Param('id', ParseUUIDPipe) tallerId: string,
+    @Body(new ZodValidationPipe(marcarAsistenciaSchema)) entrada: MarcarAsistenciaInput,
+    @Sesion() sesion: SesionActual,
+  ): Promise<ResultadoCierreAsistencia> {
+    return this.asistencia.marcar(tallerId, entrada, sesion);
+  }
 
   /** Valorar un taller al que fui, después de que terminó. Una sola vez. */
   @Post('talleres/:id/valoracion')

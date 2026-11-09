@@ -32,6 +32,7 @@ const PASADO: ItemAgenda = {
   inscritos: 3,
   cupo: 8,
   puedeValorar: true,
+  puedePasarLista: false,
 };
 
 const YA_VALORADO: ItemAgenda = {
@@ -78,6 +79,8 @@ describe('Valorar un taller', () => {
     expect(screen.getByText('¿Me sentí seguro en el taller?')).toBeInTheDocument();
     expect(screen.getByText('Aplicación')).toBeInTheDocument();
     expect(screen.getByText('Uso de materiales')).toBeInTheDocument();
+    // La asistencia la pasa quien dicta desde el 2026-10-29: ya no se pregunta acá.
+    expect(screen.queryByText(/mi asistencia/i)).not.toBeInTheDocument();
 
     const enviar = screen.getByRole('button', { name: 'Enviar valoración' });
     expect(enviar).toBeDisabled();

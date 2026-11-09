@@ -4,6 +4,7 @@ import {
   PREFIJO_INTERNO,
   type ContextoAfinidad,
   type DestinatarioInterno,
+  type PersonaConContacto,
   type PersonaInterna,
   type TemaInterno,
 } from '@enactiva/shared';
@@ -58,6 +59,22 @@ export class IdentityCliente {
       `/${PREFIJO_INTERNO}/perfiles/contexto?personas=${unicos.map(encodeURIComponent).join(',')}`,
     );
     return new Map(contexto.personas.map((persona) => [persona.id, persona]));
+  }
+
+  /**
+   * Nombre y correo de un grupo de personas, para la lista de asistencia (2026-10-29).
+   *
+   * Va con el token de quien dicta, así que identity acota la respuesta a su empresa. Se llama
+   * solo con los inscritos del taller: es el único lugar donde este servicio ve correos.
+   */
+  async contactosPorIds(ids: readonly string[]): Promise<Map<string, PersonaConContacto>> {
+    const unicos = [...new Set(ids)];
+    if (unicos.length === 0) return new Map();
+
+    const personas = await this.cliente.get<PersonaConContacto[]>(
+      `/${PREFIJO_INTERNO}/personas?ids=${unicos.map(encodeURIComponent).join(',')}`,
+    );
+    return new Map(personas.map((persona) => [persona.id, persona]));
   }
 
   /**

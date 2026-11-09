@@ -1,5 +1,8 @@
 import type {
   EstrellasDelTaller,
+  ListaAsistencia,
+  MarcarAsistenciaInput,
+  ResultadoCierreAsistencia,
   MatchPuntuado,
   MiValoracion,
   OcultarReferenciaInput,
@@ -20,6 +23,32 @@ import { pedir } from '@/lib/api';
  */
 
 const CLAVE_PENDIENTES = ['puntuaciones-pendientes'] as const;
+
+/** La lista de inscritos de un taller. Solo responde a quien lo dicta. */
+export function useListaAsistencia(tallerId: string) {
+  return useQuery({
+    queryKey: ['asistencia', tallerId],
+    queryFn: () => pedir<ListaAsistencia>(`/learning/talleres/${tallerId}/asistencia`),
+  });
+}
+
+export function usePasarLista(tallerId: string) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (datos: MarcarAsistenciaInput) =>
+      pedir<ResultadoCierreAsistencia>(`/learning/talleres/${tallerId}/asistencia`, {
+        method: 'PUT',
+        body: JSON.stringify(datos),
+      }),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ['asistencia', tallerId] });
+      // La agenda trae `puedePasarLista`, y del cierre salen tokens y estrellas nuevas.
+      void queryClient.invalidateQueries({ queryKey: ['agenda'] });
+      void queryClient.invalidateQueries({ queryKey: ['reconocimiento'] });
+      void queryClient.invalidateQueries({ queryKey: ['estrellas', tallerId] });
+    },
+  });
+}
 
 export function useMiValoracion(tallerId: string, habilitado = true) {
   return useQuery({

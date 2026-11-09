@@ -1,7 +1,7 @@
 import type { INestApplication } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import type { EstadoSesion, ProveedorEstadoSesion } from '@enactiva/service-kit';
-import type { PersonaInterna } from '@enactiva/shared';
+import type { PersonaConContacto, PersonaInterna } from '@enactiva/shared';
 import { IdentityCliente } from '../src/identity.cliente.js';
 
 /**
@@ -45,6 +45,22 @@ export class IdentityClienteFalso {
       areaNombre: null,
     });
     return id;
+  }
+
+  private readonly contactos = new Map<string, PersonaConContacto>();
+
+  agregarContacto(id: string, nombre: string, apellido: string, email: string): string {
+    this.contactos.set(id, { id, nombre, apellido, email });
+    return id;
+  }
+
+  contactosPorIds(ids: readonly string[]): Promise<Map<string, PersonaConContacto>> {
+    const encontradas = new Map<string, PersonaConContacto>();
+    for (const id of new Set(ids)) {
+      const persona = this.contactos.get(id);
+      if (persona) encontradas.set(id, persona);
+    }
+    return Promise.resolve(encontradas);
   }
 
   personasPorIds(ids: readonly string[]): Promise<Map<string, PersonaInterna>> {

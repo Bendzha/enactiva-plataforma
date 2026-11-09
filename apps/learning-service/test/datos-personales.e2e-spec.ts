@@ -112,7 +112,6 @@ describe('Exportar y suprimir datos personales en learning (e2e)', () => {
         empresaId: EMPRESA,
         tallerId: alQueVa.id,
         usuarioId: CAMILA,
-        asistio: true,
         estrellas: { create: [{ dimension: 'CLARIDAD', estrellas: 5 }] },
         referencia: {
           create: {
@@ -130,7 +129,6 @@ describe('Exportar y suprimir datos personales en learning (e2e)', () => {
         empresaId: EMPRESA,
         tallerId: queDicta.id,
         usuarioId: OTRA,
-        asistio: true,
         estrellas: { create: [{ dimension: 'CLARIDAD', estrellas: 4 }] },
         referencia: {
           create: {
@@ -144,7 +142,13 @@ describe('Exportar y suprimir datos personales en learning (e2e)', () => {
       },
     });
     await prisma.token.create({
-      data: { empresaId: EMPRESA, capacitadorId: CAMILA, tallerId: queDicta.id },
+      data: {
+        empresaId: EMPRESA,
+        usuarioId: CAMILA,
+        tallerId: queDicta.id,
+        motivo: 'DICTAR_TALLER',
+        cantidad: 2,
+      },
     });
   });
 
@@ -197,9 +201,7 @@ describe('Exportar y suprimir datos personales en learning (e2e)', () => {
   it('entrega lo que valoró, lo que escribieron de ella y sus tokens', async () => {
     const datos = await exportar(tokenCamila);
 
-    expect(datos.contenido.loQueValore).toMatchObject([
-      { taller: 'Primeros auxilios', asisti: true },
-    ]);
+    expect(datos.contenido.loQueValore).toMatchObject([{ taller: 'Primeros auxilios' }]);
     expect(datos.contenido.referenciasQueEscribi).toMatchObject([
       { texto: 'Explicó todo con calma.' },
     ]);
@@ -240,7 +242,7 @@ describe('Exportar y suprimir datos personales en learning (e2e)', () => {
     expect(await prisma.referencia.count({ where: { autorId: CAMILA } })).toBe(0);
     expect(await prisma.referencia.count({ where: { capacitadorId: CAMILA } })).toBe(0);
     expect(await prisma.valoracionTaller.count({ where: { usuarioId: CAMILA } })).toBe(0);
-    expect(await prisma.token.count({ where: { capacitadorId: CAMILA } })).toBe(0);
+    expect(await prisma.token.count({ where: { usuarioId: CAMILA } })).toBe(0);
   });
 
   it('suprimir lo de una persona no toca lo de otra', async () => {

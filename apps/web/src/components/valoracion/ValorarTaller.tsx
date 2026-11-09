@@ -56,7 +56,6 @@ export function ValorarTaller({
 
   const [paso, setPaso] = useState<'taller' | 'match'>('taller');
   const [estrellas, setEstrellas] = useState<Estrellitas>(VACIAS);
-  const [asistio, setAsistio] = useState(true);
   const [referencia, setReferencia] = useState('');
   const [match, setMatch] = useState<Partial<PuntuarMatchInput>>({});
 
@@ -69,7 +68,7 @@ export function ValorarTaller({
   // promesa escaparía del onClick y quedaría como un error sin manejar en la consola.
   const enviarValoracion = async () => {
     try {
-      await valorar.mutateAsync({ estrellas, asistio, referencia: referencia.trim() });
+      await valorar.mutateAsync({ estrellas, referencia: referencia.trim() });
     } catch {
       return;
     }
@@ -114,16 +113,6 @@ export function ValorarTaller({
               </li>
             ))}
           </ul>
-
-          <label className="flex items-center gap-2 text-sm">
-            <input
-              type="checkbox"
-              className="size-4 accent-[#00347A]"
-              checked={asistio}
-              onChange={(evento) => setAsistio(evento.target.checked)}
-            />
-            Mi asistencia al taller
-          </label>
 
           <div>
             <Label htmlFor="referencia">Referencia (opcional)</Label>

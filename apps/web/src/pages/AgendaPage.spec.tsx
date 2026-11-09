@@ -26,6 +26,7 @@ const DICTO: ItemAgenda = {
   inscritos: 3,
   cupo: 8,
   puedeValorar: false,
+  puedePasarLista: false,
 };
 
 const VOY_MANANA: ItemAgenda = {

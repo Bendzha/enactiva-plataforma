@@ -95,16 +95,8 @@ export async function sembrarLearning(): Promise<void> {
         },
       });
 
-      // Uno por taller, igual que en la aplicación: la clave única lo garantiza.
-      await prisma.token.upsert({
-        where: { tallerId: valoracion.tallerId },
-        update: {},
-        create: {
-          empresaId: valoracion.empresaId,
-          capacitadorId: valoracion.capacitadorId,
-          tallerId: valoracion.tallerId,
-        },
-      });
+      // Sin tokens: ahora nacen al cerrar la lista de asistencia, y el taller pasado se deja
+      // con la lista abierta a propósito, para poder pasarla en vivo durante la demo.
     }
 
     for (const franja of DISPONIBILIDAD) {

@@ -151,6 +151,12 @@ export interface ItemAgenda {
    * ya. Resolverlo aquí evita una consulta por fila en la agenda.
    */
   puedeValorar: boolean;
+  /**
+   * Si esta persona todavía tiene que pasar lista en este taller: lo dictó, ya terminó y no ha
+   * cerrado la asistencia. De esa lista salen los tokens, así que el aviso va donde la persona
+   * mira después de un taller y no escondido en otra pantalla.
+   */
+  puedePasarLista: boolean;
 }
 
 /**

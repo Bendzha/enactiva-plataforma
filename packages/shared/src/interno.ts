@@ -94,6 +94,21 @@ export interface PersonaInterna {
   areaNombre: string | null;
 }
 
+/**
+ * Una persona con su correo, para que quien dicta un taller pueda pasar lista.
+ *
+ * Es la única ruta que saca correos de identity con el token de una persona, y existe porque
+ * la clienta lo pidió así: *"el que enseña debe tener el registro de los nombres, nicknames o
+ * correos de sus estudiantes para chequear los inscritos v/s los que asistencia"* (2026-10-29).
+ * Va acotada por empresa y learning solo la llama con los ids de los inscritos de ese taller.
+ */
+export interface PersonaConContacto {
+  id: string;
+  nombre: string | null;
+  apellido: string | null;
+  email: string | null;
+}
+
 /** Una declaración del perfil, como la ve otro servicio. */
 export interface DeclaracionInterna {
   usuarioId: string;

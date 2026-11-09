@@ -76,21 +76,24 @@ enum DiaSemana {
 /// ni estados de avance: el taller ocurre una vez (ADR-0010). Lo único que decide si todavía se
 /// puede entrar son la fecha y el cupo.
 model Taller {
-  id                  String   @id @default(uuid(7)) @db.Uuid
-  empresaId           String   @map("empresa_id") @db.Uuid
+  id                  String    @id @default(uuid(7)) @db.Uuid
+  empresaId           String    @map("empresa_id") @db.Uuid
   /// Quien lo dicta. Vive en identity_db.
-  capacitadorId       String   @map("capacitador_id") @db.Uuid
+  capacitadorId       String    @map("capacitador_id") @db.Uuid
   /// Tema del catálogo de la empresa. Vive en identity_db.
-  temaId              String   @map("tema_id") @db.Uuid
+  temaId              String    @map("tema_id") @db.Uuid
   nombre              String
   objetivo            String
-  resultadosEsperados String   @map("resultados_esperados")
+  resultadosEsperados String    @map("resultados_esperados")
   ubicacion           String
-  inicioAt            DateTime @map("inicio_at") @db.Timestamptz(3)
-  finAt               DateTime @map("fin_at") @db.Timestamptz(3)
+  inicioAt            DateTime  @map("inicio_at") @db.Timestamptz(3)
+  finAt               DateTime  @map("fin_at") @db.Timestamptz(3)
   cupo                Int
-  createdAt           DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
-  updatedAt           DateTime @updatedAt @map("updated_at") @db.Timestamptz(3)
+  /// Cuándo quien dicta cerró la lista de asistencia. Los tokens se entregan ahí y una sola
+  /// vez; después la lista no se reabre, porque lo que salió de ella ya está repartido.
+  asistenciaCerradaAt DateTime? @map("asistencia_cerrada_at") @db.Timestamptz(3)
+  createdAt           DateTime  @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt           DateTime  @updatedAt @map("updated_at") @db.Timestamptz(3)
 
   inscripciones Inscripcion[]
   recordatorios RecordatorioTaller[]
@@ -109,6 +112,9 @@ model Inscripcion {
   empresaId String   @map("empresa_id") @db.Uuid
   tallerId  String   @map("taller_id") @db.Uuid
   usuarioId String   @map("usuario_id") @db.Uuid
+  /// La marca quien dicta al pasar lista. Null mientras no la haya pasado: "todavía no se
+  /// sabe" y "no fue" son cosas distintas, y de la diferencia dependen los tokens.
+  asistio   Boolean?
   createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
 
   taller Taller @relation(fields: [tallerId], references: [id], onDelete: Cascade)
@@ -169,8 +175,6 @@ model ValoracionTaller {
   tallerId  String   @map("taller_id") @db.Uuid
   /// Quien valora. Vive en identity_db.
   usuarioId String   @map("usuario_id") @db.Uuid
-  /// "Mi asistencia al taller ✅": la marca quien asistió, no el facilitador.
-  asistio   Boolean
   createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
 
   taller     Taller               @relation(fields: [tallerId], references: [id], onDelete: Cascade)
@@ -221,22 +225,35 @@ model Referencia {
   @@map("referencia")
 }
 
-/// El recuento de tokens de quien enseñó (Q18).
+/// Por qué alguien recibió tokens. Las tres razones que fijó la clienta el 2026-10-29.
+enum MotivoToken {
+  DICTAR_TALLER
+  ASISTENCIA_COMPLETA
+  ASISTIR
+}
+
+/// El recuento de tokens (Q18, reglas del 2026-10-29).
 ///
 /// La plataforma lleva la cuenta y nada más: el canje lo administra cada empresa fuera de aquí.
-/// Como afuera valen algo, nadie lo edita a mano: **una fila por taller**, creada con la primera
-/// valoración que recibe. La clave única sobre `taller_id` es lo que hace que no se pueda
-/// duplicar aunque tres personas valoren a la vez.
+/// Como afuera valen algo, nadie lo edita a mano: las filas nacen **solo** al cerrar la lista de
+/// asistencia de un taller, y la clave única sobre (taller, persona, motivo) impide repartir dos
+/// veces lo mismo aunque la petición se repita.
+///
+/// Una fila por motivo y no un saldo acumulado: así el recuento siempre se puede explicar
+/// —de qué taller salió cada token y por qué— y se corrige borrando una fila, no editando un
+/// número.
 model Token {
-  id            String   @id @default(uuid(7)) @db.Uuid
-  empresaId     String   @map("empresa_id") @db.Uuid
-  /// Quien lo recibe. Vive en identity_db.
-  capacitadorId String   @map("capacitador_id") @db.Uuid
-  tallerId      String   @unique @map("taller_id") @db.Uuid
-  cantidad      Int      @default(1)
-  createdAt     DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+  id        String      @id @default(uuid(7)) @db.Uuid
+  empresaId String      @map("empresa_id") @db.Uuid
+  /// Quien lo recibe: quien dictó, o quien asistió. Vive en identity_db.
+  usuarioId String      @map("usuario_id") @db.Uuid
+  tallerId  String      @map("taller_id") @db.Uuid
+  motivo    MotivoToken
+  cantidad  Int
+  createdAt DateTime    @default(now()) @map("created_at") @db.Timestamptz(3)
 
-  @@index([empresaId, capacitadorId])
+  @@unique([tallerId, usuarioId, motivo])
+  @@index([empresaId, usuarioId])
   @@map("token")
 }
 

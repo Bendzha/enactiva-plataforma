@@ -34,12 +34,10 @@ const TEMA = '23232323-2323-7323-8323-232323232323';
 /** Las cuatro, completas: el esquema no acepta media valoración. */
 const BUENA: ValorarTallerInput = {
   estrellas: { CLARIDAD: 5, SEGURIDAD: 5, APLICACION: 4, USO_DE_MATERIALES: 4 },
-  asistio: true,
   referencia: '',
 };
 const MALA: ValorarTallerInput = {
   estrellas: { CLARIDAD: 1, SEGURIDAD: 2, APLICACION: 1, USO_DE_MATERIALES: 1 },
-  asistio: true,
   referencia: '',
 };
 
@@ -160,7 +158,6 @@ describe('Valoración del encuentro, referencias y tokens (e2e)', () => {
     }).expect(201);
 
     const mia = body as MiValoracion;
-    expect(mia.asistio).toBe(true);
     expect(mia.estrellas.map((fila) => [fila.dimension, fila.estrellas])).toEqual([
       ['CLARIDAD', 5],
       ['SEGURIDAD', 5],
@@ -174,7 +171,7 @@ describe('Valoración del encuentro, referencias y tokens (e2e)', () => {
     await request(app.getHttpServer())
       .post(`/talleres/${tallerPasado}/valoracion`)
       .set('Authorization', `Bearer ${tokenAna}`)
-      .send({ estrellas: { CLARIDAD: 5 }, asistio: true })
+      .send({ estrellas: { CLARIDAD: 5 } })
       .expect(400);
   });
 
@@ -219,31 +216,29 @@ describe('Valoración del encuentro, referencias y tokens (e2e)', () => {
 
   it('las estrellas del taller salen promediadas, nunca por persona', async () => {
     await valorar(tallerPasado, tokenAna).expect(201);
-    await valorar(tallerPasado, tokenCarla, { ...MALA, asistio: false }).expect(201);
+    await valorar(tallerPasado, tokenCarla, MALA).expect(201);
 
     const { body } = await pedir(`/talleres/${tallerPasado}/estrellas`, tokenLuis).expect(200);
 
     const estrellas = body as EstrellasDelTaller;
     expect(estrellas.cuantasValoraciones).toBe(2);
-    expect(estrellas.asistieron).toBe(1);
+    // La asistencia ya no sale de aquí: la pasa quien dicta, y en este taller no lo ha hecho.
+    expect(estrellas.asistieron).toBe(0);
     // (5+5+4+4 + 1+2+1+1) / 8
     expect(estrellas.promedioGeneral).toBe(2.9);
     expect(estrellas.promedioPorDimension).toContainEqual({ dimension: 'CLARIDAD', estrellas: 3 });
     expect(JSON.stringify(estrellas)).not.toContain(ANA);
   });
 
-  it('el token del facilitador es uno por taller, no uno por valoración', async () => {
+  it('valorar ya no reparte tokens: eso lo hace cerrar la lista de asistencia', async () => {
     await valorar(tallerPasado, tokenAna).expect(201);
     await valorar(tallerPasado, tokenCarla).expect(201);
     await valorar(tallerPasado, tokenDiego).expect(201);
 
-    const { body } = await pedir(`/personas/${LUIS}/reconocimiento`, tokenLuis).expect(200);
-
-    expect((body as ReconocimientoPersona).tokens).toBe(1);
-    expect(await prisma.token.count({ where: { tallerId: tallerPasado } })).toBe(1);
+    expect(await prisma.token.count({ where: { tallerId: tallerPasado } })).toBe(0);
   });
 
-  it('un taller sin ninguna valoración no da token', async () => {
+  it('un taller sin lista cerrada no da token', async () => {
     const { body } = await pedir(`/personas/${LUIS}/reconocimiento`, tokenLuis).expect(200);
 
     const reconocimiento = body as ReconocimientoPersona;
@@ -252,8 +247,6 @@ describe('Valoración del encuentro, referencias y tokens (e2e)', () => {
   });
 
   it('el recuento es privado: ni un colega de la misma empresa lo ve', async () => {
-    await valorar(tallerPasado, tokenAna).expect(201);
-
     // "Los tokens no serían visibles para otras personas" (acta 2026-10-29). Un recuento a la
     // vista de todos es un ranking entre colegas, que no es lo que la clienta quiere.
     await pedir(`/personas/${LUIS}/reconocimiento`, tokenLuis).expect(200);
@@ -261,10 +254,7 @@ describe('Valoración del encuentro, referencias y tokens (e2e)', () => {
   });
 
   it('RRHH sí lo ve: es quien administra el canje fuera de la plataforma', async () => {
-    await valorar(tallerPasado, tokenAna).expect(201);
-
-    const { body } = await pedir(`/personas/${LUIS}/reconocimiento`, tokenRrhh).expect(200);
-    expect((body as ReconocimientoPersona).tokens).toBe(1);
+    await pedir(`/personas/${LUIS}/reconocimiento`, tokenRrhh).expect(200);
   });
 
   it('el promedio no cuenta en el score hasta la tercera valoración', async () => {
