@@ -94,6 +94,21 @@ export interface PersonaInterna {
   areaNombre: string | null;
 }
 
+/**
+ * Una persona con su correo, para que quien dicta un taller pueda pasar lista.
+ *
+ * Es la única ruta que saca correos de identity con el token de una persona, y existe porque
+ * la clienta lo pidió así: *"el que enseña debe tener el registro de los nombres, nicknames o
+ * correos de sus estudiantes para chequear los inscritos v/s los que asistencia"* (2026-10-29).
+ * Va acotada por empresa y learning solo la llama con los ids de los inscritos de ese taller.
+ */
+export interface PersonaConContacto {
+  id: string;
+  nombre: string | null;
+  apellido: string | null;
+  email: string | null;
+}
+
 /** Una declaración del perfil, como la ve otro servicio. */
 export interface DeclaracionInterna {
   usuarioId: string;
@@ -129,6 +144,21 @@ export interface TallerAbierto {
   finAt: string;
   cupo: number;
   inscritos: number;
+}
+
+/**
+ * Lo mínimo que otro servicio necesita saber de un taller puntual.
+ *
+ * Lo pide matching para la puntuación del match: necesita el nombre para mostrarlo y el término
+ * para no dejar que alguien puntúe un encuentro que todavía no ocurrió. La regla de qué taller
+ * existe sigue siendo de learning, que es su dueño (ADR-0007).
+ */
+export interface TallerInterno {
+  id: string;
+  nombre: string;
+  capacitadorId: string;
+  inicioAt: string;
+  finAt: string;
 }
 
 /**

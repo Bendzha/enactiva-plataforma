@@ -9,6 +9,7 @@ import type {
   CrearTallerInput,
   EditarTallerInput,
   TallerAbierto,
+  TallerInterno,
   TallerResumen,
 } from '@enactiva/shared';
 import { type SesionActual } from '@enactiva/service-kit';
@@ -90,6 +91,30 @@ export class TalleresService {
    * pide quien arma la tarjeta. Este servicio no los tiene y no debería ir a buscarlos para
    * después pasarlos a otro.
    */
+  /**
+   * Un taller puntual para otro servicio, acotado a la empresa de quien pregunta.
+   *
+   * Lo pide matching antes de aceptar una puntuación del match: necesita saber si el encuentro
+   * ya ocurrió, y esa es una fecha que vive aquí (ADR-0007).
+   */
+  async internoPorId(id: string, sesion: SesionActual): Promise<TallerInterno | null> {
+    this.empresaDe(sesion);
+
+    const taller = await this.prisma.acotado.taller.findUnique({
+      where: { id },
+      select: { id: true, nombre: true, capacitadorId: true, inicioAt: true, finAt: true },
+    });
+    if (!taller) return null;
+
+    return {
+      id: taller.id,
+      nombre: taller.nombre,
+      capacitadorId: taller.capacitadorId,
+      inicioAt: taller.inicioAt.toISOString(),
+      finAt: taller.finAt.toISOString(),
+    };
+  }
+
   async abiertosPara(sesion: SesionActual): Promise<TallerAbierto[]> {
     this.empresaDe(sesion);
 

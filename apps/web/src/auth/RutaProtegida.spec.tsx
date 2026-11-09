@@ -18,7 +18,7 @@ describe('Rutas protegidas', () => {
     simularApi({ '/auth/refresh': { status: 401 } });
     renderizar(<App />, { ruta: '/empresas' });
 
-    expect(await screen.findByRole('heading', { name: 'Iniciar sesión' })).toBeInTheDocument();
+    expect(await screen.findByRole('heading', { name: '¡Hola de nuevo!' })).toBeInTheDocument();
   });
 
   it('el Admin Principal ve la pestaña Métricas y puede entrar', async () => {

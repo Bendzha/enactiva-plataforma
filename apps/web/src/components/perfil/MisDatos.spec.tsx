@@ -109,7 +109,7 @@ describe('Mis datos y mi cuenta', () => {
     await userEvent.click(screen.getAllByRole('button', { name: 'Eliminar mi cuenta' })[1]!);
 
     await waitFor(() => expect(api.veces('POST /auth/logout')).toBe(1));
-    expect(await screen.findByRole('button', { name: 'Entrar' })).toBeInTheDocument();
+    expect(await screen.findByRole('button', { name: 'Ingresar' })).toBeInTheDocument();
   });
 
   it('una cuenta del equipo ENACTIVA puede descargar, pero no eliminarse', async () => {

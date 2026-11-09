@@ -8,6 +8,8 @@ import { EmpresasPage } from '@/pages/EmpresasPage';
 import { EquipoPage } from '@/pages/EquipoPage';
 import { InicioPage } from '@/pages/InicioPage';
 import { LoginPage } from '@/pages/LoginPage';
+import { RecuperarPage } from '@/pages/RecuperarPage';
+import { RestablecerPage } from '@/pages/RestablecerPage';
 import { MetricasPage } from '@/pages/MetricasPage';
 import { MiPerfilPage } from '@/pages/MiPerfilPage';
 import { PersonasPage } from '@/pages/PersonasPage';
@@ -20,6 +22,8 @@ export function App() {
       <Route path="/login" element={<LoginPage />} />
       {/* Pública: se llega desde el enlace del correo, sin cuenta activa todavía. */}
       <Route path="/activar" element={<ActivarPage />} />
+      <Route path="/recuperar" element={<RecuperarPage />} />
+      <Route path="/restablecer" element={<RestablecerPage />} />
 
       <Route
         element={

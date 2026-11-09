@@ -16,6 +16,11 @@ export const MODELOS_ACOTADOS: ModelosAcotados = {
   Taller: 'empresaId',
   Inscripcion: 'empresaId',
   Disponibilidad: 'empresaId',
+  ValoracionTaller: 'empresaId',
+  Referencia: 'empresaId',
+  Token: 'empresaId',
+  // `EstrellaValoracion` no está aquí y no es un olvido: no tiene `empresaId` porque cuelga de
+  // una valoración que sí lo tiene, y nunca se lee sin pasar por ella.
 };
 
 /**

@@ -75,6 +75,39 @@ export class CorreoService {
     });
   }
 
+  /**
+   * El enlace para volver a entrar. El correo dice qué hacer si **no** fue quien lo pidió:
+   * recibirlo sin haberlo pedido es la señal de que alguien está intentando entrar.
+   */
+  async enviarRecuperacion(datos: {
+    para: string;
+    url: string;
+    horasParaExpirar: number;
+  }): Promise<void> {
+    const url = escapar(datos.url);
+
+    await this.transporte.sendMail({
+      from: env().CORREO_DESDE,
+      to: datos.para,
+      subject: 'Vuelve a entrar a ENACTIVA Match',
+      text: [
+        'Pediste volver a entrar a ENACTIVA Match.',
+        '',
+        `Elige una contraseña nueva aquí: ${datos.url}`,
+        `El enlace vence en ${datos.horasParaExpirar} horas y sirve una sola vez.`,
+        '',
+        'Si no fuiste tú, ignora este correo: tu contraseña no cambia hasta que alguien use el enlace.',
+      ].join('\n'),
+      html: `
+        <p>Pediste volver a entrar a <strong>ENACTIVA Match</strong>.</p>
+        <p><a href="${url}" style="background:#00347A;color:#fff;padding:10px 18px;border-radius:6px;text-decoration:none;display:inline-block">Elegir una contraseña nueva</a></p>
+        <p style="color:#5b6880;font-size:13px">El enlace vence en ${datos.horasParaExpirar} horas y sirve una sola vez. Si no fuiste tú, ignora este correo: tu contraseña no cambia hasta que alguien use el enlace.</p>
+      `,
+    });
+
+    this.logger.log(`Enlace de recuperación enviado a ${datos.para}`);
+  }
+
   private async enviarInvitacion(datos: {
     para: string;
     asunto: string;

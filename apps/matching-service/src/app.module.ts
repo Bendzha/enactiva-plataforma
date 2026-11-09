@@ -8,6 +8,7 @@ import { PrismaModule } from './prisma/prisma.module.js';
 import { AuditoriaModule } from './modules/auditoria/auditoria.module.js';
 import { DatosPersonalesModule } from './modules/datos-personales/datos-personales.module.js';
 import { MazoModule } from './modules/mazo/mazo.module.js';
+import { PuntuacionModule } from './modules/puntuacion/puntuacion.module.js';
 
 /**
  * matching-service (ADR-0007): el mazo del swipe y lo que la gente decide sobre él.
@@ -26,6 +27,7 @@ import { MazoModule } from './modules/mazo/mazo.module.js';
     AuditoriaModule,
     DatosPersonalesModule,
     MazoModule,
+    PuntuacionModule,
     SaludModule.paraServicio('matching-service'),
   ],
   providers: [

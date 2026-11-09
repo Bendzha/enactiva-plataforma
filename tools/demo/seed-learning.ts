@@ -1,5 +1,6 @@
 /**
- * Datos de demo en learning_db: talleres convocados, inscripciones y disponibilidad.
+ * Datos de demo en learning_db: talleres, inscripciones, disponibilidad y las valoraciones del
+ * taller que ya pasó.
  *
  * No consulta identity_db: los ids de las personas y de los temas son constantes compartidas
  * (`datos.ts`), igual que en producción learning guarda `temaId` sin clave foránea porque el
@@ -9,7 +10,8 @@ import { fileURLToPath } from 'node:url';
 import { config } from 'dotenv';
 import { PrismaPg } from '@prisma/adapter-pg';
 import { PrismaClient } from 'learning-service/src/generated/prisma/client.js';
-import { DISPONIBILIDAD, fechaRelativa, TALLERES } from './datos.js';
+import type { DimensionValoracion } from 'learning-service/src/generated/prisma/enums.js';
+import { DISPONIBILIDAD, fechaRelativa, TALLERES, VALORACIONES } from './datos.js';
 
 config({ path: fileURLToPath(new URL('../../.env', import.meta.url)), quiet: true });
 
@@ -58,6 +60,44 @@ export async function sembrarLearning(): Promise<void> {
       }
     }
 
+    // Las valoraciones del taller que ya pasó, con su referencia y el token del facilitador.
+    for (const valoracion of VALORACIONES) {
+      await prisma.valoracionTaller.upsert({
+        where: {
+          tallerId_usuarioId: { tallerId: valoracion.tallerId, usuarioId: valoracion.usuarioId },
+        },
+        update: {},
+        create: {
+          id: valoracion.id,
+          empresaId: valoracion.empresaId,
+          tallerId: valoracion.tallerId,
+          usuarioId: valoracion.usuarioId,
+          estrellas: {
+            create: Object.entries(valoracion.estrellas).map(([dimension, estrellas]) => ({
+              dimension: dimension as DimensionValoracion,
+              estrellas,
+            })),
+          },
+          ...(valoracion.referencia
+            ? {
+                referencia: {
+                  create: {
+                    empresaId: valoracion.empresaId,
+                    tallerId: valoracion.tallerId,
+                    autorId: valoracion.usuarioId,
+                    capacitadorId: valoracion.capacitadorId,
+                    texto: valoracion.referencia,
+                  },
+                },
+              }
+            : {}),
+        },
+      });
+
+      // Sin tokens: ahora nacen al cerrar la lista de asistencia, y el taller pasado se deja
+      // con la lista abierta a propósito, para poder pasarla en vivo durante la demo.
+    }
+
     for (const franja of DISPONIBILIDAD) {
       await prisma.disponibilidad.upsert({
         where: {
@@ -80,8 +120,8 @@ export async function sembrarLearning(): Promise<void> {
     }
 
     console.log(
-      `learning_db: ${TALLERES.length} talleres, ${inscripciones} inscripciones y ` +
-        `${DISPONIBILIDAD.length} franjas de disponibilidad.`,
+      `learning_db: ${TALLERES.length} talleres, ${inscripciones} inscripciones, ` +
+        `${VALORACIONES.length} valoraciones y ${DISPONIBILIDAD.length} franjas de disponibilidad.`,
     );
   } finally {
     await prisma.$disconnect();

@@ -55,10 +55,9 @@ export function PersonasPage() {
         </p>
       )}
 
-      <div className="mb-6 grid gap-4 sm:grid-cols-3">
+      <div className="mb-6 grid gap-4 sm:grid-cols-2">
         <Kpi etiqueta="Personas activas" valor={personas ? activas : '—'} />
         <Kpi etiqueta="Invitaciones pendientes" valor={personas ? invitadas : '—'} />
-        <Kpi etiqueta="Logro promedio" valor="Aún sin mediciones" destacado={false} />
       </div>
 
       <InteresesDeclarados />

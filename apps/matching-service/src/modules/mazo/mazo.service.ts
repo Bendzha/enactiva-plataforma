@@ -51,13 +51,17 @@ export class MazoService {
     const candidatos = abiertos.filter((taller) => !sinInteres.has(taller.id));
     if (candidatos.length === 0) return [];
 
-    const contexto = await this.clientes.contextoAfinidad(
-      [sesion.usuarioId, ...candidatos.map((taller) => taller.capacitadorId)],
-      candidatos.map((taller) => taller.temaId),
-    );
+    const capacitadores = candidatos.map((taller) => taller.capacitadorId);
+    const [contexto, valoraciones] = await Promise.all([
+      this.clientes.contextoAfinidad(
+        [sesion.usuarioId, ...capacitadores],
+        candidatos.map((taller) => taller.temaId),
+      ),
+      this.clientes.valoracionesDeFacilitadores(capacitadores),
+    ]);
 
     const tarjetas = candidatos
-      .map((taller) => this.aTarjeta(taller, contexto, sesion))
+      .map((taller) => this.aTarjeta(taller, contexto, valoraciones, sesion))
       .filter((tarjeta): tarjeta is TarjetaMazo => tarjeta !== null);
 
     const filtradas = this.filtrarPorTema(tarjetas, buscar);
@@ -72,6 +76,7 @@ export class MazoService {
   private aTarjeta(
     taller: TallerAbierto,
     contexto: ContextoAfinidad,
+    valoraciones: Map<string, number | null>,
     sesion: SesionActual,
   ): TarjetaMazo | null {
     const facilitador = contexto.personas.find((persona) => persona.id === taller.capacitadorId);
@@ -88,8 +93,9 @@ export class MazoService {
       quiereAprender: this.declaracion(contexto, sesion.usuarioId, taller.temaId, 'APRENDER'),
       puedeEnsenar: this.declaracion(contexto, taller.capacitadorId, taller.temaId, 'ENSENAR'),
       mismaArea,
-      // Llega con el Slice 8; hasta entonces el criterio no participa.
-      valoracionFacilitador: null,
+      // Null mientras no junte suficientes valoraciones: el score reparte ese peso entre los
+      // demás criterios en vez de castigar a quien recién empieza (ADR-0009).
+      valoracionFacilitador: valoraciones.get(taller.capacitadorId) ?? null,
     };
     const { score } = calcularAfinidad(entrada);
 
@@ -139,6 +145,10 @@ export class MazoService {
 
     if (entrada.mismaArea) {
       razones.push('trabaja en tu área');
+    }
+
+    if (entrada.valoracionFacilitador !== null && entrada.valoracionFacilitador >= 4) {
+      razones.push('lo valoran bien quienes fueron');
     }
 
     return razones.join(' · ');

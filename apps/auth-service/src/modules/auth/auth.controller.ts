@@ -3,8 +3,12 @@ import { Throttle } from '@nestjs/throttler';
 import {
   aceptarInvitacionSchema,
   loginSchema,
+  recuperarPasswordSchema,
+  restablecerPasswordSchema,
   type AceptarInvitacionInput,
   type LoginInput,
+  type RecuperarPasswordInput,
+  type RestablecerPasswordInput,
   type RespuestaLogin,
   type UsuarioSesion,
 } from '@enactiva/shared';
@@ -69,6 +73,36 @@ export class AuthController {
     const sesion = await this.auth.aceptarInvitacion(datos, req.ip);
     ponerCookieRefresh(res, sesion.refreshToken, sesion.refreshExpiraAt);
     return sesion.respuesta;
+  }
+
+  /**
+   * Pide el enlace para volver a entrar.
+   *
+   * Responde 204 siempre, exista o no la cuenta: decir "ese correo no está registrado" sería
+   * decirle a cualquiera quién trabaja en qué empresa. El límite es bajo porque este formulario
+   * manda correos a direcciones que escribe quien lo usa.
+   */
+  @Post('recuperar')
+  @Publico()
+  @HttpCode(204)
+  @Throttle({ default: { limit: 5, ttl: 60_000 } })
+  recuperar(
+    @Body(new ZodValidationPipe(recuperarPasswordSchema)) datos: RecuperarPasswordInput,
+    @Req() req: Request,
+  ): Promise<void> {
+    return this.auth.recuperar(datos, req.ip);
+  }
+
+  /** Cambia la contraseña con el enlace del correo. No deja sesión iniciada: se entra después. */
+  @Post('restablecer')
+  @Publico()
+  @HttpCode(204)
+  @Throttle({ default: { limit: 10, ttl: 60_000 } })
+  restablecer(
+    @Body(new ZodValidationPipe(restablecerPasswordSchema)) datos: RestablecerPasswordInput,
+    @Req() req: Request,
+  ): Promise<void> {
+    return this.auth.restablecer(datos, req.ip);
   }
 
   /** Perfil de la sesión actual, leído de identity y no del token. */

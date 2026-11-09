@@ -67,7 +67,7 @@ describe('Pantalla de Personas (RRHH)', () => {
 
     await usuario.click(await screen.findByRole('button', { name: '+ Invitar persona' }));
     await usuario.type(screen.getByLabelText('Email'), 'luis.soto@planta-norte.cl');
-    await usuario.click(screen.getByRole('checkbox', { name: 'Capacitador' }));
+    await usuario.click(screen.getByRole('checkbox', { name: 'Quien enseña' }));
     await usuario.selectOptions(screen.getByLabelText('Área'), ID_AREA);
     await usuario.click(screen.getByRole('button', { name: 'Enviar invitación' }));
 

@@ -57,7 +57,7 @@ describe('Panel de empresas', () => {
     expect(screen.getByText('Activa')).toBeInTheDocument();
     expect(screen.getByText('Pendiente')).toBeInTheDocument();
 
-    // KPIs calculados con datos reales, sin inventar el logro.
+    // KPIs calculados con datos reales; el "logro promedio" ya no existe (ADR-0010).
     expect(screen.getByRole('heading', { name: 'Empresas piloto' })).toBeInTheDocument();
     expect(
       within(screen.getByRole('group', { name: 'Empresas piloto' })).getByText('2'),
@@ -65,11 +65,7 @@ describe('Panel de empresas', () => {
     expect(
       within(screen.getByRole('group', { name: 'Personas activas' })).getByText('18'),
     ).toBeInTheDocument();
-    expect(
-      within(screen.getByRole('group', { name: 'Logro promedio global' })).getByText(
-        'Aún sin mediciones',
-      ),
-    ).toBeInTheDocument();
+    expect(screen.queryByText(/logro promedio/i)).not.toBeInTheDocument();
   });
 
   it('cuando no hay empresas invita a cargar la primera', async () => {

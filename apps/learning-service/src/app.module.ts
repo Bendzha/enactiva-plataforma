@@ -10,13 +10,15 @@ import { AuditoriaModule } from './modules/auditoria/auditoria.module.js';
 import { DatosPersonalesModule } from './modules/datos-personales/datos-personales.module.js';
 import { RecordatoriosModule } from './modules/recordatorios/recordatorios.module.js';
 import { TalleresModule } from './modules/talleres/talleres.module.js';
+import { ValoracionModule } from './modules/valoracion/valoracion.module.js';
 
 /**
  * learning-service (ADR-0007): los talleres convocados, quién se inscribe y cuándo puede enseñar
  * cada facilitador.
  *
  * No tiene etapas, rúbricas ni mediciones: la clienta las sacó del alcance el 2026-10-13
- * (ADR-0010). Lo que viene después es la valoración del encuentro (Slice 8).
+ * (ADR-0010). En su lugar guarda la valoración del encuentro —estrellas, referencias y tokens—,
+ * que mide si el encuentro sirvió y no cuánto aprendió alguien (ADR-0009).
  */
 @Module({
   imports: [
@@ -33,6 +35,7 @@ import { TalleresModule } from './modules/talleres/talleres.module.js';
     DatosPersonalesModule,
     TalleresModule,
     RecordatoriosModule,
+    ValoracionModule,
     SaludModule.paraServicio('learning-service'),
   ],
   providers: [

@@ -73,15 +73,9 @@ export function FichaEmpresa({ empresaId, onCerrar }: Props) {
             <h3 className="mb-2 text-xs font-bold tracking-wide text-texto-suave uppercase">
               Resumen
             </h3>
-            <div className="grid grid-cols-2 gap-3">
-              <div className="rounded-lg border border-borde p-3">
-                <div className="text-xl font-extrabold">{empresa.personasActivas}</div>
-                <div className="text-xs text-texto-suave">Personas activas</div>
-              </div>
-              <div className="rounded-lg border border-borde p-3">
-                <div className="text-sm font-semibold text-texto-suave">Aún sin mediciones</div>
-                <div className="text-xs text-texto-suave">Logro promedio</div>
-              </div>
+            <div className="rounded-lg border border-borde p-3">
+              <div className="text-xl font-extrabold">{empresa.personasActivas}</div>
+              <div className="text-xs text-texto-suave">Personas activas</div>
             </div>
           </section>
 

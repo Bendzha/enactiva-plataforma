@@ -1,3 +1,4 @@
+import { Marca } from '@/components/marca/Marca';
 import { aceptarInvitacionSchema } from '@enactiva/shared';
 import { useState, type FormEvent } from 'react';
 import { useNavigate, useSearchParams } from 'react-router';
@@ -81,10 +82,7 @@ export function ActivarPage() {
   return (
     <div className="grid min-h-screen place-items-center px-4 py-8">
       <Card className="w-full max-w-md">
-        <div className="mb-6 flex items-center gap-2 font-extrabold tracking-tight text-marca">
-          <span className="size-2.5 rounded-full bg-acento" aria-hidden="true" />
-          ENACTIVA
-        </div>
+        <Marca className="mb-6" />
 
         <CardTitle>Activa tu cuenta</CardTitle>
         <CardDescription>

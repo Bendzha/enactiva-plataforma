@@ -1,11 +1,15 @@
 import type { ItemAgenda } from '@enactiva/shared';
+import { useState } from 'react';
 import { Link } from 'react-router';
 import { useSesion } from '@/auth/sesion';
+import { PasarLista } from '@/components/valoracion/PasarLista';
+import { ValorarTaller } from '@/components/valoracion/ValorarTaller';
 import { Alert } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
-import { botonVariants } from '@/components/ui/button';
+import { Button, botonVariants } from '@/components/ui/button';
 import { Card, CardDescription, CardTitle } from '@/components/ui/card';
 import { useAgenda } from '@/lib/agenda';
+import { usePuntuacionesPendientes } from '@/lib/valoracion';
 
 const FECHA = new Intl.DateTimeFormat('es-CL', { weekday: 'long', day: 'numeric', month: 'long' });
 const HORA = new Intl.DateTimeFormat('es-CL', { hour: '2-digit', minute: '2-digit' });
@@ -15,9 +19,17 @@ function cuando(item: ItemAgenda): string {
   return `${FECHA.format(inicio)} · ${HORA.format(inicio)} a ${HORA.format(new Date(item.finAt))}`;
 }
 
-/** Cuánto falta, en palabras. "En 3 días" se entiende más rápido que una fecha. */
+/**
+ * Cuánto falta, en palabras. "En 3 días" se entiende más rápido que una fecha.
+ *
+ * Lo que ya terminó no lleva distintivo: la lista en la que está ya dice que ocurrió. Mirar solo
+ * la hora de inicio hacía que un taller de hace una semana dijera "Está ocurriendo".
+ */
 function cuantoFalta(item: ItemAgenda): string | null {
-  const horas = (new Date(item.inicioAt).getTime() - Date.now()) / 3_600_000;
+  const ahora = Date.now();
+  if (new Date(item.finAt).getTime() < ahora) return null;
+
+  const horas = (new Date(item.inicioAt).getTime() - ahora) / 3_600_000;
   if (horas < 0) return 'Está ocurriendo';
   if (horas < 1) return 'En menos de una hora';
   if (horas < 24) return `En ${Math.round(horas)} horas`;
@@ -25,7 +37,15 @@ function cuantoFalta(item: ItemAgenda): string | null {
   return null;
 }
 
-function Fila({ item }: { item: ItemAgenda }) {
+function Fila({
+  item,
+  onValorar,
+  onPasarLista,
+}: {
+  item: ItemAgenda;
+  onValorar?: () => void;
+  onPasarLista?: () => void;
+}) {
   const falta = cuantoFalta(item);
 
   return (
@@ -45,6 +65,16 @@ function Fila({ item }: { item: ItemAgenda }) {
       <span className="text-xs text-texto-suave">
         {item.inscritos} de {item.cupo} inscritos
       </span>
+      {onValorar && (
+        <Button variant="outline" size="sm" onClick={onValorar}>
+          Valorar
+        </Button>
+      )}
+      {onPasarLista && (
+        <Button size="sm" onClick={onPasarLista}>
+          Pasar lista
+        </Button>
+      )}
     </li>
   );
 }
@@ -59,6 +89,10 @@ export function AgendaPage() {
   const { usuario } = useSesion();
   const deUnaEmpresa = Boolean(usuario?.empresaId);
   const { data: agenda, isPending, isError } = useAgenda(deUnaEmpresa);
+  const { data: pendientes } = usePuntuacionesPendientes(deUnaEmpresa);
+  const [valorando, setValorando] = useState<ItemAgenda | null>(null);
+  const [pasandoLista, setPasandoLista] = useState<ItemAgenda | null>(null);
+  const [aviso, setAviso] = useState<string | null>(null);
 
   if (!deUnaEmpresa) {
     return (
@@ -82,9 +116,16 @@ export function AgendaPage() {
         <h1 className="text-2xl font-extrabold tracking-tight">Mi agenda</h1>
         <p className="text-sm text-texto-suave">
           Lo que dictas y a lo que vas. Te llegará un recordatorio por correo el día antes y una
-          hora antes de cada uno.
+          hora antes de cada uno. Cuando un taller termina, pasas lista si lo dictaste, o lo valoras
+          si fuiste.
         </p>
       </header>
+
+      {aviso && (
+        <div className="mb-4 rounded-md border border-marca/30 bg-marca-suave px-3 py-2 text-sm">
+          {aviso}
+        </div>
+      )}
 
       {isPending && <p className="text-sm text-texto-suave">Cargando tu agenda…</p>}
       {isError && <Alert>No pudimos cargar tu agenda. Actualiza la página.</Alert>}
@@ -117,12 +158,42 @@ export function AgendaPage() {
       {agenda && agenda.pasados.length > 0 && (
         <>
           <h2 className="mb-3 text-lg font-bold">Ya ocurrieron</h2>
-          <ul className="space-y-3 opacity-75">
+          <ul className="space-y-3">
             {agenda.pasados.map((item) => (
-              <Fila key={item.tallerId} item={item} />
+              <Fila
+                key={item.tallerId}
+                item={item}
+                onValorar={item.puedeValorar ? () => setValorando(item) : undefined}
+                onPasarLista={item.puedePasarLista ? () => setPasandoLista(item) : undefined}
+              />
             ))}
           </ul>
         </>
+      )}
+
+      {pasandoLista && (
+        <PasarLista
+          tallerId={pasandoLista.tallerId}
+          tallerNombre={pasandoLista.nombre}
+          onCerrar={() => setPasandoLista(null)}
+          onListo={(mensaje) => {
+            setPasandoLista(null);
+            setAviso(mensaje);
+          }}
+        />
+      )}
+
+      {valorando && (
+        <ValorarTaller
+          tallerId={valorando.tallerId}
+          tallerNombre={valorando.nombre}
+          conMatchPendiente={pendientes?.includes(valorando.tallerId) ?? false}
+          onCerrar={() => setValorando(null)}
+          onListo={(mensaje) => {
+            setValorando(null);
+            setAviso(mensaje);
+          }}
+        />
       )}
     </section>
   );

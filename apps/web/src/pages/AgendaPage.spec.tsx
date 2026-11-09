@@ -25,6 +25,8 @@ const DICTO: ItemAgenda = {
   papel: 'DICTO',
   inscritos: 3,
   cupo: 8,
+  puedeValorar: false,
+  puedePasarLista: false,
 };
 
 const VOY_MANANA: ItemAgenda = {
@@ -43,11 +45,38 @@ const PASADO: ItemAgenda = {
   papel: 'VOY',
   inicioAt: enHoras(-50),
   finAt: enHoras(-48),
+  puedeValorar: true,
 };
 
 const AGENDA: Agenda = { proximos: [VOY_MANANA, DICTO], pasados: [PASADO] };
 
 describe('Mi agenda', () => {
+  it('lo que ya terminó no dice "Está ocurriendo"', async () => {
+    simularSesionIniciada(CAPACITADOR_PLANTA, {
+      'GET /learning/agenda': { status: 200, cuerpo: AGENDA },
+    });
+    renderizar(<App />, { ruta: '/agenda' });
+
+    await screen.findByText('Tableros sin misterio');
+    expect(screen.queryByText('Está ocurriendo')).not.toBeInTheDocument();
+  });
+
+  it('un taller que está pasando sí lo dice', async () => {
+    const enCurso: ItemAgenda = {
+      ...DICTO,
+      tallerId: 't-9',
+      nombre: 'Está pasando',
+      inicioAt: enHoras(-1),
+      finAt: enHoras(1),
+    };
+    simularSesionIniciada(CAPACITADOR_PLANTA, {
+      'GET /learning/agenda': { status: 200, cuerpo: { proximos: [enCurso], pasados: [] } },
+    });
+    renderizar(<App />, { ruta: '/agenda' });
+
+    expect(await screen.findByText('Está ocurriendo')).toBeInTheDocument();
+  });
+
   it('muestra en una sola lista lo que dicta y a lo que va', async () => {
     simularSesionIniciada(CAPACITADOR_PLANTA, {
       'GET /learning/agenda': { status: 200, cuerpo: AGENDA },

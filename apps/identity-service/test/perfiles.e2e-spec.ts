@@ -137,9 +137,19 @@ describe('Temas y perfiles corporativos (e2e)', () => {
     it('no admite el mismo tema escrito distinto, porque rompería el matching', async () => {
       await request(app.getHttpServer())
         .post('/temas')
-        .set('Authorization', `Bearer ${tokenCapacitador}`)
+        .set('Authorization', `Bearer ${tokenRrhh}`)
         .send({ nombre: '  EXCEL Avanzado ' })
         .expect(409);
+    });
+
+    it('quien enseña ya no agrega temas: el catálogo es de RRHH', async () => {
+      // La clienta lo pidió el 2026-10-29. Quien quiera enseñar algo que no está en la lista
+      // se lo pide a RRHH, y la pantalla de perfil se lo dice con ese nombre.
+      await request(app.getHttpServer())
+        .post('/temas')
+        .set('Authorization', `Bearer ${tokenCapacitador}`)
+        .send({ nombre: 'Soldadura al arco' })
+        .expect(403);
     });
 
     it('el buscador sugiere los temas existentes de la empresa', async () => {
@@ -168,21 +178,16 @@ describe('Temas y perfiles corporativos (e2e)', () => {
       expect(res.body).toEqual([]);
     });
 
-    it('el equipo de ENACTIVA indica en qué empresa crea el tema', async () => {
-      await request(app.getHttpServer())
-        .post('/temas')
-        .set('Authorization', `Bearer ${tokenAdmin}`)
-        .send({ nombre: 'Prevención de riesgos' })
-        .expect(400);
-
+    it('el equipo de ENACTIVA tampoco toca el catálogo de una empresa', async () => {
+      // Antes lo hacía como parte de la puesta en marcha. Desde el 2026-10-29 el catálogo es
+      // de cada organización: ENACTIVA opera la plataforma, no decide qué se enseña adentro.
       await request(app.getHttpServer())
         .post('/temas')
         .set('Authorization', `Bearer ${tokenAdmin}`)
         .send({ nombre: 'Prevención de riesgos', empresaId: empresaBId })
-        .expect(201);
+        .expect(403);
 
-      const temas = await prisma.tema.findMany({ where: { empresaId: empresaBId } });
-      expect(temas.map((t) => t.nombre)).toEqual(['Prevención de riesgos']);
+      expect(await prisma.tema.count({ where: { empresaId: empresaBId } })).toBe(0);
     });
 
     it('nadie crea temas en la empresa de otro', async () => {

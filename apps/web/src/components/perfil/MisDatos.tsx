@@ -35,7 +35,13 @@ export function MisDatos({ puedeEliminar }: MisDatosProps) {
   const confirmado = escrito.trim().toUpperCase() === CONFIRMACION_SUPRESION;
 
   const eliminar = async () => {
-    await suprimir.mutateAsync();
+    try {
+      await suprimir.mutateAsync();
+    } catch {
+      // El mensaje ya se muestra desde `suprimir.error`. Sin este catch la promesa escaparía
+      // del onClick, y además se cerraría la sesión de una cuenta que no se llegó a borrar.
+      return;
+    }
     // La cuenta ya no existe: dejarla en pantalla sería mentirle a quien acaba de borrarla.
     await cerrarSesion();
   };

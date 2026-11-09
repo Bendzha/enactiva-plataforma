@@ -23,3 +23,23 @@ export const passwordNuevoSchema = z
     LARGO_MINIMO_PASSWORD,
     `La contraseña debe tener al menos ${LARGO_MINIMO_PASSWORD} caracteres`,
   );
+
+/**
+ * Recuperación de contraseña (reunión 2026-10-29).
+ *
+ * Dos pasos: se pide por correo y se restablece con el enlace. El enlace dura poco —menos que
+ * una invitación— porque una invitación la espera quien la recibió y un reseteo lo puede haber
+ * pedido otra persona desde su correo.
+ */
+export const HORAS_PARA_RESTABLECER = 2;
+
+export const recuperarPasswordSchema = z.object({
+  email: emailSchema,
+});
+export type RecuperarPasswordInput = z.infer<typeof recuperarPasswordSchema>;
+
+export const restablecerPasswordSchema = z.object({
+  token: z.string().min(20, 'El enlace para restablecer no es válido'),
+  password: passwordNuevoSchema,
+});
+export type RestablecerPasswordInput = z.infer<typeof restablecerPasswordSchema>;

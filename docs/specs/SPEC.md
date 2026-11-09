@@ -152,7 +152,12 @@ post primera reunion"*. Si solo una responde, el match queda puntuado con esa re
 no puede dejar a nadie esperando **[P]**. Q15 resuelta.
 
 #### Tokens de reconocimiento
-- Quien enseñó recibe **tokens de regalo** como reconocimiento **[C]**.
+- Quien enseñó recibe **tokens de regalo** como reconocimiento **[C]**. **Uno por taller** que
+  reciba al menos una valoración **[E]**: la clienta no dijo cuántos, y contar por taller premia
+  dictar sin que el número dependa de cuánta gente se acordó de valorar.
+- **Quién ve el recuento:** cualquiera de la empresa **[E]**. La clienta dijo *"visibles pero
+  privados"*, que admite dos lecturas; el equipo tomó la más abierta, porque un reconocimiento que
+  nadie ve no reconoce nada. **Está preguntado.**
 - **Sirven para canjear cosas, pero el canje lo administra cada empresa fuera de la plataforma**
   **[C, 2026-10-13]**: *"para canjear cosas, pero la empresa ve que valene sos tokens nosotros solo por
   el momento damos el recuento"*. Q18 resuelta.
@@ -163,7 +168,10 @@ no puede dejar a nadie esperando **[P]**. Q15 resuelta.
 
 #### Lo que se conserva del modelo anterior
 - El facilitador se sigue midiendo por **talleres dictados** y por la valoración que recibe **[C]**.
-- La valoración alimenta el **score de afinidad** del matching (§3.6) **[P]**.
+- La valoración alimenta el **score de afinidad** del matching (§3.6) **[P]**, pero **desde la
+  tercera valoración** **[E]**: con una o dos el criterio no participa y su peso se reparte entre
+  los demás. Sin ese piso, una sola opinión mala hundiría a alguien en el mazo para siempre, que
+  es el riesgo que dejó anotado el ADR-0009.
 - ~~"El capacitador ve el promedio, no quién calificó qué"~~ ⛔ **Cae a medias**: la clienta confirmó que
   la referencia se publica dentro de la empresa y va firmada (Q17). Las estrellas sí se muestran como
   promedio **[P]**: el detalle por persona no aporta y expone a quien valoró.

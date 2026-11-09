@@ -1,5 +1,6 @@
 export * from './enums.js';
 export * from './admins.js';
+export * from './asistencia.js';
 export * from './auth.js';
 export * from './datos-personales.js';
 export * from './empresas.js';
@@ -12,3 +13,4 @@ export * from './permisos.js';
 export * from './personas.js';
 export * from './sesion.js';
 export * from './talleres.js';
+export * from './valoracion.js';

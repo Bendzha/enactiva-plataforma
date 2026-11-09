@@ -61,11 +61,18 @@ export const ETIQUETAS_DIMENSION: Record<Dimension, string> = {
   ACTITUD: 'Actitud',
 };
 
+/**
+ * Cómo se llaman los roles **en pantalla**. Por dentro el código mantiene `CAPACITADOR` y
+ * `ESTUDIANTE`, que es lo que la clienta pidió en octubre para no romper lo ya escrito.
+ *
+ * Los nombres visibles los cambió ella el 2026-10-29: "capacitador pasa a ser quien enseña y
+ * estudiante quien aprende". Dicen lo que la persona hace, no en qué categoría cae.
+ */
 export const ETIQUETAS_ROL: Record<Rol, string> = {
   ADMIN_ENACTIVA: 'Admin ENACTIVA',
   RRHH: 'RRHH',
-  CAPACITADOR: 'Capacitador',
-  ESTUDIANTE: 'Estudiante',
+  CAPACITADOR: 'Quien enseña',
+  ESTUDIANTE: 'Quien aprende',
 };
 
 export const ETIQUETAS_TIPO_INTERES: Record<TipoInteres, string> = {
