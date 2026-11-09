@@ -173,11 +173,16 @@ export class ValoracionService {
   /**
    * El reconocimiento de una persona: tokens, talleres dictados y su promedio de estrellas.
    *
-   * El recuento lo ve cualquiera de la empresa **[E]**: la clienta dijo "visibles pero privados"
-   * y el equipo lo interpretó como visible dentro de la organización. Está preguntado.
+   * **Privado**: lo ve cada quien de sí mismo, y RRHH de su empresa porque es quien administra
+   * el canje fuera de la plataforma. La clienta lo cerró el 2026-10-29 —"los tokens no serían
+   * visibles para otras personas"—, que resuelve el "visibles pero privados" de octubre en su
+   * sentido estrecho: un recuento a la vista de todos es un ranking entre colegas.
    */
   async reconocimientoDe(usuarioId: string, sesion: SesionActual): Promise<ReconocimientoPersona> {
     this.empresaDe(sesion);
+    if (usuarioId !== sesion.usuarioId && !sesion.roles.includes('RRHH')) {
+      throw new ForbiddenException('El reconocimiento de cada persona es suyo');
+    }
 
     const [tokens, talleresDictados, estrellas] = await Promise.all([
       this.prisma.acotado.token.aggregate({

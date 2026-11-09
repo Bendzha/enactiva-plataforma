@@ -158,9 +158,11 @@ export function AgregarInteres({ abierto, tipo, onCerrar, onDeclarado }: Props) 
             ))}
           </ul>
 
-          {temas?.length === 0 && !puedeCrear && (
+          {/* El catálogo lo controla RRHH (2026-10-29), así que quien no puede crear temas
+              necesita saber a quién pedírselo, y no solo que su búsqueda no encontró nada. */}
+          {nombreBuscado.length >= 2 && !existeIgual && !puedeCrear && (
             <p className="mt-2 text-xs text-texto-suave">
-              No hay temas que coincidan. Pídele a RRHH que agregue el tema al catálogo.
+              «{nombreBuscado}» no está en el catálogo de tu empresa. Pídele a RRHH que lo agregue.
             </p>
           )}
 

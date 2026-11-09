@@ -237,29 +237,34 @@ describe('Valoración del encuentro, referencias y tokens (e2e)', () => {
     await valorar(tallerPasado, tokenCarla).expect(201);
     await valorar(tallerPasado, tokenDiego).expect(201);
 
-    const { body } = await pedir(`/personas/${LUIS}/reconocimiento`, tokenAna).expect(200);
+    const { body } = await pedir(`/personas/${LUIS}/reconocimiento`, tokenLuis).expect(200);
 
     expect((body as ReconocimientoPersona).tokens).toBe(1);
     expect(await prisma.token.count({ where: { tallerId: tallerPasado } })).toBe(1);
   });
 
   it('un taller sin ninguna valoración no da token', async () => {
-    const { body } = await pedir(`/personas/${LUIS}/reconocimiento`, tokenAna).expect(200);
+    const { body } = await pedir(`/personas/${LUIS}/reconocimiento`, tokenLuis).expect(200);
 
     const reconocimiento = body as ReconocimientoPersona;
     expect(reconocimiento.tokens).toBe(0);
     expect(reconocimiento.talleresDictados).toBe(1);
   });
 
-  it('el recuento lo ve cualquiera de la empresa, no solo la persona', async () => {
+  it('el recuento es privado: ni un colega de la misma empresa lo ve', async () => {
     await valorar(tallerPasado, tokenAna).expect(201);
 
-    const propio = (await pedir(`/personas/${LUIS}/reconocimiento`, tokenLuis).expect(200))
-      .body as ReconocimientoPersona;
-    const ajeno = (await pedir(`/personas/${LUIS}/reconocimiento`, tokenCarla).expect(200))
-      .body as ReconocimientoPersona;
+    // "Los tokens no serían visibles para otras personas" (acta 2026-10-29). Un recuento a la
+    // vista de todos es un ranking entre colegas, que no es lo que la clienta quiere.
+    await pedir(`/personas/${LUIS}/reconocimiento`, tokenLuis).expect(200);
+    await pedir(`/personas/${LUIS}/reconocimiento`, tokenCarla).expect(403);
+  });
 
-    expect(ajeno.tokens).toBe(propio.tokens);
+  it('RRHH sí lo ve: es quien administra el canje fuera de la plataforma', async () => {
+    await valorar(tallerPasado, tokenAna).expect(201);
+
+    const { body } = await pedir(`/personas/${LUIS}/reconocimiento`, tokenRrhh).expect(200);
+    expect((body as ReconocimientoPersona).tokens).toBe(1);
   });
 
   it('el promedio no cuenta en el score hasta la tercera valoración', async () => {
@@ -282,7 +287,7 @@ describe('Valoración del encuentro, referencias y tokens (e2e)', () => {
   it('la tarjeta de reconocimiento dice si ya cuenta en el score', async () => {
     await valorar(tallerPasado, tokenAna).expect(201);
 
-    const antes = (await pedir(`/personas/${LUIS}/reconocimiento`, tokenAna).expect(200))
+    const antes = (await pedir(`/personas/${LUIS}/reconocimiento`, tokenLuis).expect(200))
       .body as ReconocimientoPersona;
     expect(antes.cuentaEnElScore).toBe(false);
     // El promedio sí se muestra desde la primera: lo que espera es el efecto en el mazo.
@@ -291,7 +296,7 @@ describe('Valoración del encuentro, referencias y tokens (e2e)', () => {
     await valorar(tallerPasado, tokenCarla).expect(201);
     await valorar(tallerPasado, tokenDiego).expect(201);
 
-    const despues = (await pedir(`/personas/${LUIS}/reconocimiento`, tokenAna).expect(200))
+    const despues = (await pedir(`/personas/${LUIS}/reconocimiento`, tokenLuis).expect(200))
       .body as ReconocimientoPersona;
     expect(despues.cuentaEnElScore).toBe(true);
   });

@@ -13,7 +13,10 @@ export const PERMISOS = [
   'admins:gestionar',
   /** RRHH: áreas y personas de su propia empresa. */
   'personas:gestionar',
-  /** Agregar temas al catálogo de la empresa: Admin, RRHH y Capacitador (SPEC §3.6). */
+  /**
+   * Agregar temas al catálogo de la empresa. **Solo RRHH** desde la reunión del 2026-10-29:
+   * la clienta pidió que el catálogo lo controle Recursos Humanos, no quien enseña.
+   */
   'temas:crear',
   /** Publicar la ficha de un taller y declarar cuándo se puede enseñar (SPEC §3.2). */
   'talleres:publicar',
@@ -30,8 +33,6 @@ const PERMISOS_ADMIN_OPERATIVO: readonly Permiso[] = [
   'empresas:listar',
   'empresas:crear',
   'invitaciones:gestionar',
-  // Sumar un tema al catálogo es trabajo de puesta en marcha, no una decisión sobre la empresa.
-  'temas:crear',
 ];
 
 const PERMISOS_ADMIN_PRINCIPAL: readonly Permiso[] = [
@@ -47,8 +48,9 @@ const PERMISOS_POR_ROL: Record<Rol, readonly Permiso[]> = {
   // Gestionar la gente de su empresa es de RRHH; el equipo de ENACTIVA administra el piloto,
   // no el día a día de cada organización.
   RRHH: ['personas:gestionar', 'temas:crear', 'referencias:moderar'],
-  // Quien enseña necesita poder nombrar lo que enseña; si no existiera el tema, no podría ofrecerlo.
-  CAPACITADOR: ['temas:crear', 'talleres:publicar'],
+  // Ya no crea temas: el catálogo es de RRHH (2026-10-29). Quien quiera enseñar algo que no
+  // está en la lista se lo pide a RRHH; la pantalla se lo dice.
+  CAPACITADOR: ['talleres:publicar'],
   ESTUDIANTE: [],
 };
 

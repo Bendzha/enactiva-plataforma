@@ -25,3 +25,6 @@ tools/demo/.ultimo-seed.json
 ~$*
 .DS_Store
 Thumbs.db
+
+# Capturas para la presentación: material de trabajo, no del producto.
+capturas-presentacion/

@@ -6,6 +6,7 @@ import { App } from '@/App';
 import {
   ADMIN_PRINCIPAL,
   CAPACITADOR_PLANTA,
+  RRHH_PLANTA,
   ESTUDIANTE_PLANTA,
   renderizar,
   simularSesionIniciada,
@@ -106,8 +107,8 @@ describe('Mi perfil', () => {
     expect(api.veces('POST /identity/mi-perfil/intereses')).toBe(0);
   });
 
-  it('quien puede crear temas los suma al catálogo cuando no existen', async () => {
-    const api = simularSesionIniciada(CAPACITADOR_PLANTA, {
+  it('RRHH suma al catálogo los temas que no existen', async () => {
+    const api = simularSesionIniciada(RRHH_PLANTA, {
       ...rutasBase,
       'GET /identity/temas': { status: 200, cuerpo: [] },
       'POST /identity/temas': {
@@ -130,6 +131,22 @@ describe('Mi perfil', () => {
     await waitFor(() => {
       expect(api.veces('POST /identity/temas')).toBe(1);
     });
+  });
+
+  it('quien enseña ya no crea temas: la pantalla le dice a quién pedírselo', async () => {
+    // El catálogo es de RRHH desde el 2026-10-29. Antes el capacitador podía crearlos.
+    simularSesionIniciada(CAPACITADOR_PLANTA, {
+      ...rutasBase,
+      'GET /identity/temas': { status: 200, cuerpo: [] },
+    });
+    const usuario = userEvent.setup();
+    renderizar(<App />, { ruta: '/mi-perfil' });
+
+    await usuario.click((await screen.findAllByRole('button', { name: '+ Agregar tema' }))[0]!);
+    await usuario.type(screen.getByLabelText('Tema'), 'Soldadura al arco');
+
+    expect(screen.queryByRole('button', { name: /Crear el tema/ })).not.toBeInTheDocument();
+    expect(await screen.findByText(/Pídele a RRHH que lo agregue/)).toBeInTheDocument();
   });
 
   it('quien no puede crear temas solo elige del catálogo', async () => {
