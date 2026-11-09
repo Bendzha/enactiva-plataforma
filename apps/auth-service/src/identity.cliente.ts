@@ -35,6 +35,14 @@ export class IdentityCliente {
     return this.pedir<SesionEstablecida>('sesiones/invitacion', cuerpo);
   }
 
+  recuperar(cuerpo: { email: string; ip: string | null }): Promise<void> {
+    return this.pedir<void>('recuperacion/solicitar', cuerpo);
+  }
+
+  restablecer(cuerpo: Record<string, unknown>): Promise<void> {
+    return this.pedir<void>('recuperacion/restablecer', cuerpo);
+  }
+
   /** Perfil completo de la persona autenticada; va con su propio token, no con el secreto. */
   async perfil<T>(): Promise<T> {
     const res = await fetch(`${env().URL_IDENTITY_SERVICE}/${PREFIJO_INTERNO}/sesiones/perfil`, {

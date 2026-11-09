@@ -13,6 +13,7 @@ import { InvitacionesModule } from './modules/invitaciones/invitaciones.module.j
 import { MetricasModule } from './modules/metricas/metricas.module.js';
 import { PerfilesModule } from './modules/perfiles/perfiles.module.js';
 import { PersonasModule } from './modules/personas/personas.module.js';
+import { RecuperacionModule } from './modules/recuperacion/recuperacion.module.js';
 import { ProveedorEstadoSesionLocal } from './modules/sesiones/proveedor-estado-sesion.js';
 import { SesionesModule } from './modules/sesiones/sesiones.module.js';
 
@@ -43,6 +44,7 @@ import { SesionesModule } from './modules/sesiones/sesiones.module.js';
     MetricasModule,
     PerfilesModule,
     PersonasModule,
+    RecuperacionModule,
     SesionesModule,
     SaludModule.paraServicio('identity-service'),
   ],

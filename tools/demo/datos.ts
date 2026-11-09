@@ -424,7 +424,6 @@ export interface ValoracionDemo {
   empresaId: string;
   usuarioId: string;
   capacitadorId: string;
-  asistio: boolean;
   estrellas: Record<string, number>;
   referencia: string;
 }
@@ -438,7 +437,6 @@ export const VALORACIONES: readonly ValoracionDemo[] = [
     empresaId: PN,
     usuarioId: `${U}05`,
     capacitadorId: `${U}06`,
-    asistio: true,
     estrellas: { CLARIDAD: 5, SEGURIDAD: 5, APLICACION: 4, USO_DE_MATERIALES: 4 },
     referencia: 'Explicó el tablero paso a paso y nos dejó tocarlo con el equipo apagado.',
   },
@@ -448,7 +446,6 @@ export const VALORACIONES: readonly ValoracionDemo[] = [
     empresaId: PN,
     usuarioId: `${U}07`,
     capacitadorId: `${U}06`,
-    asistio: true,
     estrellas: { CLARIDAD: 4, SEGURIDAD: 5, APLICACION: 5, USO_DE_MATERIALES: 3 },
     referencia: '',
   },

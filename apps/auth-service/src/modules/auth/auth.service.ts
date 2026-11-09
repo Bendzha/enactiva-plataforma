@@ -3,6 +3,8 @@ import { JwtService } from '@nestjs/jwt';
 import type {
   AceptarInvitacionInput,
   LoginInput,
+  RecuperarPasswordInput,
+  RestablecerPasswordInput,
   RespuestaLogin,
   SesionEstablecida,
   UsuarioSesion,
@@ -54,6 +56,22 @@ export class AuthService {
     ip?: string | null,
   ): Promise<SesionEmitida> {
     return this.firmar(await this.identity.aceptarInvitacion({ ...datos, ip: ip ?? null }));
+  }
+
+  /**
+   * Pide el enlace para volver a entrar.
+   *
+   * Nunca falla por un correo que no existe: identity responde igual exista o no, y aquí no se
+   * mira la respuesta. Un mensaje distinto para un correo registrado convertiría este
+   * formulario en una forma de averiguar quién trabaja dónde.
+   */
+  recuperar(datos: RecuperarPasswordInput, ip?: string): Promise<void> {
+    return this.identity.recuperar({ email: datos.email, ip: ip ?? null });
+  }
+
+  /** Cambia la contraseña con el enlace y cierra todas las sesiones abiertas. */
+  restablecer(datos: RestablecerPasswordInput, ip?: string): Promise<void> {
+    return this.identity.restablecer({ ...datos, ip: ip ?? null });
   }
 
   /** Perfil de la sesión actual, leído de identity: la web lo usa al recargar la página. */

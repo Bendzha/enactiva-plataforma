@@ -1,3 +1,4 @@
+import { Marca } from '@/components/marca/Marca';
 import { ETIQUETAS_ROL, type Permiso } from '@enactiva/shared';
 import { NavLink, Outlet, useNavigate } from 'react-router';
 import { useSesion } from '@/auth/sesion';
@@ -41,10 +42,7 @@ export function Layout() {
     <div className="min-h-screen">
       <header className="border-b border-borde bg-white">
         <div className="mx-auto flex max-w-6xl flex-wrap items-center gap-4 px-4 py-3">
-          <div className="flex items-center gap-2 font-extrabold tracking-tight text-marca">
-            <span className="size-2.5 rounded-full bg-acento" aria-hidden="true" />
-            ENACTIVA
-          </div>
+          <Marca />
 
           <nav className="flex gap-1" aria-label="Secciones">
             {visibles.map((pestana) => (

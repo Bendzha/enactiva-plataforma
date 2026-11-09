@@ -72,7 +72,6 @@ export async function sembrarLearning(): Promise<void> {
           empresaId: valoracion.empresaId,
           tallerId: valoracion.tallerId,
           usuarioId: valoracion.usuarioId,
-          asistio: valoracion.asistio,
           estrellas: {
             create: Object.entries(valoracion.estrellas).map(([dimension, estrellas]) => ({
               dimension: dimension as DimensionValoracion,

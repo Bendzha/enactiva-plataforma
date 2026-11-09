@@ -56,17 +56,20 @@ export async function cuerpoDelCorreo(id: string): Promise<string> {
 }
 
 /**
- * El token de activación que viaja en el enlace del correo.
- * Espera a que el correo llegue antes de buscarlo.
+ * El token que viaja en el enlace del correo. Espera a que el correo llegue antes de buscarlo.
+ *
+ * `ruta` es la pantalla a la que apunta el enlace: `activar` para una invitación,
+ * `restablecer` para una recuperación de contraseña.
  */
-export async function tokenDesdeElCorreo(email: string): Promise<string> {
+export async function tokenDesdeElCorreo(email: string, ruta = 'activar'): Promise<string> {
   const [mensaje] = await esperarCorreos(email);
   if (!mensaje) {
     throw new Error(`No llegó ningún correo para ${email}`);
   }
-  const enlace = /\/activar\?token=([A-Za-z0-9_-]+)/.exec(await cuerpoDelCorreo(mensaje.ID));
+  const patron = new RegExp(`/${ruta}\\?token=([A-Za-z0-9_-]+)`);
+  const enlace = patron.exec(await cuerpoDelCorreo(mensaje.ID));
   if (!enlace?.[1]) {
-    throw new Error(`El correo para ${email} no trae un enlace de activación`);
+    throw new Error(`El correo para ${email} no trae un enlace a /${ruta}`);
   }
   return enlace[1];
 }
