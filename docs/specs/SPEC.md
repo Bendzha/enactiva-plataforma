@@ -72,9 +72,14 @@ Dos cosas que una persona ya no puede hacer sola y ahora pide **[C, 2026-10-29]*
 | **Proponer un taller o un tema** | Quien enseña | RRHH crea el taller y el tema **a mano**; la aprobación solo cambia el estado |
 | **Pasar a «quien enseña»** | Quien aprende | RRHH le agrega el rol |
 
-- La aprobación **no crea nada por sí sola** **[C]**: *«mediante la solicitud el estado se aprueba
-  y allí RRHH tiene que crear el taller, el tema en sí»*. Es deliberado: RRHH controla el catálogo,
-  y una propuesta aprobada automáticamente le quitaría ese control por la puerta de atrás.
+- **Aprobar crea el tema** en el catálogo y deja declarado a quien propuso, con las dimensiones y
+  el nivel que esa persona eligió al proponer **[C, 2026-11-10]**. **El taller lo sigue creando
+  RRHH a mano**, que es lo que la clienta pidió: *«allí RRHH tiene que crear el taller»*.
+  > La primera versión no creaba nada, leyendo al pie de la letra *«el tema en sí»*. No servía:
+  > RRHH aprobaba y después tenía que reescribir el tema, que es tomar la misma decisión dos
+  > veces. Aprobar **es** el control de RRHH sobre el catálogo, así que lo ejecuta.
+- Por eso la propuesta lleva **dimensiones y nivel** desde que se escribe **[P]**: sin ellos habría
+  que inventarle un nivel a alguien al aprobar.
 - El rechazo puede ir **con motivo o sin motivo** **[C]**.
 - **Son flujos separados** **[C]**: *«sobre los roles que sean asuntos separados, no que puedan
   haber 2 en una solicitud»*. Una solicitud es de una cosa o de la otra.

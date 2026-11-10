@@ -6,7 +6,10 @@ import {
 } from '@nestjs/common';
 import {
   normalizarNombre,
+  type Dimension,
   type EstadoSolicitud,
+  type NivelDominio,
+  type TipoInteres,
   type MiSolicitud,
   type PedirRolEnsenarInput,
   type ProponerTallerInput,
@@ -24,6 +27,9 @@ const CAMPOS = {
   tipo: true,
   estado: true,
   tema: true,
+  tipoInteres: true,
+  dimensiones: true,
+  nivel: true,
   detalle: true,
   motivoRechazo: true,
   createdAt: true,
@@ -35,6 +41,9 @@ interface FilaSolicitud {
   tipo: TipoSolicitud;
   estado: EstadoSolicitud;
   tema: string | null;
+  tipoInteres: TipoInteres | null;
+  dimensiones: Dimension[];
+  nivel: NivelDominio | null;
   detalle: string;
   motivoRechazo: string | null;
   createdAt: Date;
@@ -47,6 +56,9 @@ function aMiSolicitud(fila: FilaSolicitud): MiSolicitud {
     tipo: fila.tipo,
     estado: fila.estado,
     tema: fila.tema,
+    tipoInteres: fila.tipoInteres,
+    dimensiones: fila.dimensiones,
+    nivel: fila.nivel,
     detalle: fila.detalle,
     motivoRechazo: fila.motivoRechazo,
     createdAt: fila.createdAt.toISOString(),
@@ -133,6 +145,9 @@ export class SolicitudesService {
         tipo: 'PROPUESTA_TALLER',
         tema: datos.tema,
         temaNormalizado,
+        tipoInteres: datos.tipoInteres,
+        dimensiones: datos.dimensiones,
+        nivel: datos.nivel,
         detalle: datos.detalle,
       },
       sesion,
@@ -155,6 +170,9 @@ export class SolicitudesService {
         tipo: 'CAMBIO_DE_ROL',
         tema: null,
         temaNormalizado: null,
+        tipoInteres: null,
+        dimensiones: [],
+        nivel: null,
         detalle: datos.detalle,
       },
       sesion,
@@ -165,15 +183,22 @@ export class SolicitudesService {
   /**
    * Aprobar.
    *
-   * Dos comportamientos distintos a propósito:
-   * - **Propuesta de taller:** solo cambia el estado. El taller y el tema los crea RRHH a mano,
-   *   porque es quien controla el catálogo y la clienta lo pidió así.
-   * - **Cambio de rol:** otorga el rol en la misma transacción. No hay nada que RRHH tenga que
-   *   redactar después, y aprobar sin otorgar dejaría a la persona aprobada y sin el rol, sin que
-   *   nada enlace las dos acciones.
+   * Aprobar **es** la decisión de RRHH sobre el catálogo, así que la ejecuta en vez de pedirle que
+   * la vuelva a tomar escribiendo el tema de nuevo (2026-11-10). Lo que sigue siendo suyo y a mano
+   * es **crear el taller**, que es lo que la clienta pidió.
+   *
+   * - **Propuesta de taller:** crea el tema en el catálogo y deja declarado a quien propuso, con
+   *   las dimensiones y el nivel que esa persona eligió al proponer.
+   * - **Cambio de rol:** otorga el rol. No hay nada que RRHH tenga que redactar después, y aprobar
+   *   sin otorgar dejaría a la persona aprobada y sin el rol.
    */
   async aprobar(id: string, sesion: SesionActual): Promise<MiSolicitud> {
     const solicitud = await this.pendiente(id);
+    const resuelta = {
+      estado: 'APROBADA' as const,
+      resueltaPorId: sesion.usuarioId,
+      resueltaAt: new Date(),
+    };
 
     if (solicitud.tipo === 'CAMBIO_DE_ROL') {
       const actualizada = await this.prisma.$transaction(async (tx) => {
@@ -181,11 +206,7 @@ export class SolicitudesService {
           data: [{ usuarioId: solicitud.solicitanteId, rol: 'CAPACITADOR' }],
           skipDuplicates: true,
         });
-        return tx.solicitud.update({
-          where: { id },
-          data: { estado: 'APROBADA', resueltaPorId: sesion.usuarioId, resueltaAt: new Date() },
-          select: CAMPOS,
-        });
+        return tx.solicitud.update({ where: { id }, data: resuelta, select: CAMPOS });
       });
 
       // El rol nuevo no sirve de nada si su sesión sigue respondiendo con los roles viejos
@@ -196,13 +217,62 @@ export class SolicitudesService {
       return aMiSolicitud(actualizada);
     }
 
-    const actualizada = await this.prisma.solicitud.update({
-      where: { id },
-      data: { estado: 'APROBADA', resueltaPorId: sesion.usuarioId, resueltaAt: new Date() },
-      select: CAMPOS,
+    const { actualizada, temaId } = await this.prisma.$transaction(async (tx) => {
+      // Dentro de la transacción los filtros por empresa van escritos a mano: el aislamiento no
+      // depende de la extensión de Prisma (misma regla que el cupo en learning).
+      const existente = await tx.tema.findFirst({
+        where: { empresaId: solicitud.empresaId, nombreNormalizado: solicitud.temaNormalizado! },
+        select: { id: true },
+      });
+
+      // Puede existir si alguien lo creó entre la propuesta y la aprobación. Se reusa en vez de
+      // fallar: la decisión de RRHH no tiene por qué perderse por eso.
+      const tema =
+        existente ??
+        (await tx.tema.create({
+          data: {
+            empresaId: solicitud.empresaId,
+            nombre: solicitud.tema!,
+            nombreNormalizado: solicitud.temaNormalizado!,
+            creadoPorId: sesion.usuarioId,
+          },
+          select: { id: true },
+        }));
+
+      if (solicitud.tipoInteres && solicitud.nivel) {
+        // Si ya lo había declarado por su cuenta, no se pisa lo que eligió.
+        await tx.perfilInteres.createMany({
+          data: [
+            {
+              empresaId: solicitud.empresaId,
+              usuarioId: solicitud.solicitanteId,
+              temaId: tema.id,
+              tipo: solicitud.tipoInteres,
+              dimensiones: solicitud.dimensiones,
+              nivel: solicitud.nivel,
+            },
+          ],
+          skipDuplicates: true,
+        });
+      }
+
+      return {
+        actualizada: await tx.solicitud.update({ where: { id }, data: resuelta, select: CAMPOS }),
+        temaId: tema.id,
+      };
     });
 
-    await this.auditar('APROBADA', solicitud, sesion, ['estado']);
+    await this.auditoria.registrar({
+      accion: 'CREAR',
+      entidad: 'Tema',
+      entidadId: temaId,
+      actorId: sesion.usuarioId,
+      actorRol: sesion.roles[0] ?? null,
+      empresaId: solicitud.empresaId,
+      camposModificados: ['nombre'],
+      ip: sesion.ip,
+    });
+    await this.auditar('APROBADA', solicitud, sesion, ['estado', 'tema', 'declaracion']);
     return aMiSolicitud(actualizada);
   }
 
@@ -238,7 +308,18 @@ export class SolicitudesService {
   private async pendiente(id: string) {
     const solicitud = await this.prisma.acotado.solicitud.findFirst({
       where: { id },
-      select: { id: true, tipo: true, estado: true, empresaId: true, solicitanteId: true },
+      select: {
+        id: true,
+        tipo: true,
+        estado: true,
+        empresaId: true,
+        solicitanteId: true,
+        tema: true,
+        temaNormalizado: true,
+        tipoInteres: true,
+        dimensiones: true,
+        nivel: true,
+      },
     });
     if (!solicitud) {
       throw new NotFoundException('Solicitud no encontrada');
@@ -256,6 +337,9 @@ export class SolicitudesService {
       tipo: TipoSolicitud;
       tema: string | null;
       temaNormalizado: string | null;
+      tipoInteres: TipoInteres | null;
+      dimensiones: Dimension[];
+      nivel: NivelDominio | null;
       detalle: string;
     },
     sesion: SesionActual,

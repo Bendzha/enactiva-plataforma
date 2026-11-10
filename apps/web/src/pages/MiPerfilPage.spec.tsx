@@ -1,5 +1,5 @@
 import type { MiPerfil, TemaResumen } from '@enactiva/shared';
-import { screen, waitFor } from '@testing-library/react';
+import { screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { App } from '@/App';
@@ -162,7 +162,12 @@ describe('Mi perfil', () => {
     expect(screen.queryByRole('button', { name: /Crear el tema/ })).not.toBeInTheDocument();
 
     await usuario.click(await screen.findByRole('button', { name: /Proponer un taller sobre/ }));
-    await usuario.click(screen.getByRole('button', { name: 'Enviar a RRHH' }));
+
+    // La propuesta pide dimensiones y nivel, igual que declarar un interés: de ahí sale la
+    // declaración cuando RRHH la aprueba, sin inventarle un nivel a nadie.
+    const dialogo = screen.getByRole('dialog', { name: 'Proponer un taller' });
+    await usuario.click(within(dialogo).getByLabelText('Habilidad'));
+    await usuario.click(within(dialogo).getByRole('button', { name: 'Enviar a RRHH' }));
 
     await waitFor(() => {
       expect(api.veces('POST /identity/solicitudes/propuesta-de-taller')).toBe(1);

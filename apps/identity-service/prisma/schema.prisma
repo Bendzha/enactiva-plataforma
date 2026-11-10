@@ -326,6 +326,11 @@ model Solicitud {
   estado          EstadoSolicitud @default(PENDIENTE)
   tema            String?
   temaNormalizado String?         @map("tema_normalizado")
+  /// Lo mismo que pide declarar un interés, guardado desde que se propone: al aprobar, la
+  /// declaración de quien propuso queda hecha con lo que esa persona eligió y no con un supuesto.
+  tipoInteres     TipoInteres?    @map("tipo_interes")
+  dimensiones     Dimension[]
+  nivel           NivelDominio?
   detalle         String          @default("")
   motivoRechazo   String?         @map("motivo_rechazo")
   resueltaPorId   String?         @map("resuelta_por_id") @db.Uuid

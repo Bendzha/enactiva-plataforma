@@ -493,6 +493,9 @@ export interface SolicitudDemo {
   empresaId: string;
   solicitanteId: string;
   tipo: 'PROPUESTA_TALLER' | 'CAMBIO_DE_ROL';
+  tipoInteres: 'ENSENAR' | 'APRENDER' | null;
+  dimensiones: readonly ('HABILIDAD' | 'CONTENIDO' | 'ACTITUD')[];
+  nivel: 'BASICO' | 'INTERMEDIO' | 'AVANZADO' | null;
   estado: 'PENDIENTE' | 'APROBADA' | 'RECHAZADA';
   tema: string | null;
   detalle: string;
@@ -510,6 +513,9 @@ export const SOLICITUDES: readonly SolicitudDemo[] = [
     empresaId: PN,
     solicitanteId: `${U}04`,
     tipo: 'PROPUESTA_TALLER',
+    tipoInteres: 'ENSENAR',
+    dimensiones: ['HABILIDAD', 'CONTENIDO'],
+    nivel: 'AVANZADO',
     estado: 'PENDIENTE',
     tema: 'Lectura de planos eléctricos',
     detalle:
@@ -522,6 +528,9 @@ export const SOLICITUDES: readonly SolicitudDemo[] = [
     empresaId: PN,
     solicitanteId: `${U}05`,
     tipo: 'CAMBIO_DE_ROL',
+    tipoInteres: null,
+    dimensiones: [],
+    nivel: null,
     estado: 'PENDIENTE',
     tema: null,
     detalle: 'Me gustaría enseñar lo de planillas que ya hago con mi equipo.',
@@ -533,6 +542,9 @@ export const SOLICITUDES: readonly SolicitudDemo[] = [
     empresaId: PN,
     solicitanteId: `${U}06`,
     tipo: 'PROPUESTA_TALLER',
+    tipoInteres: 'ENSENAR',
+    dimensiones: ['HABILIDAD', 'CONTENIDO'],
+    nivel: 'AVANZADO',
     estado: 'RECHAZADA',
     tema: 'Manejo de grúa horquilla',
     detalle: 'Tengo la licencia al día.',

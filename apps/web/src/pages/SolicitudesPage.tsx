@@ -65,7 +65,7 @@ export function SolicitudesPage() {
       setAviso(
         solicitud.tipo === 'CAMBIO_DE_ROL'
           ? `${nombreDe(solicitud)} ya puede publicar talleres.`
-          : `Aprobaste la propuesta de «${solicitud.tema}». Ahora crea el tema y el taller.`,
+          : `«${solicitud.tema}» quedó en el catálogo y en el perfil de ${nombreDe(solicitud)}. Falta crear el taller.`,
       );
     } catch (fallo) {
       problema(fallo, 'No pudimos aprobar la solicitud.');
@@ -136,7 +136,7 @@ export function SolicitudesPage() {
           </Button>
           {solicitud.tipo === 'PROPUESTA_TALLER' && (
             <span className="self-center text-xs text-texto-suave">
-              Al aprobar, el tema y el taller los creas tú.
+              Al aprobar, el tema entra al catálogo. El taller lo creas tú.
             </span>
           )}
         </div>

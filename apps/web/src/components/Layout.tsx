@@ -20,6 +20,7 @@ const PESTANAS: Pestana[] = [
   { a: '/talleres', texto: 'Talleres', requiereEmpresa: true },
   { a: '/personas', texto: 'Personas', permiso: 'personas:gestionar' },
   { a: '/solicitudes', texto: 'Solicitudes', permiso: 'solicitudes:resolver' },
+  { a: '/temas', texto: 'Temas', permiso: 'temas:crear' },
   { a: '/empresas', texto: 'Empresas', permiso: 'empresas:listar' },
   { a: '/metricas', texto: 'Métricas', permiso: 'metricas-globales:ver' },
   { a: '/equipo', texto: 'Equipo', permiso: 'admins:gestionar' },

@@ -1,4 +1,14 @@
-import { LARGO_MAXIMO_DETALLE, proponerTallerSchema, type TipoInteres } from '@enactiva/shared';
+import {
+  DIMENSIONES,
+  ETIQUETAS_DIMENSION,
+  ETIQUETAS_NIVEL_DOMINIO,
+  LARGO_MAXIMO_DETALLE,
+  NIVELES_DOMINIO,
+  proponerTallerSchema,
+  type Dimension,
+  type NivelDominio,
+  type TipoInteres,
+} from '@enactiva/shared';
 import { useState, type FormEvent } from 'react';
 import { Alert } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
@@ -16,16 +26,23 @@ interface Props {
   onCerrar: () => void;
 }
 
-const TEXTOS: Record<TipoInteres, { titulo: string; ayuda: string; etiqueta: string }> = {
+const TEXTOS: Record<
+  TipoInteres,
+  { titulo: string; ayuda: string; etiqueta: string; nivel: string; alAprobar: string }
+> = {
   ENSENAR: {
     titulo: 'Proponer un taller',
     ayuda: 'RRHH decide si agrega el tema al catálogo y crea el taller.',
     etiqueta: '¿Qué enseñarías? (opcional)',
+    nivel: '¿Cuánto lo dominas?',
+    alAprobar: 'Si RRHH lo aprueba, el tema queda en el catálogo y en lo que puedes enseñar.',
   },
   APRENDER: {
     titulo: 'Pedir un taller',
     ayuda: 'RRHH decide si agrega el tema al catálogo y busca quién pueda enseñarlo.',
     etiqueta: '¿Por qué te interesa? (opcional)',
+    nivel: '¿Desde dónde partes?',
+    alAprobar: 'Si RRHH lo aprueba, el tema queda en el catálogo y en lo que quieres aprender.',
   },
 };
 
@@ -37,6 +54,8 @@ const TEXTOS: Record<TipoInteres, { titulo: string; ayuda: string; etiqueta: str
  */
 export function ProponerTaller({ abierto, tema, tipo, onCerrar }: Props) {
   const [detalle, setDetalle] = useState('');
+  const [dimensiones, setDimensiones] = useState<Dimension[]>([]);
+  const [nivel, setNivel] = useState<NivelDominio>('INTERMEDIO');
   const [error, setError] = useState<string | null>(null);
   const [enviada, setEnviada] = useState(false);
   const proponer = useProponerTaller();
@@ -44,16 +63,32 @@ export function ProponerTaller({ abierto, tema, tipo, onCerrar }: Props) {
 
   const cerrar = () => {
     setDetalle('');
+    setDimensiones([]);
+    setNivel('INTERMEDIO');
     setError(null);
     setEnviada(false);
     onCerrar();
+  };
+
+  const alternarDimension = (dimension: Dimension) => {
+    setDimensiones((actuales) =>
+      actuales.includes(dimension)
+        ? actuales.filter((d) => d !== dimension)
+        : [...actuales, dimension],
+    );
   };
 
   const enviar = async (evento: FormEvent) => {
     evento.preventDefault();
     setError(null);
 
-    const validacion = proponerTallerSchema.safeParse({ tema, detalle });
+    const validacion = proponerTallerSchema.safeParse({
+      tema,
+      tipoInteres: tipo,
+      dimensiones,
+      nivel,
+      detalle,
+    });
     if (!validacion.success) {
       setError(validacion.error.issues[0]?.message ?? 'Revisa los datos');
       return;
@@ -76,8 +111,8 @@ export function ProponerTaller({ abierto, tema, tipo, onCerrar }: Props) {
     return (
       <Dialog abierto={abierto} titulo="Enviada a RRHH" onCerrar={cerrar}>
         <p className="text-sm text-texto-suave">
-          Tu solicitud sobre «{tema}» quedó pendiente. Puedes ver en qué queda, y el motivo si la
-          rechazan, en «Mi perfil».
+          Tu solicitud sobre «{tema}» quedó pendiente. {textos.alAprobar} Puedes ver en qué queda, y
+          el motivo si la rechazan, en «Mi perfil».
         </p>
         <div className="mt-6 flex justify-end">
           <Button type="button" onClick={cerrar}>
@@ -101,6 +136,43 @@ export function ProponerTaller({ abierto, tema, tipo, onCerrar }: Props) {
           </p>
         </div>
 
+        {/* Lo mismo que pide declarar un interés. Va acá para que, al aprobarse, la declaración
+            quede hecha con lo que esta persona eligió y no con un nivel inventado. */}
+        <fieldset>
+          <legend className="mb-1.5 text-sm font-medium text-texto">
+            ¿Qué se pone en juego? Elige una o más
+          </legend>
+          <div className="flex flex-wrap gap-4">
+            {DIMENSIONES.map((dimension) => (
+              <label key={dimension} className="flex items-center gap-2 text-sm">
+                <input
+                  type="checkbox"
+                  className="size-4 accent-marca"
+                  checked={dimensiones.includes(dimension)}
+                  onChange={() => alternarDimension(dimension)}
+                />
+                {ETIQUETAS_DIMENSION[dimension]}
+              </label>
+            ))}
+          </div>
+        </fieldset>
+
+        <div>
+          <Label htmlFor="nivel-propuesto">{textos.nivel}</Label>
+          <select
+            id="nivel-propuesto"
+            value={nivel}
+            onChange={(e) => setNivel(e.target.value as NivelDominio)}
+            className="mt-1 w-full rounded-md border border-borde px-3 py-2 text-sm focus:border-marca focus:outline-none"
+          >
+            {NIVELES_DOMINIO.map((opcion) => (
+              <option key={opcion} value={opcion}>
+                {ETIQUETAS_NIVEL_DOMINIO[opcion]}
+              </option>
+            ))}
+          </select>
+        </div>
+
         <div>
           <Label htmlFor="detalle">{textos.etiqueta}</Label>
           <textarea
@@ -116,6 +188,8 @@ export function ProponerTaller({ abierto, tema, tipo, onCerrar }: Props) {
             No escribas datos personales tuyos ni de nadie.
           </p>
         </div>
+
+        <p className="text-xs text-texto-suave">{textos.alAprobar}</p>
 
         {error && <Alert>{error}</Alert>}
 
