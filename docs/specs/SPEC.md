@@ -1,7 +1,7 @@
 # Especificación — la plataforma (MVP piloto ENACTIVA)
 
-**Estado:** Aprobada por el equipo (2026-09-15) · **Revisada con la clienta el 2026-09-29** · **Alcance cerrado el 2026-10-13**
-**Fuentes:** prompt de arquitectura del equipo, `docs/arquitectura-tecnica.md`, `docs/informe-fase1.docx`, `docs/mockup-sistema.html`, respuestas de la clienta (2026-09-15), **acta de la reunión con la clienta del 2026-09-29**, **respuestas de la clienta del 2026-10-13**.
+**Estado:** Aprobada por el equipo (2026-09-15) · **Revisada con la clienta el 2026-09-29** · **Alcance cerrado el 2026-10-13** · **Correcciones de la clienta el 2026-10-29**
+**Fuentes:** prompt de arquitectura del equipo, `docs/arquitectura-tecnica.md`, `docs/informe-fase1.docx`, `docs/mockup-sistema.html`, respuestas de la clienta (2026-09-15), **acta de la reunión con la clienta del 2026-09-29**, **respuestas de la clienta del 2026-10-13**, **reunión del 2026-10-29** (`docs/reuniones/2026-10-29-reunion-karina.md`).
 
 > **Qué cambió el 2026-09-29.** La clienta aclaró que la plataforma **no aloja clases**: conecta
 > personas dentro de una misma empresa y convoca a talleres que ocurren en persona (ADR-0008).
@@ -20,6 +20,17 @@
 > vacías a propósito. También quedó cerrado que el producto se llama **ENACTIVA**, que el código
 > mantiene el vocabulario actual (curso, capacitador), y las respuestas sobre valoración,
 > referencias y tokens (§3.5).
+
+> **Qué cambió el 2026-10-29.** La clienta vio el sistema funcionando y corrigió sobre lo que tenía
+> en pantalla. Nada de esto cambia la forma del producto; ajusta reglas y pantallas:
+> el **catálogo de temas pasa a ser solo de RRHH**, y quien enseña **propone** por una solicitud
+> que RRHH aprueba o rechaza (§3.2); lo mismo para **pasar de quien aprende a quien enseña** (§2);
+> los **tokens** cambian de regla y dependen de una **lista de asistencia** que pasa quien dicta
+> (§3.5); el recuento de tokens es **privado** (§3.5), lo que cierra la lectura abierta que el
+> equipo había tomado; **cada empresa personaliza su entorno** con su logo y sus colores (§3.8 y
+> ADR-0011), lo que **revierte** una decisión del equipo que estaba en §4; los roles se llaman
+> **«Quien enseña»** y **«Quien aprende»** en pantalla; y el login tiene recuperación de
+> contraseña. Detalle y citas textuales en `docs/reuniones/2026-10-29-reunion-karina.md`.
 
 > Trazabilidad (mismo marco del informe): **[C]** confirmado por la clienta · **[S]** supuesto del equipo, por validar · **[P]** propuesta técnica del equipo · **[E]** decisión del equipo que la clienta delegó.
 > `docs/requerimientos.xlsx` es **histórico** (describe el concepto previo de cartografía de red / simulador) y no es fuente de verdad.
@@ -42,11 +53,34 @@ Una persona puede tener **varios roles a la vez** (ej. Capacitador y Estudiante)
 |---|---|---|
 | Admin ENACTIVA — **Principal** (Karina) | Todas las empresas | Todo lo del Admin Operativo + métricas/dashboards globales + gestión de otros admins **[C]** |
 | Admin ENACTIVA — **Operativo** (equipo de Karina) | Todas las empresas | Cargar empresas, enviar/reenviar invitaciones **[C]**. **No** activa empresas **[C]**. **No** ve métricas ni dashboards **[C]** (la clienta lo plantea como necesidad futura; se diseña así desde ya) |
-| RRHH | Solo su empresa | Dashboard y reportes de su empresa, con resultados individuales nominativos **[C]**; crea temas **[C]** |
-| Capacitador | Sus cursos | Publica la ficha de sus talleres y declara su disponibilidad **[C]**; crea temas **[C]**. ~~Carga contenido~~ (acta 2026-09-29) y ~~define rúbrica y evalúa~~ (2026-10-13, ADR-0010) |
-| Estudiante | Lo propio | Declara intereses, hace swipe, se inscribe y valora el encuentro al final **[C]**. ~~Rinde tests~~ (2026-10-13, ADR-0010) |
+| RRHH | Solo su empresa | Dashboard y reportes de su empresa, con resultados individuales nominativos **[C]**; **es el único que crea temas** **[C, 2026-10-29]**; crea y elimina talleres **[C, 2026-10-29]**; resuelve las solicitudes de su empresa **[C, 2026-10-29]**; personaliza el entorno de su empresa (§3.8) **[C, 2026-10-29]**; oculta referencias **[C]** |
+| Capacitador — **«Quien enseña»** en pantalla | Sus cursos | Publica la ficha de sus talleres, declara su disponibilidad **[C]** y **pasa la lista de asistencia** al terminar **[C, 2026-10-29]**. **Ya no crea temas**: los **propone** a RRHH (§3.2) **[C, 2026-10-29]**. ~~Carga contenido~~ (acta 2026-09-29) y ~~define rúbrica y evalúa~~ (2026-10-13, ADR-0010) |
+| Estudiante — **«Quien aprende»** en pantalla | Lo propio | Declara intereses, hace swipe, se inscribe y valora el encuentro al final **[C]**. Puede **pedirle a RRHH el rol de quien enseña** **[C, 2026-10-29]**. ~~Rinde tests~~ (2026-10-13, ADR-0010) |
 
 Los permisos se definen como un **mapa rol → permisos en código** (ver ADR-0003), no como tablas editables **[P]**.
+
+**Los nombres de los roles son etiquetas de pantalla** **[C, 2026-10-29]**: *«los nuevos roles son
+capacitador pasa a ser quien enseña y estudiante quien aprende»*. El código mantiene
+`CAPACITADOR` y `ESTUDIANTE`, como quedó cerrado en Q11; lo que cambia es lo que lee la gente.
+Renombrar los enums sería una migración de las tres bases para ganar nada **[P]**.
+
+### Solicitudes a RRHH
+Dos cosas que una persona ya no puede hacer sola y ahora pide **[C, 2026-10-29]**:
+
+| Solicitud | Quién la hace | Qué pasa al aprobarla |
+|---|---|---|
+| **Proponer un taller o un tema** | Quien enseña | RRHH crea el taller y el tema **a mano**; la aprobación solo cambia el estado |
+| **Pasar a «quien enseña»** | Quien aprende | RRHH le agrega el rol |
+
+- La aprobación **no crea nada por sí sola** **[C]**: *«mediante la solicitud el estado se aprueba
+  y allí RRHH tiene que crear el taller, el tema en sí»*. Es deliberado: RRHH controla el catálogo,
+  y una propuesta aprobada automáticamente le quitaría ese control por la puerta de atrás.
+- El rechazo puede ir **con motivo o sin motivo** **[C]**.
+- **Son flujos separados** **[C]**: *«sobre los roles que sean asuntos separados, no que puedan
+  haber 2 en una solicitud»*. Una solicitud es de una cosa o de la otra.
+- Hoy el único camino para pedir un tema es un texto dentro del diálogo de «quiero aprender /
+  puedo enseñar» que dice «pídele a RRHH que lo agregue». La clienta lo dio por mal hecho:
+  *«ya que ahora está mal y lo hace mediante la sección de que quiero aprender»* **[C]**.
 
 ## 3. Reglas de dominio
 
@@ -61,6 +95,9 @@ Los permisos se definen como un **mapa rol → permisos en código** (ver ADR-00
 
 - El facilitador publica una **ficha del taller** con: nombre, fecha, horario, cupo, objetivo,
   resultados esperados y **ubicación de la actividad presencial** **[C, acta 2026-09-29]**.
+- **RRHH también crea y elimina talleres de su empresa** **[C, 2026-10-29]**, y es quien crea el
+  taller cuando aprueba una propuesta (§2).
+- **Un taller es de una sola sesión** **[E, 2026-11-09]** mientras Q20 siga abierta.
 - La ficha cuelga de un **tema del catálogo** de la empresa **[P]**: sin tema no habría con qué armar
   el mazo del swipe, que es por donde la gente busca (§3.6). El tema no se cambia después, porque
   quien se inscribió lo hizo por ese tema.
@@ -131,7 +168,8 @@ arreglar unos lentes de META.
   materiales. **Escala de 1 a 5** **[C, 2026-10-24]**. **Son siempre esas
   cuatro** **[C, 2026-10-13]**: *"Son siempre esas 4, se pueden agrega o cambiar en un futuro"*, así que
   se guardan como datos y no como columnas, para que sumar una quinta no sea una migración. Q16 resuelta.
-- **Asistencia**, marcada por el participante **[C]**.
+- ~~**Asistencia**, marcada por el participante~~ ⛔ **Movida el 2026-10-29**: la pasa **quien
+  dicta**, en la lista de asistencia de más abajo. El formulario de valoración ya no la pregunta.
 - **Referencia en texto libre**, declarada **"info pública"** por la clienta **[C]**. Se ve **dentro de
   la empresa**, firmada por quien la escribe, y **RRHH puede ocultarla dejando registro** **[C,
   2026-10-13]**: *"Claro, podria manejarse como temas sensibles"*. Q17 resuelta; las salvaguardas del
@@ -151,13 +189,48 @@ Las contestan **ambas personas, después de la primera reunión** **[C, 2026-10-
 post primera reunion"*. Si solo una responde, el match queda puntuado con esa respuesta: la otra parte
 no puede dejar a nadie esperando **[P]**. Q15 resuelta.
 
+#### Lista de asistencia
+> Nueva el 2026-10-29. Existe porque de ella dependen los tokens: *«hay que hacer un sistema de
+> asistencia con las personas inscritas»* **[C]**.
+
+- **La pasa quien dicta**, al terminar el taller, sobre la lista de sus inscritos **[C, 2026-10-29]**.
+- **Reemplaza la asistencia que declaraba el participante** sobre sí mismo —el ✅ del ejemplo de
+  §3.5— **[P]**. Dos respuestas distintas a «¿fuiste?» dejarían el recuento de tokens en disputa
+  justo cuando empezó a valer algo fuera de la plataforma, y la de quien dicta es la que la empresa
+  reconocería.
+- Cerrar la lista es lo que **paga los tokens**, en una sola transacción **[P]**, y ocurre **una
+  vez**: un recuento que se puede recalcular es un recuento que se puede cambiar.
+- **La lista solo la ve quien dicta** **[P]**. A cualquier otro se le responde **404 y no 403**:
+  un 403 confirmaría que ese taller existe y quién lo dicta.
+
 #### Tokens de reconocimiento
-- Quien enseñó recibe **tokens de regalo** como reconocimiento **[C]**. **Uno por taller** que
-  reciba al menos una valoración **[E]**: la clienta no dijo cuántos, y contar por taller premia
-  dictar sin que el número dependa de cuánta gente se acordó de valorar.
-- **Quién ve el recuento:** cualquiera de la empresa **[E]**. La clienta dijo *"visibles pero
-  privados"*, que admite dos lecturas; el equipo tomó la más abierta, porque un reconocimiento que
-  nadie ve no reconoce nada. **Está preguntado.**
+> Reescrita el 2026-10-29. La regla anterior —uno por taller con al menos una valoración— era del
+> equipo **[E]** porque la clienta no había dicho cuántos. Ahora lo dijo, y esto la reemplaza.
+
+La clienta lo dio así, textual **[C, 2026-10-29]**:
+
+> *«Tokens por asistencia solamente se dará tokens al completar el curso con asistencia del 100%,
+> y al capacitador se le darán tokens por inscripción: 2 tokens si son menos de 5, +1 token
+> adicional si todas las personas que se inscribieron asisten»*
+
+Dejaba dos huecos, que contestó preguntada:
+
+| Situación | Tokens | Fuente |
+|---|---|---|
+| Quien enseña, **menos de 5 inscritos** | 2 | **[C]** |
+| Quien enseña, **5 o más inscritos** | 3 | **[C, preguntado]** |
+| Quien enseña, **asistieron todos los inscritos** | +1 | **[C]** |
+| Quien aprende, **asistió** | 1 | **[C, preguntado]** |
+| Taller **sin inscritos** | 0 | **[P]** |
+
+- **Un taller sin inscritos no paga**, aunque «menos de 5» lo incluiría literalmente **[P]**: pagar
+  por un taller al que no fue nadie haría el recuento inflable publicando talleres vacíos.
+- El recuento se guarda como **una fila por (taller, persona, motivo)** **[P]**: así siempre se
+  puede explicar de dónde salió cada token, y corregir un error es borrar una fila y nunca editar
+  un número.
+- **El recuento es privado** **[C, 2026-10-29]**: *«los tokens tienen que ser privados»*. Cada
+  quien ve el suyo y RRHH el de su empresa. Cierra la lectura abierta que el equipo había tomado
+  de *«visibles pero privados»*.
 - **Sirven para canjear cosas, pero el canje lo administra cada empresa fuera de la plataforma**
   **[C, 2026-10-13]**: *"para canjear cosas, pero la empresa ve que valene sos tokens nosotros solo por
   el momento damos el recuento"*. Q18 resuelta.
@@ -187,7 +260,7 @@ no puede dejar a nadie esperando **[P]**. Q15 resuelta.
 - **Misma área suma** **[E — decisión del equipo, 2026-10-24]**: preguntada, la clienta respondió que las dos opciones le parecían bien. Se mantiene el supuesto porque el taller es presencial y coordinarse en el mismo piso es una ventaja real; quien está en otra área igual aparece, más abajo. Son dos constantes en `apps/matching-service/src/afinidad/score.ts`.
 - El mazo **se arma en cada consulta y no se guarda** **[P]**: un mazo guardado envejece solo —el cupo se llena, el taller ocurre— y mostraría tarjetas que ya no existen. Lo único que se guarda es la decisión.
 - Cada tarjeta **explica en una línea por qué apareció ahí** **[P]**: si el orden no se puede explicar, nadie confía en él.
-- Catálogo de temas: lo crean Admin, RRHH y Capacitador **[C]**. Temas **por empresa**, con nombre normalizado único y buscador que sugiere existentes antes de crear **[P]** (evita duplicados que romperían el matching).
+- Catálogo de temas: ~~lo crean Admin, RRHH y Capacitador~~ → **solo RRHH** **[C, 2026-10-29]**. Quien enseña lo **propone** por una solicitud (§2). Temas **por empresa**, con nombre normalizado único y buscador que sugiere existentes antes de crear **[P]** (evita duplicados que romperían el matching).
 
 #### Perfil corporativo (construido en el Slice 4)
 - Cada persona declara, sobre un tema del catálogo de su empresa, que **puede enseñarlo** o que **quiere aprenderlo** **[C]**. Un mismo tema admite las dos cosas: enseñar Excel no impide querer aprenderlo mejor **[P]**.
@@ -212,11 +285,33 @@ no puede dejar a nadie esperando **[P]**. Q15 resuelta.
 - Minimización: no se recolecta RUT, teléfono, fecha de nacimiento ni foto **[P]**.
 - HTTPS obligatorio. Sin cifrado a nivel de campo (rompe agregaciones); se reevalúa si se agregan comentarios libres **[P]**.
 
+### 3.8 Personalización por empresa
+> Nueva el 2026-10-29. **Revierte** la decisión del equipo que listaba «colores por empresa» en §4
+> como fuera de alcance. Ver **ADR-0011**.
+
+- Cada empresa personaliza **su logo y cuatro colores** **[C]**, y **lo hace RRHH** de esa empresa
+  **[C]**: *«todo lo hace RRHH de cada empresa»*.
+- Alcanza **solo a su propio entorno** **[C]**: *«eso no cambiará ni el login ni las demás empresas
+  ni ENACTIVA»*. El login queda fuera porque es anterior a la sesión —nadie sabe aún de qué empresa
+  es quien mira— y porque la clienta lo cerró aparte: *«déjemelos como están»*.
+- Es **opcional**: quien no personaliza se queda con la plantilla actual, que pasa a ser el valor
+  por omisión **[C]**.
+- **El contraste no se fuerza** **[C]**: *«da igual que los colores se contrasten, eso lo tienen
+  que ver ellos»*. El formulario avisa cuando un color queda ilegible, pero no bloquea **[E]**.
+- Lo único que se valida es que el color sea **hexadecimal** **[P]**: de ahí sale una variable CSS,
+  y un valor libre sería una inyección en la hoja de estilos.
+
 ## 4. Fuera de alcance
 **Alojar clases o material: la plataforma no es un Moodle** **[C, acta 2026-09-29]** ·
 **Medir cuánto aprendió alguien: rúbrica, tests, logro y delta** **[C, 2026-10-13, ADR-0010]** · LMS con catálogo ·
-IA generativa de contenidos · SaaS multi-tenant · certificación externa · colores por empresa
-(paleta fija `#00347A` / blanco / `#FFB627`).
+IA generativa de contenidos · SaaS multi-tenant · certificación externa.
+
+~~Colores por empresa (paleta fija `#00347A` / blanco / `#FFB627`)~~ ⛔ **Sale de aquí el
+2026-10-29**: la clienta pidió lo contrario y ahora está en §3.8 (ADR-0011). Era una decisión del
+equipo que nunca se le preguntó.
+
+**Límites de cursos por empresa o por persona:** la clienta **preguntó si existían**, no pidió que
+existieran **[C, 2026-10-29]**. No se construye nada hasta que diga cuántos y de qué.
 
 Las métricas globales avanzadas (patrones de intereses entre empresas, detección de oportunidades de
 nuevos servicios) quedan para **una fase posterior**: las métricas actuales del panel le bastan a la
@@ -287,6 +382,10 @@ export class EmpresasController {
 3. Un facilitador publica la ficha de un taller y tanto él como los inscritos lo ven en su agenda y reciben el recordatorio por correo.
 4. Tras un taller, quien asistió lo valora con estrellas, deja su referencia y el facilitador recibe sus tokens.
 5. RRHH ve el dashboard de su empresa, con las puntuaciones de los matches, y lo exporta a PDF y Excel.
+   ⚠️ **Es el único de los siete sin cumplir.** RRHH ya ve las métricas de intereses de su empresa,
+   pero las puntuaciones de los matches se guardan sin agregarse en ninguna pantalla, y la
+   exportación a PDF y Excel no existe. El criterio se escribió antes de que cayera el modelo de
+   evaluación (ADR-0010), así que **hay que confirmar con qué contenido sigue en pie**: ver Q22.
 6. Ningún usuario puede leer datos de otra empresa (verificado por tests e2e).
 7. Un usuario puede exportar sus datos y solicitar supresión; toda acción queda en auditoría.
 
@@ -302,8 +401,12 @@ El 2026-10-13 la clienta contestó las nueve que bloqueaban el desarrollo
 | Q1 | Nombre del dominio de ENACTIVA y quién administra su DNS (para SPF/DKIM). **Por ahora todo se trabaja en local** (correos en Mailpit); se define al publicar | Despliegue público |
 | **Q3** | **Texto del aviso de privacidad y de los términos legales.** Karina quedó de revisarlo (acta 2026-09-29) y pidió avanzar con un texto de ejemplo mientras tanto (2026-10-24). El texto real tiene que declarar las referencias públicas entre colegas (Q17) y los tokens **antes** de que alguien escriba la primera | Publicación |
 
-| Q13 | ¿Cómo se enlaza con la web de ENACTIVA: botón de acceso, redirección, o software aparte? Karina quedó de averiguarlo | Despliegue público |
+| Q13 | ¿Cómo se enlaza con la web de ENACTIVA: botón de acceso, redirección, o software aparte? Karina quedó de averiguarlo. El 2026-10-29 mencionó que tiene hosting en **HostNet** | Despliegue público |
 | Q14 | Modelo comercial: ¿se vende la aplicación completa o se incorpora una empresa como cliente? Quedó pendiente en el acta | Fuera del MVP |
+| Q20 | **Talleres de varias sesiones** (2026-10-29): ¿se pasa lista por sesión? ¿El 100% de asistencia es de todas las sesiones? ¿Los tokens se pagan al cerrar la última? Cambia qué es «un taller». **Diferido por el equipo** mientras tanto: *«por mientras hay que dejarlo por 1 sesión o como está»* | Volver a tocar la asistencia |
+| Q21 | **¿Los términos y condiciones son otro documento que el aviso de privacidad?** (2026-10-29). Si son dos, son dos aceptaciones con dos versiones, y hay que decidir si a quien ya aceptó se le vuelve a pedir al entrar | El botón de T&C |
+| Q22 | **El dashboard exportable del criterio 5 de §10:** se escribió antes del ADR-0010. ¿Sigue en pie, y con qué contenido —puntuaciones de los matches y estrellas—? ¿El PDF y el Excel son alcance o se declaran fuera? | Cerrar §10 |
+| Q23 | **¿Cuánto dura «mantener sesión iniciada»?** (2026-10-29). Es una decisión de seguridad: en un equipo compartido de planta, un «recordarme» largo deja la sesión de alguien abierta para el turno siguiente | Esa casilla del login |
 
 ### Cerradas
 

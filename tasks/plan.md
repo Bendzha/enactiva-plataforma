@@ -3,7 +3,7 @@
 **Referencias:** `docs/specs/SPEC.md`, `docs/decisions/0001`–`0004`.
 **Regla:** cada tarea deja el proyecto compilando y con tests en verde; una tarea ≈ un commit.
 
-## Estado (actualizado 2026-10-13, tarde)
+## Estado (actualizado 2026-11-10)
 - ✅ **Slice 0 completo** (T0.1 a T0.10, PR #1 a #10).
 - ✅ **Slice 1 completo**: T1.2 a T1.10 mergeadas (PR #11 y #12).
 - ✅ **Slice 2 completo**: T2.1 a T2.5 mergeadas (PR #13).
@@ -16,12 +16,15 @@
 - ✅ **Slice 7 completo** (T7.1 a T7.3): la agenda de cada persona y los recordatorios por correo.
 - ✅ **Exportación y supresión de datos por usuario** (Ley 21.719, criterio 7 de SPEC §10): cada persona se lleva sus datos y borra su cuenta desde «Mi perfil», orquestado en el gateway.
 - ✅ **Slice 8 completo** (T8.1 a T8.7): estrellas, referencias firmadas, tokens, puntuación del match y el cuarto criterio del score.
-- ⏭️ Siguiente: la **fase M4** (pipeline de CI por servicio y README de despliegue), que es lo único que queda sin construir.
+- ✅ **Correcciones de la reunión del 2026-10-29** (PR #35, mergeado): login «ENACTIVA Match», recuperar contraseña, lista de asistencia, tokens nuevos, tokens privados, temas solo de RRHH y los roles renombrados en pantalla. Detalle más abajo.
+- ⏭️ **Siguiente, por orden:** el **Slice 10** (solicitudes a RRHH) y el **Slice 11** (personalización por empresa), que es lo que la clienta pidió el 29 y todavía no existe. Después la **fase M4** (pipeline de CI por servicio y README de despliegue).
+- 🟠 **El 2026-10-29 la clienta corrigió sobre el sistema funcionando** (`docs/reuniones/2026-10-29-reunion-karina.md`). No cambia la forma del producto: ajusta reglas y pantallas. Lo que trajo trabajo nuevo son las **solicitudes a RRHH** y la **personalización por empresa** (ADR-0011), que **revierte** una decisión del equipo que estaba en «Fuera de alcance».
+- ⚠️ **El criterio 5 de SPEC §10 es el único de los siete sin cumplir**: el dashboard de RRHH con las puntuaciones de los matches, exportado a PDF y Excel. Se escribió antes del ADR-0010 y hay que confirmar con qué contenido sigue en pie (Q22). Importa para la defensa.
 - 🔴 **El 2026-09-29 la clienta cambió el alcance** (ADR-0008): la plataforma no aloja clases. Cae la subida de contenidos; aparecen la ficha del taller, el cupo, la ubicación, la disponibilidad, la agenda y los recordatorios.
 - 🎮 **Segundo eje del producto** (WhatsApp de la clienta, 2026-09-29, ADR-0009): valoración del encuentro con estrellas, referencias públicas y tokens de reconocimiento. "Match corporativo + gamificación corporativa". Es el Slice 8.
 - 🟢 **El 2026-10-13 la clienta cerró el alcance** (ADR-0010): se elimina el modelo de evaluación —etapas, rúbrica, logro, delta, mediciones y tests—. *"Lo mejor es que sea sólo conectar y convocar"*. Cae el Slice 9 completo.
 - ✅ También quedó cerrado: el producto se llama **ENACTIVA**, el código mantiene `curso` y `capacitador`, el match lo puntúan ambas partes, las 4 estrellas son fijas, las referencias se moderan y los tokens solo se cuentan.
-- ❓ **Lo que sigue abierto no frena nada**: el aviso de privacidad (Q3, urgente antes del Slice 8), la escala de estrellas (Q5), el dominio (Q1), el enlace con la web (Q13) y el modelo comercial (Q14).
+- ❓ **Lo que sigue abierto no frena construir**: el aviso de privacidad (Q3, bloquea **publicar**), el dominio (Q1), el enlace con la web y HostNet (Q13), el modelo comercial (Q14), los talleres de varias sesiones (Q20), si los T&C son otro documento (Q21), el dashboard exportable (Q22) y cuánto dura «mantener sesión iniciada» (Q23).
 - 👀 La plataforma se abre en http://localhost:5173: ver "Levantar la plataforma en local" en el README.
 
 **En un PC nuevo:** Docker Desktop → `docker compose up -d --wait` → `pnpm install` → copiar `.env.example` a `.env` y completar los secretos → `pnpm --filter identity-service db:deploy` → `pnpm --filter identity-service db:seed` → `pnpm test`.
@@ -273,11 +276,11 @@ Lo que apareció al construirlo:
 
 | # | Tarea | Criterio de aceptación | Estado |
 |---|---|---|---|
-| T8.1 | Migración: `ValoracionTaller` (estrellas por dimensión, asistencia), `Referencia` y `Token` | solo valora quien asistió, y una sola vez por taller. Las 4 dimensiones van como **filas**, no como columnas | ✅ |
+| T8.1 | Migración: `ValoracionTaller` (estrellas por dimensión), `Referencia` y `Token` | se valora una sola vez por taller. Las 4 dimensiones van como **filas**, no como columnas. ~~La asistencia iba acá~~ → se movió a la lista de quien dicta (R29.4) | ✅ |
 | T8.2 | Migración: puntuación del match (¿se reunieron?, ¿a la hora?, ¿como esperaban?, ¿repetirían?) | la contestan **ambas partes** tras la primera reunión; con una sola respuesta el match ya queda puntuado | ✅ |
-| T8.3 | API de valoración: estrellas, asistencia y referencia | la referencia se firma con el nombre de quien la escribe | ✅ |
+| T8.3 | API de valoración: estrellas y referencia | la referencia se firma con el nombre de quien la escribe | ✅ |
 | T8.4 | API de moderación para RRHH: ocultar una referencia, con auditoría | no se borra, se oculta, y el motivo queda guardado | ✅ |
-| T8.5 | Tokens del facilitador: recuento por taller, auditado y no editable a mano | **uno por taller** con al menos una valoración; el canje lo administra la empresa fuera de la plataforma (Q18) | ✅ |
+| T8.5 | Tokens del facilitador: recuento por taller, auditado y no editable a mano | ~~uno por taller con al menos una valoración~~ → **reemplazado el 2026-10-29** por la regla de asistencia (R29.5). El canje lo administra la empresa fuera de la plataforma (Q18) | ✅ |
 | T8.6 | El promedio del facilitador alimenta el score de afinidad | matching lo pide por REST a learning; cuenta **desde la tercera valoración** | ✅ |
 | T8.7 | Web: valorar desde la agenda, y tarjeta de reconocimiento con estrellas, referencias y tokens | como el ejemplo que mandó la clienta | ✅ |
 
@@ -302,8 +305,10 @@ Lo que apareció al construirlo:
 - **Las referencias entraron en la Ley 21.719.** Al suprimir una cuenta se van las que escribió
   **y** las que hablan de ella. Sus estrellas se quedan, porque son un agregado sobre un taller
   que otras personas vivieron y ya no apuntan a nadie.
-- **Pendiente para Karina:** el recuento de tokens se ve dentro de toda la empresa, que es una
-  lectura del equipo de su *"visibles pero privados"*. Está marcado `[E]` en la SPEC.
+- **~~Pendiente para Karina~~ → contestado el 2026-10-29:** el recuento de tokens se veía dentro de
+  toda la empresa, que era la lectura abierta que el equipo tomó de su *"visibles pero privados"*.
+  Ella cerró la otra: *«los tokens tienen que ser privados»*. Cada quien ve el suyo y RRHH el de su
+  empresa.
 
 **Sigue sin publicarse hasta el aviso de privacidad (Q3)**: este slice guarda texto libre de una
 persona sobre otra identificada. El borrador de `2026-10-borrador` ya lo menciona, pero la clienta
@@ -318,5 +323,83 @@ ocupan su lugar, pero miden **si el encuentro sirvió**, no cuánto aprendió al
 Con él caen la rúbrica, los indicadores, el umbral, el logro, el delta, las mediciones en tres
 momentos y los tests por nivel. Era la mitad del trabajo que quedaba por hacer.
 
+## Correcciones de la reunión del 2026-10-29 ✅ — PR #35
+**Demo:** la clienta vio el sistema funcionando y corrigió sobre la pantalla. Esto es lo que salió.
+Acta y citas textuales en [`docs/reuniones/2026-10-29-reunion-karina.md`](../docs/reuniones/2026-10-29-reunion-karina.md).
+
+| # | Tarea | Criterio de aceptación | Estado |
+|---|---|---|---|
+| R29.1 | Login «ENACTIVA Match» con la estructura de su boceto y la paleta aprobada | «Entro como» decide la pantalla de partida y solo se respeta si esa cuenta puede usarla | ✅ |
+| R29.2 | **Recuperar contraseña**: enlace de 2 h, de un solo uso, que cierra las demás sesiones | pedirlo responde 204 exista o no la cuenta | ✅ |
+| R29.3 | Los temas los crea **solo RRHH**; quien enseña ve a quién pedírselo | `temas:crear` sale de `CAPACITADOR` | ✅ |
+| R29.4 | **Lista de asistencia** que pasa quien dicta, con nombre y correo de sus inscritos | solo quien dicta la ve; a cualquier otro 404 | ✅ |
+| R29.5 | **Tokens nuevos**: 2 / 3 según inscritos, +1 si van todos, 1 por asistir | una fila por (taller, persona, motivo); cerrar la lista paga una sola vez | ✅ |
+| R29.6 | **Recuento de tokens privado**: cada quien el suyo, RRHH el de su empresa | pedir el de otro responde 403 | ✅ |
+| R29.7 | Los roles se llaman **«Quien enseña»** y **«Quien aprende»** en pantalla | el código mantiene los enums (Q11) | ✅ |
+| R29.8 | Fuera el «logro promedio» de las cuatro pantallas que lo reservaban | ningún resto del modelo de evaluación en pantalla | ✅ |
+
+Lo que apareció al construirlo:
+
+- **La asistencia tuvo que salir del formulario de valoración.** Quien aprendía la declaraba de sí
+  mismo —era el ✅ del ejemplo de la clienta— y ahora la pasa quien dicta. Dos respuestas distintas
+  a «¿fuiste?» dejarían el recuento de tokens en disputa justo cuando empezó a valer algo fuera de
+  la plataforma.
+- **Los tokens pasaron de ser un número a ser filas.** La regla vieja era una por taller; la nueva
+  depende de cuánta gente se inscribió y cuánta fue, así que se guarda **una fila por (taller,
+  persona, motivo)**. Así el recuento siempre se puede explicar, y corregir un error es borrar una
+  fila en vez de editar un número.
+- **`/interno/personas` es la primera ruta que saca correos de identity con el token de una
+  persona.** Existe porque quien enseña necesita reconocer a su gente para pasar lista. Va acotada
+  por empresa y learning solo la llama con los inscritos de ese taller.
+- **Un taller sin inscritos no paga tokens**, aunque «menos de 5» lo incluiría literalmente.
+- **Prisma no pudo generar la migración.** Pedía confirmación interactiva por el cambio de clave
+  única y había una fila que la bloqueaba. Se escribió a mano, con un `DROP TABLE "token"`
+  explícito, y se verificó aplicando las cinco migraciones sobre una base vacía, que es como las
+  corre la CI.
+
+---
+
+## Slice 10 — Solicitudes a RRHH
+**Demo:** quien enseña propone un taller que no está en el catálogo; RRHH lo ve en su bandeja, lo
+aprueba y crea el taller. Y alguien que solo aprende pide pasar a enseñar, y RRHH le da el rol.
+**Pedido por la clienta el 2026-10-29.** Reemplaza el texto «pídele a RRHH que lo agregue» que hoy
+es el único camino, y que la clienta dio por mal hecho. Reglas en SPEC §2.
+
+| # | Tarea | Criterio de aceptación |
+|---|---|---|
+| T10.1 | Migración en `identity_db`: `Solicitud` con tipo, estado, motivo del rechazo y quién resolvió, en `MODELOS_ACOTADOS` | una empresa nunca ve solicitudes de otra; la tabla queda auditada |
+| T10.2 | API: crear una solicitud de **propuesta de taller o tema** | una solicitud es de **un** tipo; no se pueden pedir dos cosas en una |
+| T10.3 | API: crear una solicitud de **cambio de rol** a «quien enseña» | quien ya tiene el rol no puede pedirlo; una pendiente a la vez por persona |
+| T10.4 | API para RRHH: listar, **aprobar** y **rechazar con motivo o sin motivo** | aprobar **solo cambia el estado**: no crea el taller ni el tema ni asigna el rol por sí solo |
+| T10.5 | Al aprobar un cambio de rol, RRHH le agrega el rol desde Personas | el rol nuevo corta la caché de sesión de esa persona |
+| T10.6 | Web: pedir desde el diálogo de «quiero aprender / puedo enseñar», que hoy solo muestra un aviso | la persona ve en qué quedó su solicitud y el motivo si la rechazaron |
+| T10.7 | Web: bandeja de solicitudes de RRHH, con el enlace para crear el taller aprobado | RRHH de una empresa nunca ve la bandeja de otra |
+
+**A decidir al construirlo:** si una propuesta aprobada deja algún rastro que enlace con el taller
+que RRHH crea después, o si se cierra sola. La clienta solo dijo que RRHH lo crea a mano.
+
+## Slice 11 — Personalización por empresa
+**Demo:** RRHH sube el logo de su empresa, elige sus colores y su gente entra a un entorno con su
+marca. El login, ENACTIVA y las demás empresas no cambian.
+**Pedido por la clienta el 2026-10-29.** **Revierte** una decisión del equipo que estaba en «Fuera
+de alcance»: ver [ADR-0011](../docs/decisions/0011-personalizacion-por-empresa.md) y SPEC §3.8.
+
+| # | Tarea | Criterio de aceptación |
+|---|---|---|
+| T11.1 | Migración: la configuración visual de la empresa (logo y cuatro colores), nullable | sin configuración, la plantilla actual sigue siendo el valor por omisión |
+| T11.2 | API para RRHH: leer y guardar la configuración de **su** empresa | RRHH de A no toca la de B; el color se valida como hexadecimal |
+| T11.3 | Guardar el logo | es el primer archivo que sube alguien desde que el ADR-0008 eliminó los contenidos |
+| T11.4 | Web: los colores entran como variables CSS al abrir la sesión | el login y las pantallas de ENACTIVA **no** se personalizan |
+| T11.5 | Web: formulario con vista previa y aviso de contraste que **no bloquea** | la clienta dijo que el contraste lo ven ellos |
+| T11.6 | Sacar los colores escritos a mano que queden en componentes | `accent-[#00347A]` en `AgregarInteres.tsx` es uno; con una empresa personalizada se notarían |
+
+---
+
 ## Pendientes antes de publicar (no bloquean el desarrollo local)
 - SPEC Q1: dominio de ENACTIVA y acceso a su DNS para correo real y subdominios `app.` / `api.`.
+- SPEC Q3: el **texto real del aviso de privacidad**. Es el que de verdad bloquea: el Slice 8 ya
+  guarda texto libre de una persona sobre otra identificada.
+- SPEC Q21: si los **términos y condiciones** son otro documento que el aviso, y qué pasa con quien
+  ya aceptó la versión anterior.
+- SPEC Q22: con qué contenido sigue en pie el **dashboard exportable** del criterio 5 de §10.
+- SPEC Q23: cuánto dura **«mantener sesión iniciada»**.
