@@ -25,6 +25,11 @@ export const PERMISOS = [
    * Solo RRHH: es una decisión laboral dentro de la empresa, no de quien opera la plataforma.
    */
   'referencias:moderar',
+  /**
+   * Resolver las solicitudes de su empresa: proponer un taller y pasar a quien enseña
+   * (SPEC §2, reunión del 2026-10-29). Solo RRHH: es quien controla el catálogo y los roles.
+   */
+  'solicitudes:resolver',
 ] as const;
 export type Permiso = (typeof PERMISOS)[number];
 
@@ -47,7 +52,7 @@ const PERMISOS_POR_ROL: Record<Rol, readonly Permiso[]> = {
   ADMIN_ENACTIVA: [],
   // Gestionar la gente de su empresa es de RRHH; el equipo de ENACTIVA administra el piloto,
   // no el día a día de cada organización.
-  RRHH: ['personas:gestionar', 'temas:crear', 'referencias:moderar'],
+  RRHH: ['personas:gestionar', 'temas:crear', 'referencias:moderar', 'solicitudes:resolver'],
   // Ya no crea temas: el catálogo es de RRHH (2026-10-29). Quien quiera enseñar algo que no
   // está en la lista se lo pide a RRHH; la pantalla se lo dice.
   CAPACITADOR: ['talleres:publicar'],

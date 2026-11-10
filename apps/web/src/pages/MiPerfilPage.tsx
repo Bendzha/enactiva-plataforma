@@ -10,6 +10,7 @@ import { useEffect, useState, type FormEvent } from 'react';
 import { useSesion } from '@/auth/sesion';
 import { AgregarInteres } from '@/components/perfil/AgregarInteres';
 import { MisDatos } from '@/components/perfil/MisDatos';
+import { MisSolicitudes } from '@/components/solicitudes/MisSolicitudes';
 import { Reconocimiento } from '@/components/valoracion/Reconocimiento';
 import { Alert } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
@@ -185,6 +186,7 @@ export function MiPerfilPage() {
             'Todavía no declaraste nada que quieras aprender.',
           )}
           {usuario && <Reconocimiento usuarioId={usuario.id} />}
+          <MisSolicitudes />
           <MisDatos puedeEliminar />
         </div>
       )}

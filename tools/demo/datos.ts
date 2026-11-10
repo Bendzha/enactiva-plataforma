@@ -483,3 +483,61 @@ export function fechaRelativa(dias: number, hora: number): Date {
   fecha.setHours(hora, 0, 0, 0);
   return fecha;
 }
+
+// ── Solicitudes a RRHH (reunión del 2026-10-29) ──────────────────────────────
+
+const S = '01993000-0007-7000-8000-0000000000';
+
+export interface SolicitudDemo {
+  id: string;
+  empresaId: string;
+  solicitanteId: string;
+  tipo: 'PROPUESTA_TALLER' | 'CAMBIO_DE_ROL';
+  estado: 'PENDIENTE' | 'APROBADA' | 'RECHAZADA';
+  tema: string | null;
+  detalle: string;
+  motivoRechazo: string | null;
+  resueltaPorId: string | null;
+}
+
+/**
+ * Para que la bandeja de RRHH tenga algo que mostrar en la demo: una pendiente de cada tipo, y
+ * una rechazada con motivo, que es donde se ve que el motivo le llega a quien pidió.
+ */
+export const SOLICITUDES: readonly SolicitudDemo[] = [
+  {
+    id: `${S}01`,
+    empresaId: PN,
+    solicitanteId: `${U}04`,
+    tipo: 'PROPUESTA_TALLER',
+    estado: 'PENDIENTE',
+    tema: 'Lectura de planos eléctricos',
+    detalle:
+      'Lo hago todos los días en el turno y a los nuevos les cuesta. Un taller de dos horas en la sala de mantención alcanza.',
+    motivoRechazo: null,
+    resueltaPorId: null,
+  },
+  {
+    id: `${S}02`,
+    empresaId: PN,
+    solicitanteId: `${U}05`,
+    tipo: 'CAMBIO_DE_ROL',
+    estado: 'PENDIENTE',
+    tema: null,
+    detalle: 'Me gustaría enseñar lo de planillas que ya hago con mi equipo.',
+    motivoRechazo: null,
+    resueltaPorId: null,
+  },
+  {
+    id: `${S}03`,
+    empresaId: PN,
+    solicitanteId: `${U}06`,
+    tipo: 'PROPUESTA_TALLER',
+    estado: 'RECHAZADA',
+    tema: 'Manejo de grúa horquilla',
+    detalle: 'Tengo la licencia al día.',
+    motivoRechazo:
+      'Esa certificación la da un organismo externo, no la podemos cubrir internamente.',
+    resueltaPorId: `${U}03`,
+  },
+];

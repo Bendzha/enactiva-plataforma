@@ -97,6 +97,7 @@ model Empresa {
   usuarios    Usuario[] @relation("UsuariosDeEmpresa")
   areas       Area[]
   temas       Tema[]
+  solicitudes Solicitud[]
 
   @@map("empresa")
 }
@@ -147,6 +148,8 @@ model Usuario {
   temasCreados      Tema[]            @relation("TemaCreadoPor")
   empresasCreadas   Empresa[]         @relation("EmpresaCreadaPor")
   empresasActivadas Empresa[]         @relation("EmpresaActivadaPor")
+  solicitudes          Solicitud[]    @relation("SolicitudDe")
+  solicitudesResueltas Solicitud[]    @relation("SolicitudResueltaPor")
 
   @@index([empresaId])
   @@map("usuario")
@@ -289,4 +292,52 @@ model RegistroAuditoria {
   @@index([empresaId, createdAt])
   @@index([actorId, createdAt])
   @@map("registro_auditoria")
+}
+
+// ── Solicitudes a RRHH ───────────────────────────────────────────────────────
+
+/// Qué se le pide a RRHH. Son dos asuntos separados por decisión de la clienta (2026-10-29):
+/// una solicitud es una propuesta de taller **o** un cambio de rol, nunca las dos cosas.
+enum TipoSolicitud {
+  PROPUESTA_TALLER
+  CAMBIO_DE_ROL
+}
+
+enum EstadoSolicitud {
+  PENDIENTE
+  APROBADA
+  RECHAZADA
+}
+
+/// Una solicitud de alguien de la empresa a su área de RRHH (SPEC §2).
+///
+/// Existe desde que el catálogo de temas es solo de RRHH: quien enseña ya no puede crear el tema
+/// que necesita, así que lo propone. Aprobar **solo cambia el estado** en el caso de la propuesta
+/// de taller, porque la clienta pidió que RRHH cree el taller y el tema a mano.
+///
+/// El tema va como texto libre y no como id a propósito: el sentido de proponerlo es que todavía
+/// no existe en el catálogo. El normalizado solo sirve para no aceptar dos veces la misma
+/// propuesta de la misma persona.
+model Solicitud {
+  id              String          @id @default(uuid(7)) @db.Uuid
+  empresaId       String          @map("empresa_id") @db.Uuid
+  solicitanteId   String          @map("solicitante_id") @db.Uuid
+  tipo            TipoSolicitud
+  estado          EstadoSolicitud @default(PENDIENTE)
+  tema            String?
+  temaNormalizado String?         @map("tema_normalizado")
+  detalle         String          @default("")
+  motivoRechazo   String?         @map("motivo_rechazo")
+  resueltaPorId   String?         @map("resuelta_por_id") @db.Uuid
+  resueltaAt      DateTime?       @map("resuelta_at") @db.Timestamptz(3)
+  createdAt       DateTime        @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt       DateTime        @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  empresa     Empresa  @relation(fields: [empresaId], references: [id], onDelete: Cascade)
+  solicitante Usuario  @relation("SolicitudDe", fields: [solicitanteId], references: [id], onDelete: Cascade)
+  resueltaPor Usuario? @relation("SolicitudResueltaPor", fields: [resueltaPorId], references: [id], onDelete: SetNull)
+
+  @@index([empresaId, estado])
+  @@index([solicitanteId])
+  @@map("solicitud")
 }

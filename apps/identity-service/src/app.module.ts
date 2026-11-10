@@ -16,6 +16,7 @@ import { PersonasModule } from './modules/personas/personas.module.js';
 import { RecuperacionModule } from './modules/recuperacion/recuperacion.module.js';
 import { ProveedorEstadoSesionLocal } from './modules/sesiones/proveedor-estado-sesion.js';
 import { SesionesModule } from './modules/sesiones/sesiones.module.js';
+import { SolicitudesModule } from './modules/solicitudes/solicitudes.module.js';
 
 /**
  * identity-service (ADR-0007): empresas, áreas, personas, invitaciones, temas y correo.
@@ -46,6 +47,7 @@ import { SesionesModule } from './modules/sesiones/sesiones.module.js';
     PersonasModule,
     RecuperacionModule,
     SesionesModule,
+    SolicitudesModule,
     SaludModule.paraServicio('identity-service'),
   ],
   providers: [{ provide: APP_GUARD, useClass: ThrottlerGuard }],

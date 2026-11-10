@@ -17,7 +17,8 @@
 - ✅ **Exportación y supresión de datos por usuario** (Ley 21.719, criterio 7 de SPEC §10): cada persona se lleva sus datos y borra su cuenta desde «Mi perfil», orquestado en el gateway.
 - ✅ **Slice 8 completo** (T8.1 a T8.7): estrellas, referencias firmadas, tokens, puntuación del match y el cuarto criterio del score.
 - ✅ **Correcciones de la reunión del 2026-10-29** (PR #35, mergeado): login «ENACTIVA Match», recuperar contraseña, lista de asistencia, tokens nuevos, tokens privados, temas solo de RRHH y los roles renombrados en pantalla. Detalle más abajo.
-- ⏭️ **Siguiente, por orden:** el **Slice 10** (solicitudes a RRHH), el **Slice 11** (personalización por empresa), el **Slice 12** (términos y condiciones con re-aceptación), el **Slice 13** (el dashboard del Admin Principal) y **endurecer la sesión**. Después la **fase M4** (pipeline de CI por servicio y README de despliegue).
+- ✅ **Slice 10 completo** (T10.1 a T10.7): solicitudes a RRHH para proponer un taller y para pasar a «quien enseña».
+- ⏭️ **Siguiente, por orden:** el **Slice 11** (personalización por empresa), el **Slice 12** (términos y condiciones con re-aceptación), el **Slice 13** (el dashboard del Admin Principal) y **endurecer la sesión**. Después la **fase M4** (pipeline de CI por servicio y README de despliegue).
 - 🟠 **El 2026-10-29 la clienta corrigió sobre el sistema funcionando** (`docs/reuniones/2026-10-29-reunion-karina.md`). No cambia la forma del producto: ajusta reglas y pantallas. Lo que trajo trabajo nuevo son las **solicitudes a RRHH** y la **personalización por empresa** (ADR-0011), que **revierte** una decisión del equipo que estaba en «Fuera de alcance».
 - ⚠️ **El criterio 5 de SPEC §10 es el único de los siete sin cumplir.** Reescrito el 2026-11-10 con lo que contestó la clienta: el dashboard va **dentro del admin de Karina** y **no se exporta**. Es el Slice 13. Importa para la defensa.
 - 📄 **Los dos textos legales son borradores del equipo** y necesitan revisión legal: el aviso de privacidad (`2026-10-borrador`) y los términos y condiciones (`docs/legal/terminos-y-condiciones-borrador.md`, escritos el 2026-11-10 a pedido de la clienta). **Al aviso le falta declarar las referencias y los tokens**, que la SPEC §3.5 exige y el Slice 8 ya guarda.
@@ -360,24 +361,51 @@ Lo que apareció al construirlo:
 
 ---
 
-## Slice 10 — Solicitudes a RRHH
+## Slice 10 — Solicitudes a RRHH ✅
 **Demo:** quien enseña propone un taller que no está en el catálogo; RRHH lo ve en su bandeja, lo
 aprueba y crea el taller. Y alguien que solo aprende pide pasar a enseñar, y RRHH le da el rol.
-**Pedido por la clienta el 2026-10-29.** Reemplaza el texto «pídele a RRHH que lo agregue» que hoy
-es el único camino, y que la clienta dio por mal hecho. Reglas en SPEC §2.
+**Pedido por la clienta el 2026-10-29.** Reemplaza el texto «pídele a RRHH que lo agregue» que era
+el único camino, y que la clienta dio por mal hecho. Reglas en SPEC §2.
 
-| # | Tarea | Criterio de aceptación |
-|---|---|---|
-| T10.1 | Migración en `identity_db`: `Solicitud` con tipo, estado, motivo del rechazo y quién resolvió, en `MODELOS_ACOTADOS` | una empresa nunca ve solicitudes de otra; la tabla queda auditada |
-| T10.2 | API: crear una solicitud de **propuesta de taller o tema** | una solicitud es de **un** tipo; no se pueden pedir dos cosas en una |
-| T10.3 | API: crear una solicitud de **cambio de rol** a «quien enseña» | quien ya tiene el rol no puede pedirlo; una pendiente a la vez por persona |
-| T10.4 | API para RRHH: listar, **aprobar** y **rechazar con motivo o sin motivo** | aprobar **solo cambia el estado**: no crea el taller ni el tema ni asigna el rol por sí solo |
-| T10.5 | Al aprobar un cambio de rol, RRHH le agrega el rol desde Personas | el rol nuevo corta la caché de sesión de esa persona |
-| T10.6 | Web: pedir desde el diálogo de «quiero aprender / puedo enseñar», que hoy solo muestra un aviso | la persona ve en qué quedó su solicitud y el motivo si la rechazaron |
-| T10.7 | Web: bandeja de solicitudes de RRHH, con el enlace para crear el taller aprobado | RRHH de una empresa nunca ve la bandeja de otra |
+| # | Tarea | Criterio de aceptación | Estado |
+|---|---|---|---|
+| T10.1 | Migración en `identity_db`: `Solicitud` con tipo, estado, motivo del rechazo y quién resolvió, en `MODELOS_ACOTADOS` | una empresa nunca ve solicitudes de otra; la tabla queda auditada | ✅ |
+| T10.2 | API: crear una solicitud de **propuesta de taller o tema** | una solicitud es de **un** tipo; no se pueden pedir dos cosas en una | ✅ |
+| T10.3 | API: crear una solicitud de **cambio de rol** a «quien enseña» | quien ya tiene el rol no puede pedirlo; una pendiente a la vez por persona | ✅ |
+| T10.4 | API para RRHH: listar, **aprobar** y **rechazar con motivo o sin motivo** | aprobar una propuesta **solo cambia el estado** | ✅ |
+| T10.5 | El cambio de rol aprobado otorga el rol | el rol nuevo corta la caché de sesión de esa persona | ✅ |
+| T10.6 | Web: pedir desde el diálogo de «quiero aprender / puedo enseñar», que antes solo mostraba un aviso | la persona ve en qué quedó su solicitud y el motivo si la rechazaron | ✅ |
+| T10.7 | Web: bandeja de solicitudes de RRHH | RRHH de una empresa nunca ve la bandeja de otra | ✅ |
 
-**A decidir al construirlo:** si una propuesta aprobada deja algún rastro que enlace con el taller
-que RRHH crea después, o si se cierra sola. La clienta solo dijo que RRHH lo crea a mano.
+Lo que apareció al construirlo:
+
+- **Aprobar hace dos cosas distintas según el tipo, y es a propósito.** La propuesta de taller solo
+  cambia de estado, porque la clienta pidió que RRHH cree el tema y el taller a mano. El cambio de
+  rol **sí otorga el rol** en la misma transacción: no hay nada que RRHH tenga que redactar
+  después, y aprobar sin otorgar dejaría gente aprobada y sin el rol, sin que nada enlace las dos
+  acciones. La pantalla dice cuál es cuál. **Es una decisión del equipo `[E]`** y conviene
+  confirmarla con Karina.
+- **«Una sola pendiente» la garantizan dos índices parciales**, no una comprobación previa: dos
+  clics a la vez pasarían por el medio de un `findFirst`. Prisma no modela índices parciales, así
+  que la migración va escrita a mano. Son dos reglas distintas: **una** solicitud de rol pendiente
+  por persona, pero **varias** propuestas de taller siempre que sean de temas distintos —alguien
+  puede tener dos ideas, y eso no es spam—.
+- **Si el tema ya está en el catálogo no se crea la solicitud**: se responde 409 diciendo que puede
+  publicar el taller directamente. Dejarla entrar llenaría la bandeja de RRHH de cosas que ya
+  estaban resueltas.
+- **Resolver una solicitud de otra empresa responde 404 y no 403**, por lo mismo de siempre: un 403
+  confirmaría que existe, y con ella que alguien de otra empresa pidió algo.
+- **Proponer no exige `talleres:publicar`.** Quien solo aprende también puede pedir un tema que
+  echa de menos, y de todos modos el taller lo crea RRHH. Exigirlo lo dejaría en manos de quienes
+  ya pueden publicar, que son los que menos lo necesitan. En pantalla cambia el texto: desde «puedo
+  enseñar» *propone un taller*, desde «quiero aprender» *lo pide*.
+- **Dos tests del Slice anterior tuvieron que cambiar**, porque esperaban el aviso «pídele a RRHH
+  que lo agregue» que este slice reemplaza. Se actualizaron al comportamiento nuevo, no se
+  desactivaron.
+
+**Sigue a decidir:** si una propuesta aprobada deja algún rastro que enlace con el taller que RRHH
+crea después. Hoy se cierra sola y RRHH crea el taller por su cuenta, que es lo que la clienta
+describió.
 
 ## Slice 11 — Personalización por empresa
 **Demo:** RRHH sube el logo de su empresa, elige sus colores y su gente entra a un entorno con su

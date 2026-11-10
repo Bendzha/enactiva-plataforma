@@ -10,7 +10,7 @@ import { config } from 'dotenv';
 import { PrismaPg } from '@prisma/adapter-pg';
 import { hashPassword } from 'identity-service/src/common/password.js';
 import { PrismaClient } from 'identity-service/src/generated/prisma/client.js';
-import { AREAS, EMPRESAS, INTERESES, passwordDemo, TEMAS, USUARIOS } from './datos.js';
+import { AREAS, EMPRESAS, INTERESES, passwordDemo, SOLICITUDES, TEMAS, USUARIOS } from './datos.js';
 
 config({ path: fileURLToPath(new URL('../../.env', import.meta.url)), quiet: true });
 
@@ -149,9 +149,31 @@ export async function sembrarIdentity(): Promise<void> {
       });
     }
 
+    for (const solicitud of SOLICITUDES) {
+      const resuelta = solicitud.estado !== 'PENDIENTE';
+      await prisma.solicitud.upsert({
+        where: { id: solicitud.id },
+        update: { estado: solicitud.estado, motivoRechazo: solicitud.motivoRechazo },
+        create: {
+          id: solicitud.id,
+          empresaId: solicitud.empresaId,
+          solicitanteId: solicitud.solicitanteId,
+          tipo: solicitud.tipo,
+          estado: solicitud.estado,
+          tema: solicitud.tema,
+          temaNormalizado: solicitud.tema ? normalizar(solicitud.tema) : null,
+          detalle: solicitud.detalle,
+          motivoRechazo: solicitud.motivoRechazo,
+          resueltaPorId: solicitud.resueltaPorId,
+          resueltaAt: resuelta ? new Date() : null,
+        },
+      });
+    }
+
     console.log(
       `identity_db: ${Object.keys(EMPRESAS).length} empresas, ${USUARIOS.length} personas, ` +
-        `${Object.keys(TEMAS).length} temas y ${INTERESES.length} declaraciones de perfil.`,
+        `${Object.keys(TEMAS).length} temas, ${INTERESES.length} declaraciones de perfil ` +
+        `y ${SOLICITUDES.length} solicitudes.`,
     );
   } finally {
     await prisma.$disconnect();
