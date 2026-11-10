@@ -14,6 +14,7 @@ import { MetricasPage } from '@/pages/MetricasPage';
 import { MiPerfilPage } from '@/pages/MiPerfilPage';
 import { PersonasPage } from '@/pages/PersonasPage';
 import { SolicitudesPage } from '@/pages/SolicitudesPage';
+import { TemasPage } from '@/pages/TemasPage';
 import { SinPermisoPage } from '@/pages/SinPermisoPage';
 import { TalleresPage } from '@/pages/TalleresPage';
 
@@ -70,6 +71,14 @@ export function App() {
           element={
             <RutaProtegida permiso="solicitudes:resolver">
               <SolicitudesPage />
+            </RutaProtegida>
+          }
+        />
+        <Route
+          path="/temas"
+          element={
+            <RutaProtegida permiso="temas:crear">
+              <TemasPage />
             </RutaProtegida>
           }
         />

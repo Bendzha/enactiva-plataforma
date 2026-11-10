@@ -103,7 +103,7 @@ export function MisSolicitudes() {
               )}
               {solicitud.estado === 'APROBADA' && solicitud.tipo === 'PROPUESTA_TALLER' && (
                 <p className="mt-2 text-sm text-texto-suave">
-                  Aprobada. RRHH va a crear el tema y el taller.
+                  El tema ya está en el catálogo y en tu perfil. RRHH va a crear el taller.
                 </p>
               )}
             </li>

@@ -1,4 +1,12 @@
 import { z } from 'zod';
+import {
+  DIMENSIONES,
+  NIVELES_DOMINIO,
+  TIPOS_INTERES,
+  type Dimension,
+  type NivelDominio,
+  type TipoInteres,
+} from './enums.js';
 
 /**
  * Solicitudes a RRHH (SPEC §2, reunión del 2026-10-29).
@@ -32,7 +40,11 @@ export const LARGO_MAXIMO_MOTIVO_RECHAZO = 300;
  * Proponer un taller sobre un tema que no está en el catálogo.
  *
  * El tema va como **texto libre** y no como id: el sentido de la solicitud es justamente que ese
- * tema todavía no existe. RRHH lo crea después, si aprueba.
+ * tema todavía no existe.
+ *
+ * Lleva **dimensiones y nivel** desde que se propone, que es lo mismo que pide declarar un
+ * interés. No es burocracia: al aprobarse, RRHH crea el tema y la declaración de quien propuso
+ * queda hecha con lo que esa persona eligió. Sin estos dos campos habría que inventarle un nivel.
  */
 export const proponerTallerSchema = z.object({
   tema: z
@@ -40,6 +52,10 @@ export const proponerTallerSchema = z.object({
     .trim()
     .min(2, 'Escribe el tema del taller')
     .max(LARGO_MAXIMO_TEMA_PROPUESTO, `Máximo ${LARGO_MAXIMO_TEMA_PROPUESTO} caracteres`),
+  /** De qué lado se propone: quien lo va a enseñar, o quien quiere que se lo enseñen. */
+  tipoInteres: z.enum(TIPOS_INTERES),
+  dimensiones: z.array(z.enum(DIMENSIONES)).min(1, 'Elige al menos una dimensión'),
+  nivel: z.enum(NIVELES_DOMINIO),
   detalle: z
     .string()
     .trim()
@@ -74,6 +90,9 @@ export interface MiSolicitud {
   tipo: TipoSolicitud;
   estado: EstadoSolicitud;
   tema: string | null;
+  tipoInteres: TipoInteres | null;
+  dimensiones: Dimension[];
+  nivel: NivelDominio | null;
   detalle: string;
   motivoRechazo: string | null;
   createdAt: string;

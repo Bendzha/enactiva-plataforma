@@ -81,6 +81,7 @@ describe('Solicitudes a RRHH (e2e)', () => {
   beforeEach(async () => {
     await prisma.solicitud.deleteMany({ where: { empresaId: { in: [empresaA, empresaB] } } });
     await prisma.usuarioRol.deleteMany({ where: { usuarioId: aprendeA, rol: 'CAPACITADOR' } });
+    await prisma.perfilInteres.deleteMany({ where: { empresaId: empresaA } });
     await prisma.tema.deleteMany({ where: { empresaId: empresaA } });
   });
 
@@ -91,11 +92,23 @@ describe('Solicitudes a RRHH (e2e)', () => {
 
   const como = (usuarioId: string) => `Bearer ${tokenDeId(app, usuarioId)}`;
 
-  const proponer = (usuarioId: string, tema: string, detalle = 'Lo hago hace años.') =>
+  const proponer = (
+    usuarioId: string,
+    tema: string,
+    detalle = 'Lo hago hace años.',
+    extra: Record<string, unknown> = {},
+  ) =>
     request(app.getHttpServer())
       .post('/solicitudes/propuesta-de-taller')
       .set('Authorization', como(usuarioId))
-      .send({ tema, detalle });
+      .send({
+        tema,
+        detalle,
+        tipoInteres: 'ENSENAR',
+        dimensiones: ['HABILIDAD'],
+        nivel: 'AVANZADO',
+        ...extra,
+      });
 
   const pedirRol = (usuarioId: string, detalle = 'Quiero enseñar soldadura.') =>
     request(app.getHttpServer())
@@ -205,15 +218,82 @@ describe('Solicitudes a RRHH (e2e)', () => {
   });
 
   describe('RRHH resuelve', () => {
-    it('aprobar una propuesta de taller SOLO cambia el estado', async () => {
+    it('aprobar una propuesta crea el tema en el catálogo', async () => {
       const { body } = await proponer(ensenaA, 'Soldadura TIG').expect(201);
 
       const { body: aprobada } = await aprobar(rrhhA, (body as { id: string }).id).expect(200);
 
       expect(aprobada).toMatchObject({ estado: 'APROBADA' });
       expect((aprobada as { resueltaAt: string }).resueltaAt).not.toBeNull();
-      // Lo pidió la clienta: el tema y el taller los crea RRHH a mano después.
+
+      const tema = await prisma.tema.findFirstOrThrow({ where: { empresaId: empresaA } });
+      expect(tema.nombre).toBe('Soldadura TIG');
+      expect(tema.nombreNormalizado).toBe('soldadura tig');
+      // Queda a nombre de quien aprobó: el catálogo es de RRHH.
+      expect(tema.creadoPorId).toBe(rrhhA);
+    });
+
+    it('y deja declarado a quien propuso, con lo que esa persona eligió', async () => {
+      const { body } = await proponer(ensenaA, 'Soldadura TIG', 'Hace años.', {
+        dimensiones: ['HABILIDAD', 'CONTENIDO'],
+        nivel: 'AVANZADO',
+      }).expect(201);
+
+      await aprobar(rrhhA, (body as { id: string }).id).expect(200);
+
+      const declaracion = await prisma.perfilInteres.findFirstOrThrow({
+        where: { usuarioId: ensenaA },
+      });
+      expect(declaracion.tipo).toBe('ENSENAR');
+      expect(declaracion.nivel).toBe('AVANZADO');
+      expect(declaracion.dimensiones).toEqual(['HABILIDAD', 'CONTENIDO']);
+    });
+
+    it('quien pidió el taller desde «quiero aprender» queda declarado así', async () => {
+      const { body } = await proponer(aprendeA, 'Hablar en público', 'Me cuesta.', {
+        tipoInteres: 'APRENDER',
+        nivel: 'BASICO',
+      }).expect(201);
+
+      await aprobar(rrhhA, (body as { id: string }).id).expect(200);
+
+      const declaracion = await prisma.perfilInteres.findFirstOrThrow({
+        where: { usuarioId: aprendeA },
+      });
+      expect(declaracion.tipo).toBe('APRENDER');
+      expect(declaracion.nivel).toBe('BASICO');
+    });
+
+    it('el taller NO se crea: eso lo hace RRHH a mano', async () => {
+      const { body } = await proponer(ensenaA, 'Soldadura TIG').expect(201);
+      await aprobar(rrhhA, (body as { id: string }).id).expect(200);
+
+      // learning_db es de otro servicio y aprobar no la toca. Lo que se crea acá es el tema.
+      const aprobadas = await prisma.solicitud.count({
+        where: { empresaId: empresaA, estado: 'APROBADA' },
+      });
+      expect(aprobadas).toBe(1);
+    });
+
+    it('si alguien creó el tema entremedio, se reusa en vez de fallar', async () => {
+      const { body } = await proponer(ensenaA, 'Soldadura TIG').expect(201);
+      await prisma.tema.create({
+        data: { empresaId: empresaA, nombre: 'Soldadura TIG', nombreNormalizado: 'soldadura tig' },
+      });
+
+      await aprobar(rrhhA, (body as { id: string }).id).expect(200);
+
+      expect(await prisma.tema.count({ where: { empresaId: empresaA } })).toBe(1);
+      expect(await prisma.perfilInteres.count({ where: { usuarioId: ensenaA } })).toBe(1);
+    });
+
+    it('rechazar no crea nada', async () => {
+      const { body } = await proponer(ensenaA, 'Soldadura TIG').expect(201);
+
+      await rechazar(rrhhA, (body as { id: string }).id, 'No da para un taller.').expect(200);
+
       expect(await prisma.tema.count({ where: { empresaId: empresaA } })).toBe(0);
+      expect(await prisma.perfilInteres.count({ where: { usuarioId: ensenaA } })).toBe(0);
     });
 
     it('aprobar un cambio de rol sí otorga el rol', async () => {
@@ -341,6 +421,10 @@ describe('Solicitudes a RRHH (e2e)', () => {
     it('un tema vacío o larguísimo no entra', async () => {
       await proponer(ensenaA, 'x').expect(400);
       await proponer(ensenaA, 'x'.repeat(200)).expect(400);
+    });
+
+    it('sin dimensiones no entra: al aprobar habría que inventarlas', async () => {
+      await proponer(ensenaA, 'Soldadura TIG', 'Hace años.', { dimensiones: [] }).expect(400);
     });
 
     it('un motivo larguísimo no entra', async () => {

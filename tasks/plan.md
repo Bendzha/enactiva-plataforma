@@ -372,19 +372,31 @@ el único camino, y que la clienta dio por mal hecho. Reglas en SPEC §2.
 | T10.1 | Migración en `identity_db`: `Solicitud` con tipo, estado, motivo del rechazo y quién resolvió, en `MODELOS_ACOTADOS` | una empresa nunca ve solicitudes de otra; la tabla queda auditada | ✅ |
 | T10.2 | API: crear una solicitud de **propuesta de taller o tema** | una solicitud es de **un** tipo; no se pueden pedir dos cosas en una | ✅ |
 | T10.3 | API: crear una solicitud de **cambio de rol** a «quien enseña» | quien ya tiene el rol no puede pedirlo; una pendiente a la vez por persona | ✅ |
-| T10.4 | API para RRHH: listar, **aprobar** y **rechazar con motivo o sin motivo** | aprobar una propuesta **solo cambia el estado** | ✅ |
+| T10.4 | API para RRHH: listar, **aprobar** y **rechazar con motivo o sin motivo** | rechazar no crea nada | ✅ |
 | T10.5 | El cambio de rol aprobado otorga el rol | el rol nuevo corta la caché de sesión de esa persona | ✅ |
 | T10.6 | Web: pedir desde el diálogo de «quiero aprender / puedo enseñar», que antes solo mostraba un aviso | la persona ve en qué quedó su solicitud y el motivo si la rechazaron | ✅ |
 | T10.7 | Web: bandeja de solicitudes de RRHH | RRHH de una empresa nunca ve la bandeja de otra | ✅ |
+| T10.8 | **Aprobar una propuesta crea el tema** y deja declarado a quien propuso **[C, 2026-11-10]** | el taller sigue creándolo RRHH a mano | ✅ |
+| T10.9 | La propuesta pide **dimensiones y nivel**, igual que declarar un interés | sin ellos, aprobar tendría que inventarle un nivel a alguien | ✅ |
+| T10.10 | **Pantalla «Temas»**: el catálogo de la empresa, con buscador y alta | antes el único lugar para crear un tema era el diálogo de «Mi perfil» | ✅ |
 
 Lo que apareció al construirlo:
 
-- **Aprobar hace dos cosas distintas según el tipo, y es a propósito.** La propuesta de taller solo
-  cambia de estado, porque la clienta pidió que RRHH cree el tema y el taller a mano. El cambio de
-  rol **sí otorga el rol** en la misma transacción: no hay nada que RRHH tenga que redactar
-  después, y aprobar sin otorgar dejaría gente aprobada y sin el rol, sin que nada enlace las dos
-  acciones. La pantalla dice cuál es cuál. **Es una decisión del equipo `[E]`** y conviene
-  confirmarla con Karina.
+- **Aprobar ejecuta la decisión, no solo la anota.** La primera versión dejaba que aprobar solo
+  cambiara el estado, leyendo al pie de la letra *«allí RRHH tiene que crear el taller, el tema en
+  sí»*. Visto funcionando no servía: RRHH aprobaba y después tenía que **reescribir el tema a
+  mano**, que es tomar la misma decisión dos veces. Corregido el 2026-11-10 **[C]**: aprobar crea
+  el tema y deja declarado a quien propuso. **El taller lo sigue creando RRHH**, que era la parte
+  que de verdad le importaba a la clienta.
+- **Había un agujero anterior a este slice:** el único lugar de toda la aplicación donde se podía
+  crear un tema era el diálogo de «Mi perfil», pensado para declarar lo de uno. RRHH tenía que
+  entrar a su propio perfil y declarar que enseñaba algo para poder agregarlo al catálogo. De ahí
+  sale la pantalla **«Temas»**.
+- **La propuesta pide dimensiones y nivel desde el principio.** Sin ellos, aprobar no podía crear
+  la declaración sin inventarle a alguien que su nivel es «intermedio». Es un par de campos más en
+  un formulario que ya se estaba llenando, y evita pedirle a la persona que vuelva a entrar.
+- **El cambio de rol otorga el rol** en la misma transacción, e invalida su caché de sesión para
+  que el rol sirva al instante. **Es una decisión del equipo `[E]`** y conviene confirmarla.
 - **«Una sola pendiente» la garantizan dos índices parciales**, no una comprobación previa: dos
   clics a la vez pasarían por el medio de un `findFirst`. Prisma no modela índices parciales, así
   que la migración va escrita a mano. Son dos reglas distintas: **una** solicitud de rol pendiente

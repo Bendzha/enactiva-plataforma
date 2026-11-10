@@ -20,6 +20,9 @@ const PROPUESTA: SolicitudParaRrhh = {
   tipo: 'PROPUESTA_TALLER',
   estado: 'PENDIENTE',
   tema: 'Soldadura TIG',
+  tipoInteres: 'ENSENAR',
+  dimensiones: ['HABILIDAD'],
+  nivel: 'AVANZADO',
   detalle: 'Trabajé en la maestranza y puedo armar un taller práctico.',
   motivoRechazo: null,
   createdAt: new Date('2026-11-05T12:00:00Z').toISOString(),
@@ -74,12 +77,12 @@ describe('Bandeja de solicitudes de RRHH', () => {
     renderizar(<App />, { ruta: '/solicitudes' });
 
     // Es la parte que la clienta pidió explícitamente: aprobar no crea nada.
-    expect(await screen.findByText(/el tema y el taller los creas tú/i)).toBeInTheDocument();
+    expect(await screen.findByText(/el tema entra al catálogo/i)).toBeInTheDocument();
 
     await userEvent.click(screen.getByRole('button', { name: 'Aprobar' }));
 
     await waitFor(() => {
-      expect(screen.getByRole('status')).toHaveTextContent(/ahora crea el tema y el taller/i);
+      expect(screen.getByRole('status')).toHaveTextContent(/en el catálogo y en el perfil/i);
     });
   });
 
@@ -92,7 +95,7 @@ describe('Bandeja de solicitudes de RRHH', () => {
     await waitFor(() => {
       expect(screen.getByRole('status')).toHaveTextContent(/ya puede publicar talleres/i);
     });
-    expect(screen.queryByText(/el tema y el taller los creas tú/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/el tema entra al catálogo/i)).not.toBeInTheDocument();
   });
 
   it('se puede rechazar sin escribir un motivo', async () => {
@@ -126,6 +129,9 @@ describe('Pedir el rol de quien enseña', () => {
       tipo: 'PROPUESTA_TALLER',
       estado: 'RECHAZADA',
       tema: 'Soldadura TIG',
+      tipoInteres: 'ENSENAR',
+      dimensiones: ['HABILIDAD'],
+      nivel: 'AVANZADO',
       detalle: '',
       motivoRechazo: 'Ya hay un taller parecido en marzo.',
       createdAt: new Date('2026-11-01T12:00:00Z').toISOString(),
