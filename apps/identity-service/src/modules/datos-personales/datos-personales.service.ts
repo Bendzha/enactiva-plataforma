@@ -25,37 +25,54 @@ export class DatosPersonalesService {
   async exportar(sesion: SesionActual): Promise<DatosDeServicio> {
     const usuarioId = sesion.usuarioId;
 
-    const [usuario, roles, perfil, intereses, aceptaciones, temasCreados] = await Promise.all([
-      this.prisma.usuario.findUnique({
-        where: { id: usuarioId },
-        select: {
-          id: true,
-          email: true,
-          nombre: true,
-          apellido: true,
-          cargo: true,
-          estado: true,
-          nivelAdmin: true,
-          createdAt: true,
-          empresa: { select: { nombre: true } },
-          area: { select: { nombre: true } },
-        },
-      }),
-      this.prisma.usuarioRol.findMany({ where: { usuarioId }, select: { rol: true } }),
-      this.prisma.perfilCorporativo.findUnique({
-        where: { usuarioId },
-        select: { interesesGenerales: true, updatedAt: true },
-      }),
-      this.prisma.perfilInteres.findMany({
-        where: { usuarioId },
-        select: { tipo: true, dimensiones: true, nivel: true, tema: { select: { nombre: true } } },
-      }),
-      this.prisma.aceptacionAviso.findMany({
-        where: { usuarioId },
-        select: { versionAviso: true, aceptadoAt: true },
-      }),
-      this.prisma.tema.findMany({ where: { creadoPorId: usuarioId }, select: { nombre: true } }),
-    ]);
+    const [usuario, roles, perfil, intereses, aceptaciones, temasCreados, solicitudes] =
+      await Promise.all([
+        this.prisma.usuario.findUnique({
+          where: { id: usuarioId },
+          select: {
+            id: true,
+            email: true,
+            nombre: true,
+            apellido: true,
+            cargo: true,
+            estado: true,
+            nivelAdmin: true,
+            createdAt: true,
+            empresa: { select: { nombre: true } },
+            area: { select: { nombre: true } },
+          },
+        }),
+        this.prisma.usuarioRol.findMany({ where: { usuarioId }, select: { rol: true } }),
+        this.prisma.perfilCorporativo.findUnique({
+          where: { usuarioId },
+          select: { interesesGenerales: true, updatedAt: true },
+        }),
+        this.prisma.perfilInteres.findMany({
+          where: { usuarioId },
+          select: {
+            tipo: true,
+            dimensiones: true,
+            nivel: true,
+            tema: { select: { nombre: true } },
+          },
+        }),
+        this.prisma.aceptacionAviso.findMany({
+          where: { usuarioId },
+          select: { versionAviso: true, aceptadoAt: true },
+        }),
+        this.prisma.tema.findMany({ where: { creadoPorId: usuarioId }, select: { nombre: true } }),
+        this.prisma.solicitud.findMany({
+          where: { solicitanteId: usuarioId },
+          select: {
+            tipo: true,
+            estado: true,
+            tema: true,
+            detalle: true,
+            motivoRechazo: true,
+            createdAt: true,
+          },
+        }),
+      ]);
 
     await this.auditoria.registrar({
       accion: 'EXPORTAR',
@@ -81,6 +98,7 @@ export class DatosPersonalesService {
         })),
         avisosDePrivacidadAceptados: aceptaciones,
         temasQueAgregueAlCatalogo: temasCreados.map((tema) => tema.nombre),
+        solicitudesQueHice: solicitudes,
       },
     };
   }
@@ -109,6 +127,14 @@ export class DatosPersonalesService {
       const tokens = await tx.tokenAcceso.deleteMany({ where: { usuarioId } });
       // Los temas del catálogo quedan, pero sin decir quién los creó.
       await tx.tema.updateMany({ where: { creadoPorId: usuarioId }, data: { creadoPorId: null } });
+      // Sus solicitudes se van: llevan texto libre que escribió sobre sí misma.
+      const solicitudes = await tx.solicitud.deleteMany({ where: { solicitanteId: usuarioId } });
+      // Las que resolvió quedan, porque son la decisión que tomó sobre otra persona; solo deja
+      // de decir que fue ella.
+      await tx.solicitud.updateMany({
+        where: { resueltaPorId: usuarioId },
+        data: { resueltaPorId: null },
+      });
 
       await tx.usuario.update({
         where: { id: usuarioId },
@@ -128,6 +154,7 @@ export class DatosPersonalesService {
         declaracionesDePerfil: intereses.count,
         perfilCorporativo: perfil.count,
         avisosAceptados: aceptaciones.count,
+        solicitudes: solicitudes.count,
         sesionesYTokens: tokens.count,
         cuenta: 1,
       };

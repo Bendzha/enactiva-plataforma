@@ -19,6 +19,7 @@ const PESTANAS: Pestana[] = [
   { a: '/agenda', texto: 'Mi agenda', requiereEmpresa: true },
   { a: '/talleres', texto: 'Talleres', requiereEmpresa: true },
   { a: '/personas', texto: 'Personas', permiso: 'personas:gestionar' },
+  { a: '/solicitudes', texto: 'Solicitudes', permiso: 'solicitudes:resolver' },
   { a: '/empresas', texto: 'Empresas', permiso: 'empresas:listar' },
   { a: '/metricas', texto: 'Métricas', permiso: 'metricas-globales:ver' },
   { a: '/equipo', texto: 'Equipo', permiso: 'admins:gestionar' },

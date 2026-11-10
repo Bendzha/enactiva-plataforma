@@ -16,6 +16,7 @@ import { Button } from '@/components/ui/button';
 import { Dialog } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { ProponerTaller } from '@/components/solicitudes/ProponerTaller';
 import { ErrorApi } from '@/lib/api';
 import { useCrearTema, useDeclararInteres, useTemas } from '@/lib/perfil';
 import { cn } from '@/lib/utils';
@@ -45,6 +46,7 @@ export function AgregarInteres({ abierto, tipo, onCerrar, onDeclarado }: Props) 
   const [dimensiones, setDimensiones] = useState<Dimension[]>([]);
   const [nivel, setNivel] = useState<NivelDominio>('INTERMEDIO');
   const [error, setError] = useState<string | null>(null);
+  const [proponiendo, setProponiendo] = useState(false);
 
   const { data: temas } = useTemas(busqueda);
   const crearTema = useCrearTema();
@@ -158,12 +160,25 @@ export function AgregarInteres({ abierto, tipo, onCerrar, onDeclarado }: Props) 
             ))}
           </ul>
 
-          {/* El catálogo lo controla RRHH (2026-10-29), así que quien no puede crear temas
-              necesita saber a quién pedírselo, y no solo que su búsqueda no encontró nada. */}
+          {/* El catálogo lo controla RRHH (2026-10-29). Antes acá solo había un aviso que decía
+              «pídele a RRHH que lo agregue»; ahora se lo pide de verdad. */}
           {nombreBuscado.length >= 2 && !existeIgual && !puedeCrear && (
-            <p className="mt-2 text-xs text-texto-suave">
-              «{nombreBuscado}» no está en el catálogo de tu empresa. Pídele a RRHH que lo agregue.
-            </p>
+            <div className="mt-2">
+              <p className="text-xs text-texto-suave">
+                «{nombreBuscado}» no está en el catálogo de tu empresa.
+              </p>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                className="mt-2"
+                onClick={() => setProponiendo(true)}
+              >
+                {tipo === 'ENSENAR'
+                  ? `Proponer un taller sobre «${nombreBuscado}»`
+                  : `Pedirle a RRHH un taller sobre «${nombreBuscado}»`}
+              </Button>
+            </div>
           )}
 
           {puedeCrear && (
@@ -231,6 +246,13 @@ export function AgregarInteres({ abierto, tipo, onCerrar, onDeclarado }: Props) 
           </Button>
         </div>
       </form>
+
+      <ProponerTaller
+        abierto={proponiendo}
+        tema={nombreBuscado}
+        tipo={tipo}
+        onCerrar={() => setProponiendo(false)}
+      />
     </Dialog>
   );
 }

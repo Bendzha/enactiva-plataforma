@@ -19,6 +19,7 @@ export const MODELOS_ACOTADOS: ModelosAcotados = {
   Tema: 'empresaId',
   PerfilInteres: 'empresaId',
   PerfilCorporativo: 'empresaId',
+  Solicitud: 'empresaId',
 };
 
 /**

@@ -13,6 +13,7 @@ import { RestablecerPage } from '@/pages/RestablecerPage';
 import { MetricasPage } from '@/pages/MetricasPage';
 import { MiPerfilPage } from '@/pages/MiPerfilPage';
 import { PersonasPage } from '@/pages/PersonasPage';
+import { SolicitudesPage } from '@/pages/SolicitudesPage';
 import { SinPermisoPage } from '@/pages/SinPermisoPage';
 import { TalleresPage } from '@/pages/TalleresPage';
 
@@ -61,6 +62,14 @@ export function App() {
           element={
             <RutaProtegida permiso="personas:gestionar">
               <PersonasPage />
+            </RutaProtegida>
+          }
+        />
+        <Route
+          path="/solicitudes"
+          element={
+            <RutaProtegida permiso="solicitudes:resolver">
+              <SolicitudesPage />
             </RutaProtegida>
           }
         />

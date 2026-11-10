@@ -133,11 +133,25 @@ describe('Mi perfil', () => {
     });
   });
 
-  it('quien enseña ya no crea temas: la pantalla le dice a quién pedírselo', async () => {
-    // El catálogo es de RRHH desde el 2026-10-29. Antes el capacitador podía crearlos.
-    simularSesionIniciada(CAPACITADOR_PLANTA, {
+  it('quien enseña ya no crea temas: lo propone a RRHH', async () => {
+    // El catálogo es de RRHH desde el 2026-10-29. Antes el capacitador podía crearlos, y entre
+    // esa reunión y el Slice 10 lo único que había era un aviso que no hacía nada.
+    const api = simularSesionIniciada(CAPACITADOR_PLANTA, {
       ...rutasBase,
       'GET /identity/temas': { status: 200, cuerpo: [] },
+      'POST /identity/solicitudes/propuesta-de-taller': {
+        status: 201,
+        cuerpo: {
+          id: 's-1',
+          tipo: 'PROPUESTA_TALLER',
+          estado: 'PENDIENTE',
+          tema: 'Soldadura al arco',
+          detalle: '',
+          motivoRechazo: null,
+          createdAt: new Date().toISOString(),
+          resueltaAt: null,
+        },
+      },
     });
     const usuario = userEvent.setup();
     renderizar(<App />, { ruta: '/mi-perfil' });
@@ -146,10 +160,17 @@ describe('Mi perfil', () => {
     await usuario.type(screen.getByLabelText('Tema'), 'Soldadura al arco');
 
     expect(screen.queryByRole('button', { name: /Crear el tema/ })).not.toBeInTheDocument();
-    expect(await screen.findByText(/Pídele a RRHH que lo agregue/)).toBeInTheDocument();
+
+    await usuario.click(await screen.findByRole('button', { name: /Proponer un taller sobre/ }));
+    await usuario.click(screen.getByRole('button', { name: 'Enviar a RRHH' }));
+
+    await waitFor(() => {
+      expect(api.veces('POST /identity/solicitudes/propuesta-de-taller')).toBe(1);
+    });
+    expect(await screen.findByText(/quedó pendiente/i)).toBeInTheDocument();
   });
 
-  it('quien no puede crear temas solo elige del catálogo', async () => {
+  it('quien solo aprende no crea el tema: se lo pide a RRHH', async () => {
     simularSesionIniciada(ESTUDIANTE_PLANTA, {
       ...rutasBase,
       'GET /identity/temas': { status: 200, cuerpo: [] },
@@ -157,11 +178,14 @@ describe('Mi perfil', () => {
     const usuario = userEvent.setup();
     renderizar(<App />, { ruta: '/mi-perfil' });
 
-    await usuario.click((await screen.findAllByRole('button', { name: '+ Agregar tema' }))[0]!);
+    // El segundo botón es el de «quiero aprender»: ahí se pide el taller, no se propone dictarlo.
+    await usuario.click((await screen.findAllByRole('button', { name: '+ Agregar tema' }))[1]!);
     await usuario.type(screen.getByLabelText('Tema'), 'Hablar en público');
 
     expect(screen.queryByRole('button', { name: /Crear el tema/ })).not.toBeInTheDocument();
-    expect(await screen.findByText(/Pídele a RRHH/)).toBeInTheDocument();
+    expect(
+      await screen.findByRole('button', { name: /Pedirle a RRHH un taller sobre/ }),
+    ).toBeInTheDocument();
   });
 
   it('el equipo de ENACTIVA no tiene perfil corporativo', async () => {
