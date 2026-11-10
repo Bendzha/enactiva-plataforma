@@ -17,14 +17,15 @@
 - ✅ **Exportación y supresión de datos por usuario** (Ley 21.719, criterio 7 de SPEC §10): cada persona se lleva sus datos y borra su cuenta desde «Mi perfil», orquestado en el gateway.
 - ✅ **Slice 8 completo** (T8.1 a T8.7): estrellas, referencias firmadas, tokens, puntuación del match y el cuarto criterio del score.
 - ✅ **Correcciones de la reunión del 2026-10-29** (PR #35, mergeado): login «ENACTIVA Match», recuperar contraseña, lista de asistencia, tokens nuevos, tokens privados, temas solo de RRHH y los roles renombrados en pantalla. Detalle más abajo.
-- ⏭️ **Siguiente, por orden:** el **Slice 10** (solicitudes a RRHH) y el **Slice 11** (personalización por empresa), que es lo que la clienta pidió el 29 y todavía no existe. Después la **fase M4** (pipeline de CI por servicio y README de despliegue).
+- ⏭️ **Siguiente, por orden:** el **Slice 10** (solicitudes a RRHH), el **Slice 11** (personalización por empresa), el **Slice 12** (términos y condiciones con re-aceptación), el **Slice 13** (el dashboard del Admin Principal) y **endurecer la sesión**. Después la **fase M4** (pipeline de CI por servicio y README de despliegue).
 - 🟠 **El 2026-10-29 la clienta corrigió sobre el sistema funcionando** (`docs/reuniones/2026-10-29-reunion-karina.md`). No cambia la forma del producto: ajusta reglas y pantallas. Lo que trajo trabajo nuevo son las **solicitudes a RRHH** y la **personalización por empresa** (ADR-0011), que **revierte** una decisión del equipo que estaba en «Fuera de alcance».
-- ⚠️ **El criterio 5 de SPEC §10 es el único de los siete sin cumplir**: el dashboard de RRHH con las puntuaciones de los matches, exportado a PDF y Excel. Se escribió antes del ADR-0010 y hay que confirmar con qué contenido sigue en pie (Q22). Importa para la defensa.
+- ⚠️ **El criterio 5 de SPEC §10 es el único de los siete sin cumplir.** Reescrito el 2026-11-10 con lo que contestó la clienta: el dashboard va **dentro del admin de Karina** y **no se exporta**. Es el Slice 13. Importa para la defensa.
+- 📄 **Los dos textos legales son borradores del equipo** y necesitan revisión legal: el aviso de privacidad (`2026-10-borrador`) y los términos y condiciones (`docs/legal/terminos-y-condiciones-borrador.md`, escritos el 2026-11-10 a pedido de la clienta). **Al aviso le falta declarar las referencias y los tokens**, que la SPEC §3.5 exige y el Slice 8 ya guarda.
 - 🔴 **El 2026-09-29 la clienta cambió el alcance** (ADR-0008): la plataforma no aloja clases. Cae la subida de contenidos; aparecen la ficha del taller, el cupo, la ubicación, la disponibilidad, la agenda y los recordatorios.
 - 🎮 **Segundo eje del producto** (WhatsApp de la clienta, 2026-09-29, ADR-0009): valoración del encuentro con estrellas, referencias públicas y tokens de reconocimiento. "Match corporativo + gamificación corporativa". Es el Slice 8.
 - 🟢 **El 2026-10-13 la clienta cerró el alcance** (ADR-0010): se elimina el modelo de evaluación —etapas, rúbrica, logro, delta, mediciones y tests—. *"Lo mejor es que sea sólo conectar y convocar"*. Cae el Slice 9 completo.
 - ✅ También quedó cerrado: el producto se llama **ENACTIVA**, el código mantiene `curso` y `capacitador`, el match lo puntúan ambas partes, las 4 estrellas son fijas, las referencias se moderan y los tokens solo se cuentan.
-- ❓ **Lo que sigue abierto no frena construir**: el aviso de privacidad (Q3, bloquea **publicar**), el dominio (Q1), el enlace con la web y HostNet (Q13), el modelo comercial (Q14), los talleres de varias sesiones (Q20), si los T&C son otro documento (Q21), el dashboard exportable (Q22) y cuánto dura «mantener sesión iniciada» (Q23).
+- ❓ **Lo que sigue abierto no frena construir**: los textos legales (Q3, bloquea **publicar**), el dominio (Q1), el enlace con la web y HostNet (Q13), el modelo comercial (Q14) y si en un taller de varias sesiones se pasa lista por sesión (Q20, diferido). **Q21, Q22 y Q23 quedaron cerradas el 2026-11-10.**
 - 👀 La plataforma se abre en http://localhost:5173: ver "Levantar la plataforma en local" en el README.
 
 **En un PC nuevo:** Docker Desktop → `docker compose up -d --wait` → `pnpm install` → copiar `.env.example` a `.env` y completar los secretos → `pnpm --filter identity-service db:deploy` → `pnpm --filter identity-service db:seed` → `pnpm test`.
@@ -393,13 +394,60 @@ de alcance»: ver [ADR-0011](../docs/decisions/0011-personalizacion-por-empresa.
 | T11.5 | Web: formulario con vista previa y aviso de contraste que **no bloquea** | la clienta dijo que el contraste lo ven ellos |
 | T11.6 | Sacar los colores escritos a mano que queden en componentes | `accent-[#00347A]` en `AgregarInteres.tsx` es uno; con una empresa personalizada se notarían |
 
+## Slice 12 — Términos y condiciones, y la re-aceptación
+**Demo:** alguien activa su cuenta y acepta dos documentos por separado. Cuando sube la versión de
+uno, al entrar se le vuelve a pedir ese y no el otro.
+**Pedido por la clienta el 2026-10-29** (*«botón para aceptar los términos y condiciones»*).
+Borrador en [`docs/legal/terminos-y-condiciones-borrador.md`](../docs/legal/terminos-y-condiciones-borrador.md).
+
+| # | Tarea | Criterio de aceptación |
+|---|---|---|
+| T12.1 | Dos documentos con su propia versión: el aviso y los T&C | se registra qué versión de **cada uno** aceptó cada persona, y cuándo |
+| T12.2 | **Dos casillas** en la activación, no una | una sola casilla haría imposible demostrar después qué aceptó quién |
+| T12.3 | **Re-aceptación al entrar** cuando la versión aceptada es más vieja que la vigente | no se puede seguir usando la plataforma sin aceptar; solo se pide el documento que cambió |
+| T12.4 | Al aviso le falta un párrafo sobre **las referencias y los tokens** | SPEC §3.5 exige declararlos antes de que alguien escriba la primera, y el Slice 8 ya está |
+| T12.5 | Poder volver a leer los dos documentos desde «Mi perfil» | hoy solo se ven una vez, al activar la cuenta |
+
+**Bloqueado por Q3 para publicar, no para construir:** el flujo se puede armar con los borradores;
+lo que no se puede es publicarlo sin el texto aprobado.
+
+## Slice 13 — El dashboard del Admin Principal
+**Demo:** Karina entra a su panel y ve, empresa por empresa, cómo están funcionando los matches y
+qué valoración reciben los talleres.
+**Reescribe el criterio 5 de SPEC §10** con lo que la clienta dijo el 2026-11-10: *«todo el
+dashboard se ve dentro de el admin de Karina, nada de exportar todavía»*.
+
+| # | Tarea | Criterio de aceptación |
+|---|---|---|
+| T13.1 | Agregado de las puntuaciones del match en matching-service | solo agregados: nunca quién decidió qué sobre quién |
+| T13.2 | Agregado de las valoraciones por empresa en learning-service | el promedio por empresa, no por persona |
+| T13.3 | El panel global del Admin Principal los compone, empresa por empresa | RRHH recibe 403; es el mismo corte que ya tiene `/metricas/globales` |
+| T13.4 | Web: las dos secciones nuevas en Métricas | sin cifras de ejemplo cuando no hay datos |
+| ~~T13.5~~ | ~~Exportar a PDF y Excel~~ | ⛔ **Fuera de alcance por ahora** (2026-11-10). El «todavía» es de la clienta |
+
+## Endurecer la sesión («mantener sesión iniciada») — no es un slice
+**Pedido en el boceto del login; la clienta pidió** *«lo más seguro que se pueda de momento»*
+(2026-11-10). Reglas en SPEC §3.9.
+
+| # | Tarea | Criterio de aceptación |
+|---|---|---|
+| S.1 | La cookie de refresh se emite **sin vencimiento** salvo que se marque la casilla | sin marcar, la sesión muere al cerrar el navegador |
+| S.2 | La casilla **no alarga** nada: marcada, dura los 7 días que ya dura el refresh | no se toca `REFRESH_TTL_DIAS` |
+| S.3 | Web: la casilla en el login, desmarcada por omisión | el valor por omisión es el seguro |
+
+**Ojo con esto:** hoy no existe la casilla y la cookie se emite **siempre** con vencimiento a 7
+días, así que la sesión sobrevive al cierre del navegador para todo el mundo. Es la opción menos
+segura y es la actual: esta tarea la **endurece**, no agrega una comodidad.
+
 ---
 
 ## Pendientes antes de publicar (no bloquean el desarrollo local)
 - SPEC Q1: dominio de ENACTIVA y acceso a su DNS para correo real y subdominios `app.` / `api.`.
-- SPEC Q3: el **texto real del aviso de privacidad**. Es el que de verdad bloquea: el Slice 8 ya
-  guarda texto libre de una persona sobre otra identificada.
-- SPEC Q21: si los **términos y condiciones** son otro documento que el aviso, y qué pasa con quien
-  ya aceptó la versión anterior.
-- SPEC Q22: con qué contenido sigue en pie el **dashboard exportable** del criterio 5 de §10.
-- SPEC Q23: cuánto dura **«mantener sesión iniciada»**.
+- SPEC Q3: el **texto real** del aviso de privacidad y de los T&C. Es el que de verdad bloquea: el
+  Slice 8 ya guarda texto libre de una persona sobre otra identificada. Los dos borradores están
+  escritos y necesitan **revisión legal** y la aprobación de ENACTIVA.
+- SPEC Q13: cómo se enlaza con la web de ENACTIVA; la clienta mencionó **HostNet**.
+- SPEC Q20: si en un taller de varias sesiones **se pasa lista por sesión**. La parte de los tokens
+  ya está contestada y el multi-sesión sigue diferido.
+- Confirmar con Karina que **RRHH conserva** sus métricas de intereses: ella dijo que el dashboard
+  va en su admin, y conviene no leer eso como que RRHH pierde el suyo.

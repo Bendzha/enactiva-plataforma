@@ -223,6 +223,13 @@ Dejaba dos huecos, que contestó preguntada:
 | Quien aprende, **asistió** | 1 | **[C, preguntado]** |
 | Taller **sin inscritos** | 0 | **[P]** |
 
+- **Se pagan al cerrar el taller, una sola vez, y no dependen de cuántas sesiones tenga**
+  **[C, 2026-11-10]**: *«los tokens se entregan al final de cada taller […] si un taller tiene 2
+  sesiones se entregan solamente los tokens totales; ejemplo, si vale 1 se entrega 1 independiente
+  que tenga 2 sesiones, igual para quien enseña»*. El número se fija por **taller**, nunca por
+  sesión, así que partir un taller en dos no multiplica el reconocimiento. Deja la regla de tokens
+  **inmune al multi-sesión** de Q20.
+
 - **Un taller sin inscritos no paga**, aunque «menos de 5» lo incluiría literalmente **[P]**: pagar
   por un taller al que no fue nadie haría el recuento inflable publicando talleres vacíos.
 - El recuento se guarda como **una fila por (taller, persona, motivo)** **[P]**: así siempre se
@@ -301,6 +308,20 @@ Dejaba dos huecos, que contestó preguntada:
 - Lo único que se valida es que el color sea **hexadecimal** **[P]**: de ahí sale una variable CSS,
   y un valor libre sería una inyección en la hoja de estilos.
 
+### 3.9 Sesión y «mantener sesión iniciada»
+> La casilla la pidió la clienta en el boceto del login (2026-10-29). Preguntada por cuánto debía
+> durar, respondió: *«lo más seguro que se pueda de momento»* **[C, 2026-11-10]**.
+
+- **No se construye un «recordarme» largo.** La casilla **no alarga nada**: decide si la cookie de
+  refresh **sobrevive al cierre del navegador** o muere con él **[E, a partir de [C]]**.
+- Sin marcar —**el valor por omisión**— la sesión termina al cerrar el navegador.
+- Marcada, dura lo que ya dura el refresh (`REFRESH_TTL_DIAS = 7`), sin extenderse.
+- **Esto endurece lo que hay hoy**, no lo relaja: hoy no existe la casilla y la cookie se emite
+  siempre con vencimiento a 7 días, así que la sesión sobrevive al cierre del navegador **para
+  todo el mundo**. Es la opción menos segura y es la actual.
+- Importa por dónde se usa: un turno de planta comparte el computador, y una sesión que sigue
+  abierta para el turno siguiente es la cuenta de otra persona **[P]**.
+
 ## 4. Fuera de alcance
 **Alojar clases o material: la plataforma no es un Moodle** **[C, acta 2026-09-29]** ·
 **Medir cuánto aprendió alguien: rúbrica, tests, logro y delta** **[C, 2026-10-13, ADR-0010]** · LMS con catálogo ·
@@ -312,6 +333,9 @@ equipo que nunca se le preguntó.
 
 **Límites de cursos por empresa o por persona:** la clienta **preguntó si existían**, no pidió que
 existieran **[C, 2026-10-29]**. No se construye nada hasta que diga cuántos y de qué.
+
+**Exportar el dashboard a PDF y Excel:** fuera de alcance **por ahora** **[C, 2026-11-10]**: *«nada
+de exportar todavía»*. El «todavía» es suyo, así que no se declara muerto, pero no se construye.
 
 Las métricas globales avanzadas (patrones de intereses entre empresas, detección de oportunidades de
 nuevos servicios) quedan para **una fase posterior**: las métricas actuales del panel le bastan a la
@@ -381,11 +405,13 @@ export class EmpresasController {
 2. Una persona hace like a un taller de su empresa y queda inscrita, respetando el cupo.
 3. Un facilitador publica la ficha de un taller y tanto él como los inscritos lo ven en su agenda y reciben el recordatorio por correo.
 4. Tras un taller, quien asistió lo valora con estrellas, deja su referencia y el facilitador recibe sus tokens.
-5. RRHH ve el dashboard de su empresa, con las puntuaciones de los matches, y lo exporta a PDF y Excel.
-   ⚠️ **Es el único de los siete sin cumplir.** RRHH ya ve las métricas de intereses de su empresa,
-   pero las puntuaciones de los matches se guardan sin agregarse en ninguna pantalla, y la
-   exportación a PDF y Excel no existe. El criterio se escribió antes de que cayera el modelo de
-   evaluación (ADR-0010), así que **hay que confirmar con qué contenido sigue en pie**: ver Q22.
+5. ~~RRHH ve el dashboard de su empresa, con las puntuaciones de los matches, y lo exporta a PDF y
+   Excel.~~ → **Reescrito el 2026-11-10** **[C]**: *«todo el dashboard se ve dentro de el admin de
+   Karina, nada de exportar todavía»*. Queda así: **el Admin Principal ve, dentro de su panel, las
+   puntuaciones de los matches y las valoraciones agregadas, empresa por empresa.** Sin exportar.
+   ⚠️ **Es el único de los siete sin cumplir:** las puntuaciones del match se guardan pero no se
+   agregan en ninguna pantalla. La **exportación a PDF y Excel sale de alcance** por ahora, y RRHH
+   mantiene las métricas de intereses de su empresa, que ya existen.
 6. Ningún usuario puede leer datos de otra empresa (verificado por tests e2e).
 7. Un usuario puede exportar sus datos y solicitar supresión; toda acción queda en auditoría.
 
@@ -403,10 +429,7 @@ El 2026-10-13 la clienta contestó las nueve que bloqueaban el desarrollo
 
 | Q13 | ¿Cómo se enlaza con la web de ENACTIVA: botón de acceso, redirección, o software aparte? Karina quedó de averiguarlo. El 2026-10-29 mencionó que tiene hosting en **HostNet** | Despliegue público |
 | Q14 | Modelo comercial: ¿se vende la aplicación completa o se incorpora una empresa como cliente? Quedó pendiente en el acta | Fuera del MVP |
-| Q20 | **Talleres de varias sesiones** (2026-10-29): ¿se pasa lista por sesión? ¿El 100% de asistencia es de todas las sesiones? ¿Los tokens se pagan al cerrar la última? Cambia qué es «un taller». **Diferido por el equipo** mientras tanto: *«por mientras hay que dejarlo por 1 sesión o como está»* | Volver a tocar la asistencia |
-| Q21 | **¿Los términos y condiciones son otro documento que el aviso de privacidad?** (2026-10-29). Si son dos, son dos aceptaciones con dos versiones, y hay que decidir si a quien ya aceptó se le vuelve a pedir al entrar | El botón de T&C |
-| Q22 | **El dashboard exportable del criterio 5 de §10:** se escribió antes del ADR-0010. ¿Sigue en pie, y con qué contenido —puntuaciones de los matches y estrellas—? ¿El PDF y el Excel son alcance o se declaran fuera? | Cerrar §10 |
-| Q23 | **¿Cuánto dura «mantener sesión iniciada»?** (2026-10-29). Es una decisión de seguridad: en un equipo compartido de planta, un «recordarme» largo deja la sesión de alguien abierta para el turno siguiente | Esa casilla del login |
+| Q20 | **Talleres de varias sesiones:** queda por saber **si se pasa lista por sesión** y si el 100% de asistencia se mide sobre todas. La parte de los tokens ya está contestada (§3.5) y el multi-sesión sigue **diferido**, así que no frena nada | Volver a tocar la asistencia |
 
 ### Cerradas
 
@@ -427,3 +450,6 @@ El 2026-10-13 la clienta contestó las nueve que bloqueaban el desarrollo
 | ~~Q18~~ | ✅ 2026-10-13: los tokens sirven para canjear, pero **el canje lo administra cada empresa fuera de la plataforma**; aquí solo se lleva el recuento (ADR-0009) |
 | ~~Q19~~ | ✅ 2026-10-13: la escala de nivel queda en básico / intermedio / avanzado |
 | ~~Q5~~ | ✅ 2026-10-24: las estrellas van **de 1 a 5** |
+| ~~Q21~~ | ✅ 2026-11-10: **son dos documentos**. El equipo redactó el borrador de los T&C (`docs/legal/terminos-y-condiciones-borrador.md`) a pedido de la clienta, para que ella se haga una idea. Pendiente de revisión legal y de la aprobación de ENACTIVA |
+| ~~Q22~~ | ✅ 2026-11-10: **el dashboard va dentro del admin de Karina** y **no se exporta**: *«todo el dashboard se ve dentro de el admin de Karina, nada de exportar todavía»*. El PDF y el Excel salen de alcance por ahora; el criterio 5 de §10 se reescribe |
+| ~~Q23~~ | ✅ 2026-11-10: *«lo más seguro que se pueda de momento»*. Sin «recordarme» largo: la casilla decide si la cookie de refresh **sobrevive al cierre del navegador** y nada más (§3.9). Hoy sobrevive siempre, 7 días, así que esto **endurece** lo que hay |
