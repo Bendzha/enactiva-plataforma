@@ -3,6 +3,7 @@ import { ETIQUETAS_ROL, type Permiso } from '@enactiva/shared';
 import { NavLink, Outlet, useNavigate } from 'react-router';
 import { useSesion } from '@/auth/sesion';
 import { Button } from '@/components/ui/button';
+import { usePersonalizacion, useAplicarPersonalizacion } from '@/lib/personalizacion';
 import { cn } from '@/lib/utils';
 
 interface Pestana {
@@ -21,6 +22,7 @@ const PESTANAS: Pestana[] = [
   { a: '/personas', texto: 'Personas', permiso: 'personas:gestionar' },
   { a: '/solicitudes', texto: 'Solicitudes', permiso: 'solicitudes:resolver' },
   { a: '/temas', texto: 'Temas', permiso: 'temas:crear' },
+  { a: '/personalizacion', texto: 'Entorno', permiso: 'empresa:personalizar' },
   { a: '/empresas', texto: 'Empresas', permiso: 'empresas:listar' },
   { a: '/metricas', texto: 'Métricas', permiso: 'metricas-globales:ver' },
   { a: '/equipo', texto: 'Equipo', permiso: 'admins:gestionar' },
@@ -29,6 +31,10 @@ const PESTANAS: Pestana[] = [
 export function Layout() {
   const { usuario, puede, cerrarSesion } = useSesion();
   const navegar = useNavigate();
+
+  // Solo dentro de una empresa: el equipo de ENACTIVA no personaliza nada (ADR-0011).
+  const { data: personalizacion } = usePersonalizacion(usuario?.empresaId);
+  useAplicarPersonalizacion(personalizacion?.colores);
 
   const salir = async () => {
     await cerrarSesion();
@@ -44,7 +50,15 @@ export function Layout() {
     <div className="min-h-screen">
       <header className="border-b border-borde bg-white">
         <div className="mx-auto flex max-w-6xl flex-wrap items-center gap-4 px-4 py-3">
-          <Marca />
+          {personalizacion?.logo ? (
+            <img
+              src={personalizacion.logo}
+              alt={personalizacion.empresaNombre}
+              className="max-h-9 max-w-40 object-contain"
+            />
+          ) : (
+            <Marca />
+          )}
 
           <nav className="flex gap-1" aria-label="Secciones">
             {visibles.map((pestana) => (

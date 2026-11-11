@@ -9,6 +9,7 @@ export * from './invitaciones.js';
 export * from './matching.js';
 export * from './metricas.js';
 export * from './perfiles.js';
+export * from './personalizacion.js';
 export * from './permisos.js';
 export * from './personas.js';
 export * from './sesion.js';

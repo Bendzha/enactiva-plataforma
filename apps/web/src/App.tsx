@@ -14,6 +14,7 @@ import { MetricasPage } from '@/pages/MetricasPage';
 import { MiPerfilPage } from '@/pages/MiPerfilPage';
 import { PersonasPage } from '@/pages/PersonasPage';
 import { SolicitudesPage } from '@/pages/SolicitudesPage';
+import { PersonalizacionPage } from '@/pages/PersonalizacionPage';
 import { TemasPage } from '@/pages/TemasPage';
 import { SinPermisoPage } from '@/pages/SinPermisoPage';
 import { TalleresPage } from '@/pages/TalleresPage';
@@ -79,6 +80,14 @@ export function App() {
           element={
             <RutaProtegida permiso="temas:crear">
               <TemasPage />
+            </RutaProtegida>
+          }
+        />
+        <Route
+          path="/personalizacion"
+          element={
+            <RutaProtegida permiso="empresa:personalizar">
+              <PersonalizacionPage />
             </RutaProtegida>
           }
         />

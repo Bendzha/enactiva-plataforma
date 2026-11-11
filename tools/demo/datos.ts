@@ -26,6 +26,19 @@ export const EMPRESAS = {
   },
 } as const;
 
+/**
+ * Comercial Lin tiene su entorno personalizado y Planta Norte no, para que en la demo se vean las
+ * dos cosas a la vez: una empresa con su marca y otra con la plantilla (ADR-0011).
+ * Sin logo: subirlo es parte de lo que se muestra en vivo.
+ */
+export const PERSONALIZACION_DEMO = {
+  empresaId: EMPRESAS.comercialLin.id,
+  colorMarca: '#7A1B3D',
+  colorAcento: '#F2A65A',
+  colorFondo: '#FDF8F5',
+  colorTexto: '#2A1A20',
+} as const;
+
 export const AREAS = {
   operaciones: {
     id: '01993000-0001-7000-8000-000000000001',

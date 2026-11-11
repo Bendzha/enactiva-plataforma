@@ -78,7 +78,7 @@ export function PasarLista({ tallerId, tallerNombre, onCerrar, onListo }: PasarL
                 <label className="flex items-center gap-3 rounded-lg border border-borde p-3 text-sm">
                   <input
                     type="checkbox"
-                    className="size-4 accent-[#00347A]"
+                    className="size-4 accent-marca"
                     checked={seleccion.has(fila.usuarioId)}
                     onChange={() => alternar(fila.usuarioId)}
                   />

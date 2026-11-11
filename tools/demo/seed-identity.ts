@@ -10,7 +10,16 @@ import { config } from 'dotenv';
 import { PrismaPg } from '@prisma/adapter-pg';
 import { hashPassword } from 'identity-service/src/common/password.js';
 import { PrismaClient } from 'identity-service/src/generated/prisma/client.js';
-import { AREAS, EMPRESAS, INTERESES, passwordDemo, SOLICITUDES, TEMAS, USUARIOS } from './datos.js';
+import {
+  AREAS,
+  EMPRESAS,
+  INTERESES,
+  passwordDemo,
+  PERSONALIZACION_DEMO,
+  SOLICITUDES,
+  TEMAS,
+  USUARIOS,
+} from './datos.js';
 
 config({ path: fileURLToPath(new URL('../../.env', import.meta.url)), quiet: true });
 
@@ -148,6 +157,9 @@ export async function sembrarIdentity(): Promise<void> {
         },
       });
     }
+
+    const { empresaId, ...colores } = PERSONALIZACION_DEMO;
+    await prisma.empresa.update({ where: { id: empresaId }, data: colores });
 
     for (const solicitud of SOLICITUDES) {
       const resuelta = solicitud.estado !== 'PENDIENTE';

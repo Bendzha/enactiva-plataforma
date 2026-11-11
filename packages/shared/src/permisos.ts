@@ -30,6 +30,11 @@ export const PERMISOS = [
    * (SPEC §2, reunión del 2026-10-29). Solo RRHH: es quien controla el catálogo y los roles.
    */
   'solicitudes:resolver',
+  /**
+   * Poner el logo y los colores de su empresa (SPEC §3.8, ADR-0011). Solo RRHH: es la identidad
+   * visual de esa organización, y el equipo de ENACTIVA administra el piloto, no su marca.
+   */
+  'empresa:personalizar',
 ] as const;
 export type Permiso = (typeof PERMISOS)[number];
 
@@ -52,7 +57,13 @@ const PERMISOS_POR_ROL: Record<Rol, readonly Permiso[]> = {
   ADMIN_ENACTIVA: [],
   // Gestionar la gente de su empresa es de RRHH; el equipo de ENACTIVA administra el piloto,
   // no el día a día de cada organización.
-  RRHH: ['personas:gestionar', 'temas:crear', 'referencias:moderar', 'solicitudes:resolver'],
+  RRHH: [
+    'personas:gestionar',
+    'temas:crear',
+    'referencias:moderar',
+    'solicitudes:resolver',
+    'empresa:personalizar',
+  ],
   // Ya no crea temas: el catálogo es de RRHH (2026-10-29). Quien quiera enseñar algo que no
   // está en la lista se lo pide a RRHH; la pantalla se lo dice.
   CAPACITADOR: ['talleres:publicar'],
