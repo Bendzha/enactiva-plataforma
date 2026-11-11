@@ -18,7 +18,8 @@
 - ✅ **Slice 8 completo** (T8.1 a T8.7): estrellas, referencias firmadas, tokens, puntuación del match y el cuarto criterio del score.
 - ✅ **Correcciones de la reunión del 2026-10-29** (PR #35, mergeado): login «ENACTIVA Match», recuperar contraseña, lista de asistencia, tokens nuevos, tokens privados, temas solo de RRHH y los roles renombrados en pantalla. Detalle más abajo.
 - ✅ **Slice 10 completo** (T10.1 a T10.7): solicitudes a RRHH para proponer un taller y para pasar a «quien enseña».
-- ⏭️ **Siguiente, por orden:** el **Slice 11** (personalización por empresa), el **Slice 12** (términos y condiciones con re-aceptación), el **Slice 13** (el dashboard del Admin Principal) y **endurecer la sesión**. Después la **fase M4** (pipeline de CI por servicio y README de despliegue).
+- ✅ **Slice 11 completo** (T11.1 a T11.6): cada empresa pinta su propio entorno con su logo y sus colores (ADR-0011).
+- ⏭️ **Siguiente, por orden:** el **Slice 12** (términos y condiciones con re-aceptación), el **Slice 13** (el dashboard del Admin Principal) y **endurecer la sesión**. Después la **fase M4** (pipeline de CI por servicio y README de despliegue).
 - 🟠 **El 2026-10-29 la clienta corrigió sobre el sistema funcionando** (`docs/reuniones/2026-10-29-reunion-karina.md`). No cambia la forma del producto: ajusta reglas y pantallas. Lo que trajo trabajo nuevo son las **solicitudes a RRHH** y la **personalización por empresa** (ADR-0011), que **revierte** una decisión del equipo que estaba en «Fuera de alcance».
 - ⚠️ **El criterio 5 de SPEC §10 es el único de los siete sin cumplir.** Reescrito el 2026-11-10 con lo que contestó la clienta: el dashboard va **dentro del admin de Karina** y **no se exporta**. Es el Slice 13. Importa para la defensa.
 - 📄 **Los dos textos legales son borradores del equipo** y necesitan revisión legal: el aviso de privacidad (`2026-10-borrador`) y los términos y condiciones (`docs/legal/terminos-y-condiciones-borrador.md`, escritos el 2026-11-10 a pedido de la clienta). **Al aviso le falta declarar las referencias y los tokens**, que la SPEC §3.5 exige y el Slice 8 ya guarda.
@@ -419,20 +420,39 @@ Lo que apareció al construirlo:
 crea después. Hoy se cierra sola y RRHH crea el taller por su cuenta, que es lo que la clienta
 describió.
 
-## Slice 11 — Personalización por empresa
+## Slice 11 — Personalización por empresa ✅
 **Demo:** RRHH sube el logo de su empresa, elige sus colores y su gente entra a un entorno con su
 marca. El login, ENACTIVA y las demás empresas no cambian.
 **Pedido por la clienta el 2026-10-29.** **Revierte** una decisión del equipo que estaba en «Fuera
 de alcance»: ver [ADR-0011](../docs/decisions/0011-personalizacion-por-empresa.md) y SPEC §3.8.
 
-| # | Tarea | Criterio de aceptación |
-|---|---|---|
-| T11.1 | Migración: la configuración visual de la empresa (logo y cuatro colores), nullable | sin configuración, la plantilla actual sigue siendo el valor por omisión |
-| T11.2 | API para RRHH: leer y guardar la configuración de **su** empresa | RRHH de A no toca la de B; el color se valida como hexadecimal |
-| T11.3 | Guardar el logo | es el primer archivo que sube alguien desde que el ADR-0008 eliminó los contenidos |
-| T11.4 | Web: los colores entran como variables CSS al abrir la sesión | el login y las pantallas de ENACTIVA **no** se personalizan |
-| T11.5 | Web: formulario con vista previa y aviso de contraste que **no bloquea** | la clienta dijo que el contraste lo ven ellos |
-| T11.6 | Sacar los colores escritos a mano que queden en componentes | `accent-[#00347A]` en `AgregarInteres.tsx` es uno; con una empresa personalizada se notarían |
+| # | Tarea | Criterio de aceptación | Estado |
+|---|---|---|---|
+| T11.1 | Migración: la configuración visual de la empresa (logo y cuatro colores), nullable | sin configuración, la plantilla actual sigue siendo el valor por omisión | ✅ |
+| T11.2 | API para RRHH: leer y guardar la configuración de **su** empresa | RRHH de A no toca la de B; el color se valida como hexadecimal | ✅ |
+| T11.3 | Guardar el logo | va como data URI: no reabre el almacenamiento que el ADR-0008 eliminó | ✅ |
+| T11.4 | Web: los colores entran como variables CSS al abrir la sesión | el login y las pantallas de ENACTIVA **no** se personalizan | ✅ |
+| T11.5 | Web: formulario con vista previa y aviso de contraste que **no bloquea** | la clienta dijo que el contraste lo ven ellos | ✅ |
+| T11.6 | Sacar los colores escritos a mano que quedaban en componentes | eran cinco; con una empresa personalizada se habrían notado | ✅ |
+
+Lo que apareció al construirlo:
+
+- **Los colores se filtraban entre empresas, y se vio en el navegador.** La caché de TanStack
+  Query sobrevive al cambio de sesión: al entrar Planta Norte justo después de Comercial Lin,
+  heredaba su paleta, y con `staleTime: Infinity` no se corregía nunca. Dos arreglos: la empresa
+  va **en la clave de la caché**, y **cerrar sesión la vacía entera**. Lo segundo vale más allá de
+  los colores: en un equipo compartido, la siguiente persona no tiene por qué ver ni un resto de
+  la anterior.
+- **Los dos tonos derivados se calculan** del color principal en vez de pedirlos, y hay un test
+  que comprueba que lo que sale de `#00347A` se parece a los `#002a63` y `#e8eefa` que estaban
+  escritos a mano. Si se fueran lejos, una empresa sin personalizar vería otra plataforma.
+- **El contraste se avisa y no se bloquea**, como pidió la clienta, pero el color **sí** se valida
+  como hexadecimal: de ahí sale una variable CSS, y un valor libre sería una inyección en la hoja
+  de estilos. Hay un test que guarda una paleta completamente ilegible a propósito.
+- **El logo no acepta SVG.** Aunque un `<img>` no ejecuta sus scripts, es un formato que admite
+  código y no vale la pena discutirlo por un logo: PNG con transparencia hace lo mismo.
+- **«Personalizada» exige los cuatro colores.** Media paleta aplicada sería una pantalla a medio
+  pintar, peor que la plantilla entera.
 
 ## Slice 12 — Términos y condiciones, y la re-aceptación
 **Demo:** alguien activa su cuenta y acepta dos documentos por separado. Cuando sube la versión de

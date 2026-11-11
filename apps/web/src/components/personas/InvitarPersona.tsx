@@ -107,7 +107,7 @@ export function InvitarPersona({ abierto, onCerrar, onInvitada }: Props) {
               <label key={rol} className="flex items-center gap-2 text-sm">
                 <input
                   type="checkbox"
-                  className="size-4 accent-[#00347A]"
+                  className="size-4 accent-marca"
                   checked={roles.includes(rol)}
                   onChange={() => alternarRol(rol)}
                 />

@@ -14,6 +14,7 @@ import {
   useState,
   type ReactNode,
 } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { guardarToken, pedir, renovarSesion } from '@/lib/api';
 
 interface ContextoSesion {
@@ -28,6 +29,7 @@ interface ContextoSesion {
 const Contexto = createContext<ContextoSesion | null>(null);
 
 export function SesionProvider({ children }: { children: ReactNode }) {
+  const queryClient = useQueryClient();
   const [usuario, setUsuario] = useState<UsuarioSesion | null>(null);
   const [cargando, setCargando] = useState(true);
 
@@ -73,8 +75,12 @@ export function SesionProvider({ children }: { children: ReactNode }) {
     } finally {
       guardarToken(null);
       setUsuario(null);
+      // Se vacía todo lo cacheado: en un equipo compartido —un turno de planta, por ejemplo— la
+      // siguiente persona no tiene por qué ver ni un resto de la anterior. Apareció con los
+      // colores de la empresa, que sobrevivían al cambio de sesión.
+      queryClient.clear();
     }
-  }, []);
+  }, [queryClient]);
 
   const valor = useMemo<ContextoSesion>(() => {
     const permisos = usuario ? permisosDe(usuario.roles, usuario.nivelAdmin) : new Set<Permiso>();

@@ -312,6 +312,15 @@ Dejaba dos huecos, que contestó preguntada:
   que ver ellos»*. El formulario avisa cuando un color queda ilegible, pero no bloquea **[E]**.
 - Lo único que se valida es que el color sea **hexadecimal** **[P]**: de ahí sale una variable CSS,
   y un valor libre sería una inyección en la hoja de estilos.
+- Se considera personalizada solo con **los cuatro colores** **[P]**: media paleta aplicada sería
+  una pantalla a medio pintar, peor que la plantilla entera. Los dos tonos derivados del principal
+  se **calculan** y no se piden.
+- El logo va como **data URI** en la base, limitado a PNG, JPEG o WebP **[P]**. Para un piloto de
+  3–4 empresas con un logo cada una no vale la pena reabrir el almacenamiento de archivos que el
+  ADR-0008 eliminó. SVG queda fuera: admite código y no vale la pena discutirlo por un logo.
+- **Cerrar sesión despinta y vacía lo cacheado** **[P]**: si no, la siguiente persona que entra en
+  el mismo equipo —un turno de planta comparte el computador— hereda los colores, y con ellos
+  cualquier otro dato que siguiera en memoria.
 
 ### 3.9 Sesión y «mantener sesión iniciada»
 > La casilla la pidió la clienta en el boceto del login (2026-10-29). Preguntada por cuánto debía

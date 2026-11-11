@@ -204,7 +204,7 @@ export function AgregarInteres({ abierto, tipo, onCerrar, onDeclarado }: Props) 
               <label key={dimension} className="flex items-center gap-2 text-sm">
                 <input
                   type="checkbox"
-                  className="size-4 accent-[#00347A]"
+                  className="size-4 accent-marca"
                   checked={dimensiones.includes(dimension)}
                   onChange={() => alternarDimension(dimension)}
                 />

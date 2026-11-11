@@ -8,7 +8,8 @@ const badgeVariants = cva(
     variants: {
       variant: {
         activa: 'bg-marca-suave text-marca',
-        pendiente: 'bg-acento/20 text-[#7a5200]',
+        // Con el color de cada empresa, un marrón fijo podía quedar ilegible sobre su acento.
+        pendiente: 'bg-acento/20 text-texto',
         neutro: 'bg-fondo text-texto-suave',
       },
     },

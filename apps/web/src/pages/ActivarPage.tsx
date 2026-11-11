@@ -136,7 +136,7 @@ export function ActivarPage() {
             <label className="mt-3 flex items-start gap-2 text-sm">
               <input
                 type="checkbox"
-                className="mt-0.5 size-4 accent-[#00347A]"
+                className="mt-0.5 size-4 accent-marca"
                 checked={aceptaAviso}
                 onChange={(e) => setAceptaAviso(e.target.checked)}
                 aria-invalid={Boolean(errores.aceptaAviso)}

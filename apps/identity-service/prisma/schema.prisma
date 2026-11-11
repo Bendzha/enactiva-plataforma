@@ -89,6 +89,15 @@ model Empresa {
   activadaAt    DateTime?     @map("activada_at") @db.Timestamptz(3)
   activadaPorId String?       @map("activada_por_id") @db.Uuid
   creadaPorId   String        @map("creada_por_id") @db.Uuid
+  /// Personalización del entorno de esta empresa (SPEC §3.8, ADR-0011). Todo nulo mientras no
+  /// personalice: la plantilla es el valor por omisión, no un estado incompleto.
+  /// El logo va como data URI; para un piloto de 3-4 empresas no vale la pena reabrir el
+  /// almacenamiento de archivos que el ADR-0008 eliminó.
+  colorMarca    String?       @map("color_marca")
+  colorAcento   String?       @map("color_acento")
+  colorFondo    String?       @map("color_fondo")
+  colorTexto    String?       @map("color_texto")
+  logo          String?
   createdAt     DateTime      @default(now()) @map("created_at") @db.Timestamptz(3)
   updatedAt     DateTime      @updatedAt @map("updated_at") @db.Timestamptz(3)
 
