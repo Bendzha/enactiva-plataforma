@@ -1,7 +1,6 @@
 import type { INestApplication } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 import { ThrottlerStorage } from '@nestjs/throttler';
-import { AVISO_PRIVACIDAD_VERSION } from '@enactiva/shared';
 import cookieParser from 'cookie-parser';
 import type { AddressInfo } from 'node:net';
 import request from 'supertest';
@@ -220,6 +219,7 @@ describe('Autenticación entre auth-service e identity-service (e2e)', () => {
         apellido: 'Soto',
         password: 'otra-clave-de-prueba-larga',
         aceptaAviso: true,
+        aceptaTerminos: true,
       })
       .expect(200);
 
@@ -232,7 +232,12 @@ describe('Autenticación entre auth-service e identity-service (e2e)', () => {
       include: { aceptaciones: true },
     });
     expect(usuario.estado).toBe('ACTIVO');
-    expect(usuario.aceptaciones[0].versionAviso).toBe(AVISO_PRIVACIDAD_VERSION);
+    // Dos filas desde el 2026-11-12: el aviso y los términos se aceptan por separado.
+    expect(usuario.aceptaciones).toHaveLength(2);
+    expect(usuario.aceptaciones.map((a: { documento: string }) => a.documento).sort()).toEqual([
+      'AVISO_PRIVACIDAD',
+      'TERMINOS',
+    ]);
 
     // Y el token no sirve una segunda vez.
     await request(servidor())
@@ -243,6 +248,7 @@ describe('Autenticación entre auth-service e identity-service (e2e)', () => {
         apellido: 'Persona',
         password: 'tercera-clave-de-prueba',
         aceptaAviso: true,
+        aceptaTerminos: true,
       })
       .expect(410);
   });

@@ -80,6 +80,26 @@ describe('Activación de cuenta desde el correo', () => {
     expect(api.veces('POST /auth/invitaciones/aceptar')).toBe(0);
   });
 
+  it('tampoco sin aceptar los términos: son dos aceptaciones distintas', async () => {
+    // Una sola casilla para los dos sería más cómoda y haría imposible demostrar después qué
+    // aceptó cada persona.
+    const api = simularApi({
+      '/auth/refresh': { status: 401 },
+      '/identity/invitaciones/estado': INVITACION_VALIDA,
+    });
+    const usuario = userEvent.setup();
+    renderizar(<App />, { ruta: RUTA_ACTIVAR });
+
+    await usuario.type(await screen.findByLabelText('Nombre'), 'Marcela');
+    await usuario.type(screen.getByLabelText('Apellido'), 'Ruiz');
+    await usuario.type(screen.getByLabelText('Crea tu contraseña'), 'mi-clave-nueva-2026');
+    await usuario.click(screen.getAllByRole('checkbox')[0]!);
+    await usuario.click(screen.getByRole('button', { name: 'Activar mi cuenta' }));
+
+    expect(await screen.findByText(/Debes aceptar los términos y condiciones/)).toBeInTheDocument();
+    expect(api.veces('POST /auth/invitaciones/aceptar')).toBe(0);
+  });
+
   it('exige una contraseña de al menos 12 caracteres', async () => {
     simularApi({
       '/auth/refresh': { status: 401 },
@@ -91,7 +111,8 @@ describe('Activación de cuenta desde el correo', () => {
     await usuario.type(await screen.findByLabelText('Nombre'), 'Marcela');
     await usuario.type(screen.getByLabelText('Apellido'), 'Ruiz');
     await usuario.type(screen.getByLabelText('Crea tu contraseña'), 'corta');
-    await usuario.click(screen.getByRole('checkbox'));
+    // Dos casillas desde el 2026-11-12: el aviso y los términos se aceptan por separado.
+    for (const casilla of screen.getAllByRole('checkbox')) await usuario.click(casilla);
     await usuario.click(screen.getByRole('button', { name: 'Activar mi cuenta' }));
 
     expect(await screen.findByText(/al menos 12 caracteres/)).toBeInTheDocument();
@@ -114,7 +135,8 @@ describe('Activación de cuenta desde el correo', () => {
     await usuario.type(await screen.findByLabelText('Nombre'), 'Marcela');
     await usuario.type(screen.getByLabelText('Apellido'), 'Ruiz');
     await usuario.type(screen.getByLabelText('Crea tu contraseña'), 'mi-clave-nueva-2026');
-    await usuario.click(screen.getByRole('checkbox'));
+    // Dos casillas desde el 2026-11-12: el aviso y los términos se aceptan por separado.
+    for (const casilla of screen.getAllByRole('checkbox')) await usuario.click(casilla);
     await usuario.click(screen.getByRole('button', { name: 'Activar mi cuenta' }));
 
     // RRHH no administra el piloto: llega a su pantalla de Personas, no al panel de empresas.

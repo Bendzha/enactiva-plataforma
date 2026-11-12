@@ -272,15 +272,25 @@ model PerfilCorporativo {
 
 /// Constancia de que la persona aceptó el aviso de privacidad al activar su cuenta
 /// (Ley 21.719). Se guarda la versión del texto aceptado, no el texto.
+/// Qué documento se aceptó. Son dos desde el 2026-11-12 (SPEC Q21): el aviso dice qué se hace
+/// con los datos y lo exige la ley; los términos, qué se puede hacer en la plataforma.
+enum DocumentoLegal {
+  AVISO_PRIVACIDAD
+  TERMINOS
+}
+
 model AceptacionAviso {
-  id           String   @id @default(uuid(7)) @db.Uuid
-  usuarioId    String   @map("usuario_id") @db.Uuid
-  versionAviso String   @map("version_aviso")
-  aceptadoAt   DateTime @default(now()) @map("aceptado_at") @db.Timestamptz(3)
-  ip           String?
+  id         String         @id @default(uuid(7)) @db.Uuid
+  usuarioId  String         @map("usuario_id") @db.Uuid
+  documento  DocumentoLegal @default(AVISO_PRIVACIDAD)
+  version    String         @map("version_aviso")
+  aceptadoAt DateTime       @default(now()) @map("aceptado_at") @db.Timestamptz(3)
+  ip         String?
 
   usuario Usuario @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
 
+  /// Una fila por persona, documento y versión: aceptar dos veces lo mismo no es un hecho nuevo.
+  @@unique([usuarioId, documento, version])
   @@index([usuarioId])
   @@map("aceptacion_aviso")
 }

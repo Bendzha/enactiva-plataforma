@@ -10,6 +10,7 @@ import { CorreoModule } from './modules/correo/correo.module.js';
 import { DatosPersonalesModule } from './modules/datos-personales/datos-personales.module.js';
 import { EmpresasModule } from './modules/empresas/empresas.module.js';
 import { InvitacionesModule } from './modules/invitaciones/invitaciones.module.js';
+import { LegalesModule } from './modules/legales/legales.module.js';
 import { MetricasModule } from './modules/metricas/metricas.module.js';
 import { PerfilesModule } from './modules/perfiles/perfiles.module.js';
 import { PersonasModule } from './modules/personas/personas.module.js';
@@ -42,6 +43,7 @@ import { SolicitudesModule } from './modules/solicitudes/solicitudes.module.js';
     DatosPersonalesModule,
     EmpresasModule,
     InvitacionesModule,
+    LegalesModule,
     MetricasModule,
     PerfilesModule,
     PersonasModule,

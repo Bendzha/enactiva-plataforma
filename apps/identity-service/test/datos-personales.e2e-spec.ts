@@ -62,7 +62,7 @@ describe('Exportar y suprimir datos personales en identity (e2e)', () => {
       },
     });
     await prisma.aceptacionAviso.create({
-      data: { usuarioId: usuario.id, versionAviso: '2026-01', ip: '10.0.0.1' },
+      data: { usuarioId: usuario.id, version: '2026-01', ip: '10.0.0.1' },
     });
     await prisma.tokenAcceso.create({
       data: {
@@ -149,7 +149,7 @@ describe('Exportar y suprimir datos personales en identity (e2e)', () => {
       },
     ]);
     expect(datos.contenido.avisosDePrivacidadAceptados).toMatchObject([
-      { versionAviso: '2026-01' },
+      { documento: 'AVISO_PRIVACIDAD', version: '2026-01' },
     ]);
     expect(datos.contenido.temasQueAgregueAlCatalogo).toEqual(['Excel avanzado']);
   });

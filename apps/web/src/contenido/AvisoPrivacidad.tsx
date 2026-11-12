@@ -1,8 +1,8 @@
-import { AVISO_PRIVACIDAD_VERSION } from '@enactiva/shared';
+import { VERSIONES_LEGALES } from '@enactiva/shared';
 
 /**
  * BORRADOR del equipo, pendiente de aprobación por ENACTIVA (SPEC Q3).
- * Al cambiar este texto hay que subir AVISO_PRIVACIDAD_VERSION en packages/shared,
+ * Al cambiar este texto hay que subir VERSIONES_LEGALES.AVISO_PRIVACIDAD en packages/shared,
  * para que quede registrado qué versión aceptó cada persona.
  */
 export function AvisoPrivacidad() {
@@ -26,6 +26,18 @@ export function AvisoPrivacidad() {
         Tus datos no se comparten con otras empresas del piloto.
       </p>
       <p className="mb-2">
+        <strong>Lo que escribes sobre otras personas.</strong> Al terminar un taller puedes dejar
+        una <strong>referencia</strong>: es texto libre, se ve dentro de tu organización y va
+        firmada con tu nombre. Las estrellas con que valoras el taller sí son anónimas: quien dictó
+        ve el promedio, nunca quién puso qué. Recursos Humanos puede ocultar una referencia dejando
+        registrado el motivo.
+      </p>
+      <p className="mb-2">
+        <strong>Los tokens.</strong> Se registra cuántos recibes por enseñar y por asistir, y de qué
+        taller salió cada uno. El recuento es privado: lo ves tú, y Recursos Humanos ve el de su
+        gente.
+      </p>
+      <p className="mb-2">
         <strong>Tus derechos.</strong> En «Mi perfil» puedes descargar todo lo que la plataforma
         guarda sobre ti y eliminar tu cuenta, sin pedírselo a nadie. Al eliminarla, los talleres que
         dictaste se conservan sin vincularse a tu identidad, porque otras personas participaron en
@@ -34,7 +46,7 @@ export function AvisoPrivacidad() {
       <p>
         <strong>Registro.</strong> Se guarda un registro de quién accede o modifica cada dato, según
         exige la Ley 21.719. Guarda la acción y los nombres de los campos, nunca tu nombre ni tu
-        correo. Versión del aviso: {AVISO_PRIVACIDAD_VERSION}.
+        correo. Versión del aviso: {VERSIONES_LEGALES.AVISO_PRIVACIDAD}.
       </p>
     </div>
   );

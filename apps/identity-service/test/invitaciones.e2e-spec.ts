@@ -1,7 +1,7 @@
 import type { INestApplication } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 import { ThrottlerStorage } from '@nestjs/throttler';
-import { AVISO_PRIVACIDAD_VERSION, type EmpresaDetalle } from '@enactiva/shared';
+import { VERSIONES_LEGALES, type EmpresaDetalle } from '@enactiva/shared';
 import request from 'supertest';
 import { AppModule } from '../src/app.module.js';
 import { PrismaService } from '../src/prisma/prisma.service.js';
@@ -70,7 +70,8 @@ describe('Invitación por correo (e2e)', () => {
     expect(res.body).toEqual({
       email: EMAIL_CONTACTO,
       nombreEmpresa: NOMBRE_EMPRESA,
-      versionAviso: AVISO_PRIVACIDAD_VERSION,
+      versionAviso: VERSIONES_LEGALES.AVISO_PRIVACIDAD,
+      versionTerminos: VERSIONES_LEGALES.TERMINOS,
     });
   });
 

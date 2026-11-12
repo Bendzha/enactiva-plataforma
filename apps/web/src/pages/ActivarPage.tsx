@@ -4,6 +4,7 @@ import { useState, type FormEvent } from 'react';
 import { useNavigate, useSearchParams } from 'react-router';
 import { useSesion } from '@/auth/sesion';
 import { AvisoPrivacidad } from '@/contenido/AvisoPrivacidad';
+import { Terminos } from '@/contenido/Terminos';
 import { Alert } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Card, CardDescription, CardTitle } from '@/components/ui/card';
@@ -24,6 +25,7 @@ export function ActivarPage() {
   const [apellido, setApellido] = useState('');
   const [password, setPassword] = useState('');
   const [aceptaAviso, setAceptaAviso] = useState(false);
+  const [aceptaTerminos, setAceptaTerminos] = useState(false);
   const [errores, setErrores] = useState<Record<string, string>>({});
   const [errorGeneral, setErrorGeneral] = useState<string | null>(null);
   const [enviando, setEnviando] = useState(false);
@@ -38,6 +40,7 @@ export function ActivarPage() {
       apellido,
       password,
       aceptaAviso,
+      aceptaTerminos,
     });
     if (!validacion.success) {
       const porCampo: Record<string, string> = {};
@@ -145,6 +148,28 @@ export function ActivarPage() {
             </label>
             {errores.aceptaAviso && (
               <p className="mt-1 text-xs text-peligro">{errores.aceptaAviso}</p>
+            )}
+          </div>
+
+          {/*
+           * Dos casillas y no una. Una sola sería más cómoda de marcar y haría imposible
+           * demostrar después qué aceptó cada persona, que es para lo que existe el registro.
+           */}
+          <div>
+            <p className="mb-2 text-sm font-medium">Términos y condiciones</p>
+            <Terminos />
+            <label className="mt-3 flex items-start gap-2 text-sm">
+              <input
+                type="checkbox"
+                className="mt-0.5 size-4 accent-marca"
+                checked={aceptaTerminos}
+                onChange={(e) => setAceptaTerminos(e.target.checked)}
+                aria-invalid={Boolean(errores.aceptaTerminos)}
+              />
+              <span>He leído y acepto los términos y condiciones.</span>
+            </label>
+            {errores.aceptaTerminos && (
+              <p className="mt-1 text-xs text-peligro">{errores.aceptaTerminos}</p>
             )}
           </div>
 

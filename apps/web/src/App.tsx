@@ -1,6 +1,7 @@
 import { Navigate, Route, Routes } from 'react-router';
 import { RutaProtegida } from '@/auth/RutaProtegida';
 import { Layout } from '@/components/Layout';
+import { PuertaLegal } from '@/components/legales/PuertaLegal';
 import { ActivarPage } from '@/pages/ActivarPage';
 import { AgendaPage } from '@/pages/AgendaPage';
 import { DescubrirPage } from '@/pages/DescubrirPage';
@@ -32,7 +33,10 @@ export function App() {
       <Route
         element={
           <RutaProtegida>
-            <Layout />
+            {/* Antes que cualquier pantalla: si cambió un documento legal, se acepta o se sale. */}
+            <PuertaLegal>
+              <Layout />
+            </PuertaLegal>
           </RutaProtegida>
         }
       >

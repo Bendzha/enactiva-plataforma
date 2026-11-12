@@ -317,6 +317,20 @@ Dejaba dos huecos, que contestó preguntada:
 - El orden importa y está fijado: identity va **al final**. Apenas anonimiza la cuenta la sesión muere, y cualquier llamada posterior dejaría datos a medio borrar **[P]**. Si un servicio no responde, no se borra nada y la cuenta sigue en pie.
 - Una cuenta del equipo ENACTIVA no se suprime desde ahí **[P]**: si el único Admin Principal se borrara, nadie podría volver a administrar el piloto. Sí puede exportar.
 - La frase `ELIMINAR MI CUENTA` hay que escribirla **[P]**: un botón solo es muy poco para algo irreversible.
+- **Son dos documentos y dos aceptaciones** **[C, 2026-11-12, Q21]**: el **aviso de privacidad**
+  dice qué se hace con los datos y lo exige la ley; los **términos y condiciones**, qué se puede
+  hacer en la plataforma, y existen porque hay referencias escritas sobre colegas y tokens que
+  valen algo fuera. Una sola casilla para ambos haría imposible demostrar después qué aceptó cada
+  persona **[P]**.
+- Cada documento lleva **su versión**, y **al subirla se vuelve a pedir al entrar** **[P]**: hasta
+  el 2026-11-12 el aviso se aceptaba una sola vez al activar la cuenta, así que un texto nuevo no
+  lo veía nadie. La pantalla **bloquea** —un aviso que se puede cerrar no es una aceptación— y
+  deja disponible cerrar sesión, para que nadie quede encerrado por no aceptar.
+- **La versión la pone el servidor, nunca quien pide** **[P]**: si viniera en la petición,
+  cualquiera podría declarar que aceptó una versión que no leyó. Y el historial **no se
+  reescribe**: aceptar una versión nueva agrega una fila y la anterior se queda.
+- Los dos textos se pueden **volver a leer** desde la propia cuenta **[P]**: aceptar algo que
+  después no se puede releer es pedirle a alguien que confíe en su memoria.
 - RRHH ve la participación nominativa **[C]** → el aviso de privacidad lo declara explícitamente, y esas lecturas se auditan **[P]**. El texto del aviso sigue siendo **borrador** y debe aprobarlo ENACTIVA (Q3).
 - Minimización: no se recolecta RUT, teléfono, fecha de nacimiento ni foto **[P]**.
 - HTTPS obligatorio. Sin cifrado a nivel de campo (rompe agregaciones); se reevalúa si se agregan comentarios libres **[P]**.
@@ -463,7 +477,7 @@ El 2026-10-13 la clienta contestó las nueve que bloqueaban el desarrollo
 | # | Pregunta | Bloquea |
 |---|---|---|
 | Q1 | Nombre del dominio de ENACTIVA y quién administra su DNS (para SPF/DKIM). **Por ahora todo se trabaja en local** (correos en Mailpit); se define al publicar | Despliegue público |
-| **Q3** | **Texto del aviso de privacidad y de los términos legales.** Karina quedó de revisarlo (acta 2026-09-29) y pidió avanzar con un texto de ejemplo mientras tanto (2026-10-24). El texto real tiene que declarar las referencias públicas entre colegas (Q17) y los tokens **antes** de que alguien escriba la primera | Publicación |
+| **Q3** | **Texto aprobado del aviso de privacidad y de los términos.** El mecanismo de aceptación ya está construido (§3.7) y los dos textos existen como **borradores del equipo**, marcados como tales en su primera línea; el aviso ya declara las referencias y los tokens (Q17). Falta la revisión legal y la aprobación de ENACTIVA | Publicación |
 
 | Q13 | ¿Cómo se enlaza con la web de ENACTIVA: botón de acceso, redirección, o software aparte? Karina quedó de averiguarlo. El 2026-10-29 mencionó que tiene hosting en **HostNet** | Despliegue público |
 | Q14 | Modelo comercial: ¿se vende la aplicación completa o se incorpora una empresa como cliente? Quedó pendiente en el acta | Fuera del MVP |
