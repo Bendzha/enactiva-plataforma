@@ -10,6 +10,7 @@ import { useEffect, useState, type FormEvent } from 'react';
 import { useSesion } from '@/auth/sesion';
 import { AgregarInteres } from '@/components/perfil/AgregarInteres';
 import { MisDatos } from '@/components/perfil/MisDatos';
+import { MisDocumentos } from '@/components/legales/MisDocumentos';
 import { MisSolicitudes } from '@/components/solicitudes/MisSolicitudes';
 import { Reconocimiento } from '@/components/valoracion/Reconocimiento';
 import { Alert } from '@/components/ui/alert';
@@ -35,27 +36,6 @@ export function MiPerfilPage() {
   useEffect(() => {
     if (perfil) setIntereses(perfil.interesesGenerales);
   }, [perfil]);
-
-  if (!deUnaEmpresa) {
-    return (
-      <section>
-        <header className="mb-6">
-          <h1 className="text-2xl font-extrabold tracking-tight">Mi perfil</h1>
-        </header>
-        <div className="space-y-6">
-          <Card>
-            <CardTitle>Tu cuenta es del equipo ENACTIVA</CardTitle>
-            <CardDescription>
-              El perfil corporativo lo completa cada colaborador dentro de su empresa: qué puede
-              enseñar y qué quiere aprender.
-            </CardDescription>
-          </Card>
-          {/* Llevarse sus datos es derecho de cualquiera, también de quien opera la plataforma. */}
-          <MisDatos puedeEliminar={false} />
-        </div>
-      </section>
-    );
-  }
 
   const guardarIntereses = async (evento: FormEvent) => {
     evento.preventDefault();
@@ -187,6 +167,7 @@ export function MiPerfilPage() {
           )}
           {usuario && <Reconocimiento usuarioId={usuario.id} />}
           <MisSolicitudes />
+          <MisDocumentos />
           <MisDatos puedeEliminar />
         </div>
       )}

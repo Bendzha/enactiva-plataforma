@@ -58,7 +58,7 @@ export class DatosPersonalesService {
         }),
         this.prisma.aceptacionAviso.findMany({
           where: { usuarioId },
-          select: { versionAviso: true, aceptadoAt: true },
+          select: { documento: true, version: true, aceptadoAt: true },
         }),
         this.prisma.tema.findMany({ where: { creadoPorId: usuarioId }, select: { nombre: true } }),
         this.prisma.solicitud.findMany({

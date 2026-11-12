@@ -1,6 +1,7 @@
 import { ConflictException, GoneException, Injectable } from '@nestjs/common';
 import {
-  AVISO_PRIVACIDAD_VERSION,
+  DOCUMENTOS_LEGALES,
+  VERSIONES_LEGALES,
   type AceptarInvitacionInput,
   type EstadoInvitacion,
 } from '@enactiva/shared';
@@ -19,7 +20,8 @@ export class InvitacionesService {
     return {
       email: invitacion.usuario.email ?? '',
       nombreEmpresa: invitacion.usuario.empresa?.nombre ?? null,
-      versionAviso: AVISO_PRIVACIDAD_VERSION,
+      versionAviso: VERSIONES_LEGALES.AVISO_PRIVACIDAD,
+      versionTerminos: VERSIONES_LEGALES.TERMINOS,
     };
   }
 
@@ -50,12 +52,14 @@ export class InvitacionesService {
         data: { usadoAt: new Date() },
       });
 
-      await tx.aceptacionAviso.create({
-        data: {
+      // Las dos aceptaciones, por separado: hay que poder demostrar qué aceptó cada persona.
+      await tx.aceptacionAviso.createMany({
+        data: DOCUMENTOS_LEGALES.map((documento) => ({
           usuarioId: invitacion.usuarioId,
-          versionAviso: AVISO_PRIVACIDAD_VERSION,
+          documento,
+          version: VERSIONES_LEGALES[documento],
           ip: ip ?? null,
-        },
+        })),
       });
 
       await tx.registroAuditoria.createMany({

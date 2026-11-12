@@ -20,7 +20,8 @@
 - ✅ **Slice 10 completo** (T10.1 a T10.7): solicitudes a RRHH para proponer un taller y para pasar a «quien enseña».
 - ✅ **Slice 11 completo** (T11.1 a T11.6): cada empresa pinta su propio entorno con su logo y sus colores (ADR-0011).
 - ✅ **RRHH administra y no participa** (2026-11-11): su entorno queda separado del de quien enseña y quien aprende, en el menú **y** en los servicios.
-- ⏭️ **Siguiente, por orden:** el **Slice 12** (términos y condiciones con re-aceptación), el **Slice 13** (el dashboard del Admin Principal) y **endurecer la sesión**. Después la **fase M4** (pipeline de CI por servicio y README de despliegue).
+- ✅ **Slice 12 completo** (T12.1 a T12.5): dos documentos legales con su versión, y re-aceptación al entrar cuando cambian.
+- ⏭️ **Siguiente, por orden:** el **Slice 13** (el dashboard del Admin Principal) y **endurecer la sesión**. Después la **fase M4** (pipeline de CI por servicio y README de despliegue).
 - 🟠 **El 2026-10-29 la clienta corrigió sobre el sistema funcionando** (`docs/reuniones/2026-10-29-reunion-karina.md`). No cambia la forma del producto: ajusta reglas y pantallas. Lo que trajo trabajo nuevo son las **solicitudes a RRHH** y la **personalización por empresa** (ADR-0011), que **revierte** una decisión del equipo que estaba en «Fuera de alcance».
 - ⚠️ **El criterio 5 de SPEC §10 es el único de los siete sin cumplir.** Reescrito el 2026-11-10 con lo que contestó la clienta: el dashboard va **dentro del admin de Karina** y **no se exporta**. Es el Slice 13. Importa para la defensa.
 - 📄 **Los dos textos legales son borradores del equipo** y necesitan revisión legal: el aviso de privacidad (`2026-10-borrador`) y los términos y condiciones (`docs/legal/terminos-y-condiciones-borrador.md`, escritos el 2026-11-10 a pedido de la clienta). **Al aviso le falta declarar las referencias y los tokens**, que la SPEC §3.5 exige y el Slice 8 ya guarda.
@@ -503,22 +504,39 @@ su empresa* **[C, 2026-10-29]** y eso no está construido. Hoy RRHH tampoco ve e
 talleres, porque la pantalla que existe es la de participar —con su botón «Inscribirme»—. Cuando
 se construya, será una pantalla de administración aparte.
 
-## Slice 12 — Términos y condiciones, y la re-aceptación
+## Slice 12 — Términos y condiciones, y la re-aceptación ✅
 **Demo:** alguien activa su cuenta y acepta dos documentos por separado. Cuando sube la versión de
 uno, al entrar se le vuelve a pedir ese y no el otro.
 **Pedido por la clienta el 2026-10-29** (*«botón para aceptar los términos y condiciones»*).
 Borrador en [`docs/legal/terminos-y-condiciones-borrador.md`](../docs/legal/terminos-y-condiciones-borrador.md).
 
-| # | Tarea | Criterio de aceptación |
-|---|---|---|
-| T12.1 | Dos documentos con su propia versión: el aviso y los T&C | se registra qué versión de **cada uno** aceptó cada persona, y cuándo |
-| T12.2 | **Dos casillas** en la activación, no una | una sola casilla haría imposible demostrar después qué aceptó quién |
-| T12.3 | **Re-aceptación al entrar** cuando la versión aceptada es más vieja que la vigente | no se puede seguir usando la plataforma sin aceptar; solo se pide el documento que cambió |
-| T12.4 | Al aviso le falta un párrafo sobre **las referencias y los tokens** | SPEC §3.5 exige declararlos antes de que alguien escriba la primera, y el Slice 8 ya está |
-| T12.5 | Poder volver a leer los dos documentos desde «Mi perfil» | hoy solo se ven una vez, al activar la cuenta |
+| # | Tarea | Criterio de aceptación | Estado |
+|---|---|---|---|
+| T12.1 | Dos documentos con su propia versión: el aviso y los T&C | se registra qué versión de **cada uno** aceptó cada persona, y cuándo | ✅ |
+| T12.2 | **Dos casillas** en la activación, no una | una sola casilla haría imposible demostrar después qué aceptó quién | ✅ |
+| T12.3 | **Re-aceptación al entrar** cuando la versión aceptada es más vieja que la vigente | no se puede seguir usando la plataforma sin aceptar; solo se pide el documento que cambió | ✅ |
+| T12.4 | Al aviso le faltaba un párrafo sobre **las referencias y los tokens** | SPEC §3.5 exige declararlos antes de que alguien escriba la primera | ✅ |
+| T12.5 | Poder volver a leer los dos documentos desde la propia cuenta | antes solo se veían una vez, al activar | ✅ |
 
-**Bloqueado por Q3 para publicar, no para construir:** el flujo se puede armar con los borradores;
-lo que no se puede es publicarlo sin el texto aprobado.
+Lo que apareció al construirlo:
+
+- **La puerta legal bloquea, no avisa.** Un banner que se puede cerrar no es una aceptación. Lo
+  único que queda disponible es **cerrar sesión**: nadie queda encerrado por no aceptar.
+- **La versión la pone el servidor, nunca quien pide.** Si viniera en la petición, cualquiera
+  podría declarar que aceptó una versión que no leyó, y el registro dejaría de probar nada.
+- **El historial no se reescribe.** Al aceptar una versión nueva se agrega una fila; la anterior
+  se queda, porque qué aceptó alguien en su momento es un hecho.
+- **Subir la versión del aviso fue la primera prueba real del mecanismo.** El párrafo que le
+  faltaba —referencias y tokens— obligó a pasar de `2026-10` a `2026-11`, y con eso todo el
+  mundo tiene que volver a aceptarlo. Era justo lo que no pasaba antes.
+- **La demo siembra las aceptaciones.** Sus cuentas se crean sin pasar por la invitación, así que
+  sin eso la demo empezaba con un muro legal para todos.
+- **Seis tests existentes cambiaron de expectativa**: el registro pasó de una fila a dos, y la
+  activación de una casilla a dos.
+
+**Bloqueado por Q3 para publicar, no para construir:** el mecanismo está armado con los
+borradores; lo que no se puede es publicarlo sin el texto aprobado y revisado por alguien con
+formación legal. Los dos textos lo dicen en su primera línea.
 
 ## Slice 13 — El dashboard del Admin Principal
 **Demo:** Karina entra a su panel y ve, empresa por empresa, cómo están funcionando los matches y

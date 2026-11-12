@@ -6,6 +6,7 @@
  * y se llena con lo que haga la gente durante la demo, no con datos de relleno.
  */
 import { fileURLToPath } from 'node:url';
+import { DOCUMENTOS_LEGALES, VERSIONES_LEGALES } from '@enactiva/shared';
 import { config } from 'dotenv';
 import { PrismaPg } from '@prisma/adapter-pg';
 import { hashPassword } from 'identity-service/src/common/password.js';
@@ -157,6 +158,19 @@ export async function sembrarIdentity(): Promise<void> {
         },
       });
     }
+
+    // Las cuentas de demo se crean sin pasar por la invitación, así que sin esto todas
+    // chocarían con la puerta legal al entrar y la demo empezaría con un muro.
+    await prisma.aceptacionAviso.createMany({
+      data: USUARIOS.flatMap((usuario) =>
+        DOCUMENTOS_LEGALES.map((documento) => ({
+          usuarioId: usuario.id,
+          documento,
+          version: VERSIONES_LEGALES[documento],
+        })),
+      ),
+      skipDuplicates: true,
+    });
 
     const { empresaId, ...colores } = PERSONALIZACION_DEMO;
     await prisma.empresa.update({ where: { id: empresaId }, data: colores });

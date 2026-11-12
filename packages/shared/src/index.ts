@@ -6,6 +6,7 @@ export * from './datos-personales.js';
 export * from './empresas.js';
 export * from './interno.js';
 export * from './invitaciones.js';
+export * from './legales.js';
 export * from './matching.js';
 export * from './metricas.js';
 export * from './perfiles.js';

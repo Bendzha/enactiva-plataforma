@@ -1,5 +1,6 @@
 import { ETIQUETAS_ROL } from '@enactiva/shared';
 import { useSesion } from '@/auth/sesion';
+import { MisDocumentos } from '@/components/legales/MisDocumentos';
 import { MisDatos } from '@/components/perfil/MisDatos';
 import { Card, CardDescription, CardTitle } from '@/components/ui/card';
 
@@ -62,6 +63,7 @@ export function MiCuentaPage() {
          * elimina, su organización se queda sin quien la administre. Es el mismo motivo por el
          * que el Admin Principal tampoco puede (SPEC §3.7).
          */}
+        <MisDocumentos />
         <MisDatos puedeEliminar={false} />
       </div>
     </section>
