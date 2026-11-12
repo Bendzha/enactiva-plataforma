@@ -471,6 +471,7 @@ enseña y quien aprende […] que solo sea un administrador»*. Reglas en SPEC �
 | A.6 | El inicio de RRHH manda a administrar, no a completar un perfil que no tiene | ni el login ni InicioPage la mandan a Descubrir | ✅ |
 | A.7 | Las métricas no cuentan a quien administra en el total de personas | «N de M con perfil» deja de tener un techo inalcanzable | ✅ |
 | A.8 | **«Ver reconocimiento» en Personas** | era la puerta que faltaba para moderar referencias | ✅ |
+| A.9 | **RRHH quita temas del catálogo** **[C, 2026-11-12]** | quitar **archiva**, no borra: nada se pierde en silencio | ✅ |
 
 Lo que apareció al construirlo:
 
@@ -483,6 +484,17 @@ Lo que apareció al construirlo:
   (SPEC §3.7). Descargar sus datos sí, que es un derecho de cualquiera.
 - **Un permiso no habría servido.** `red:participar` habría que acordarse de quitárselo a RRHH;
   un decorador que pregunta por el rol no se puede olvidar.
+- **Quitar un tema no puede ser un DELETE.** `PerfilInteres` tiene borrado en cascada, así que
+  borrar un tema se habría llevado las declaraciones de toda la gente sobre él **sin decir nada**;
+  y `learning_db` guarda `temaId` sin clave foránea, así que los talleres habrían quedado
+  apuntando a un tema inexistente. Se archiva: sale del catálogo y lo que ya existe sigue
+  funcionando. La pantalla lo dice en voz alta antes de confirmar, porque un botón «Quitar» hace
+  pensar en borrar.
+- **Volver a agregarlo lo recupera.** El nombre normalizado es único por empresa: sin eso, un
+  tema archivado quedaba imposible de recuperar **y** de recrear.
+- **Un test intermitente que apareció de paso.** `MisDatos` fallaba una de cada tantas corridas
+  porque «Mi perfil» pide más cosas que antes y las que no estaban simuladas devolvían 404,
+  provocando un re-render justo en el clic. Quedaron todas simuladas.
 - **Ocho tests existentes cambiaron de expectativa**, porque el comportamiento cambió de verdad:
   donde antes se veía «tu cuenta es del equipo ENACTIVA», ahora no se entra. Ninguno se desactivó.
 

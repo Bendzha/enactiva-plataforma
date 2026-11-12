@@ -26,9 +26,25 @@ const PERFIL: MiPerfil = {
   quieroAprender: [],
 };
 
+/**
+ * Todo lo que «Mi perfil» consulta al abrirse.
+ *
+ * Están todas a propósito: una ruta sin simular responde 404 y provoca un re-render justo
+ * cuando el test va a hacer clic, y el test falla una de cada tantas veces por eso.
+ */
 const rutasBase = {
   'GET /identity/mi-perfil': { status: 200, cuerpo: PERFIL },
   'GET /identity/temas': { status: 200, cuerpo: [] },
+  'GET /identity/solicitudes/mias': { status: 200, cuerpo: [] },
+  'GET /identity/mi-empresa/personalizacion': {
+    status: 200,
+    cuerpo: { colores: null, logo: null, empresaNombre: 'Planta Norte' },
+  },
+  [`GET /learning/personas/${ESTUDIANTE_PLANTA.id}/reconocimiento`]: {
+    status: 200,
+    cuerpo: { valoraciones: 0, promedio: null, porDimension: [], tokens: 0, talleresDictados: 0 },
+  },
+  [`GET /learning/personas/${ESTUDIANTE_PLANTA.id}/referencias`]: { status: 200, cuerpo: [] },
 };
 
 /** jsdom no implementa las URL de objeto, que es como el navegador entrega una descarga. */

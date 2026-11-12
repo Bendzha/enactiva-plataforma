@@ -38,7 +38,11 @@ export class TemasService {
     const normalizado = termino ? normalizarNombre(termino) : '';
 
     const temas = await this.prisma.acotado.tema.findMany({
-      where: normalizado ? { nombreNormalizado: { contains: normalizado } } : {},
+      // Los archivados salieron del catálogo: no se sugieren ni se pueden elegir.
+      where: {
+        archivadoAt: null,
+        ...(normalizado ? { nombreNormalizado: { contains: normalizado } } : {}),
+      },
       include: { intereses: { select: { tipo: true } } },
       orderBy: { nombreNormalizado: 'asc' },
       take: MAXIMO_TEMAS_SUGERIDOS,
@@ -57,6 +61,10 @@ export class TemasService {
   /**
    * Los temas que pidió otro servicio, de los que existan en la empresa de quien consulta.
    * Devuelve menos de los pedidos si alguno no es suyo: eso ya es la respuesta.
+   *
+   * **Acá sí entran los archivados**, a propósito: un taller que se convocó sobre un tema que
+   * después salió del catálogo tiene que seguir mostrando su nombre. Archivar deja de ofrecerlo,
+   * no borra la historia.
    */
   async porIds(ids: string[]): Promise<TemaInterno[]> {
     const temas = await this.prisma.acotado.tema.findMany({
@@ -74,6 +82,12 @@ export class TemasService {
       where: { empresaId, nombreNormalizado },
     });
     if (repetido) {
+      // Si estaba archivado, volver a crearlo es traerlo de vuelta: el nombre normalizado es
+      // único por empresa, así que si no, el catálogo quedaría con un tema imposible de
+      // recuperar y de recrear.
+      if (repetido.archivadoAt) {
+        return this.desarchivar(repetido.id, empresaId, sesion);
+      }
       throw new ConflictException('Ya existe un tema con ese nombre');
     }
 
@@ -98,6 +112,74 @@ export class TemasService {
     });
 
     return { id: tema.id, nombre: tema.nombre, puedenEnsenar: 0, quierenAprender: 0 };
+  }
+
+  /**
+   * Sacar un tema del catálogo (SPEC §3.6, 2026-11-12).
+   *
+   * No se borra. De un tema cuelgan las declaraciones de la gente —con borrado en cascada— y
+   * los talleres de learning_db, que lo referencian sin clave foránea porque viven en otra base
+   * (ADR-0007). Un DELETE se llevaría los perfiles por delante en silencio y dejaría talleres
+   * apuntando a la nada, y identity no puede preguntarle a learning sin invertir la dirección
+   * de dependencias que el ADR fija.
+   *
+   * Archivarlo deja de ofrecerlo: no aparece en el catálogo ni se puede declarar. Lo que ya
+   * existe sigue funcionando y mostrando su nombre.
+   */
+  async archivar(id: string, sesion: SesionActual): Promise<void> {
+    // Por el cliente acotado: un tema de otra empresa no existe acá, así que responde 404 y no
+    // 403, que confirmaría que existe.
+    const tema = await this.prisma.acotado.tema.findFirst({ where: { id } });
+    if (!tema) {
+      throw new NotFoundException('Tema no encontrado');
+    }
+    if (tema.archivadoAt) {
+      throw new ConflictException('Ese tema ya está fuera del catálogo');
+    }
+
+    await this.prisma.acotado.tema.update({ where: { id }, data: { archivadoAt: new Date() } });
+
+    await this.auditoria.registrar({
+      accion: 'ACTUALIZAR',
+      entidad: 'Tema',
+      entidadId: id,
+      actorId: sesion.usuarioId,
+      actorRol: sesion.roles[0] ?? null,
+      empresaId: tema.empresaId,
+      camposModificados: ['archivadoAt'],
+      ip: sesion.ip,
+    });
+  }
+
+  /** Vuelve al catálogo tal como estaba, con las declaraciones que nunca se fueron. */
+  private async desarchivar(
+    id: string,
+    empresaId: string,
+    sesion: SesionActual,
+  ): Promise<TemaResumen> {
+    const tema = await this.prisma.acotado.tema.update({
+      where: { id },
+      data: { archivadoAt: null },
+      include: { intereses: { select: { tipo: true } } },
+    });
+
+    await this.auditoria.registrar({
+      accion: 'ACTUALIZAR',
+      entidad: 'Tema',
+      entidadId: id,
+      actorId: sesion.usuarioId,
+      actorRol: sesion.roles[0] ?? null,
+      empresaId,
+      camposModificados: ['archivadoAt'],
+      ip: sesion.ip,
+    });
+
+    return {
+      id: tema.id,
+      nombre: tema.nombre,
+      puedenEnsenar: tema.intereses.filter((i) => i.tipo === 'ENSENAR').length,
+      quierenAprender: tema.intereses.filter((i) => i.tipo === 'APRENDER').length,
+    };
   }
 
   /**

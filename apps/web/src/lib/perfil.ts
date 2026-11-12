@@ -49,6 +49,18 @@ export function useGuardarPerfil() {
   });
 }
 
+/**
+ * Saca el tema del catálogo. No lo borra: lo ya declarado y los talleres que lo usan siguen
+ * funcionando, y volver a crearlo con el mismo nombre lo trae de vuelta.
+ */
+export function useArchivarTema() {
+  const refrescar = useRefrescar();
+  return useMutation({
+    mutationFn: (id: string) => pedir<void>(`/identity/temas/${id}`, { method: 'DELETE' }),
+    onSuccess: refrescar,
+  });
+}
+
 export function useCrearTema() {
   const refrescar = useRefrescar();
   return useMutation({

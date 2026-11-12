@@ -126,6 +126,11 @@ export class PerfilesService {
     if (!tema) {
       throw new NotFoundException('Tema no encontrado');
     }
+    // Un tema archivado salió del catálogo: no se declara nada nuevo sobre él. Lo que ya estaba
+    // declarado se queda, que es justo la diferencia entre archivar y borrar.
+    if (tema.archivadoAt) {
+      throw new ConflictException('Ese tema ya no está en el catálogo de tu empresa');
+    }
 
     const yaDeclarado = await this.prisma.acotado.perfilInteres.findFirst({
       where: { usuarioId: sesion.usuarioId, temaId: datos.temaId, tipo: datos.tipo },

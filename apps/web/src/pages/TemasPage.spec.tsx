@@ -1,5 +1,5 @@
 import type { TemaResumen } from '@enactiva/shared';
-import { screen, waitFor } from '@testing-library/react';
+import { screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { App } from '@/App';
@@ -78,6 +78,30 @@ describe('Catálogo de temas', () => {
 
     expect(screen.getByRole('button', { name: 'Agregar al catálogo' })).toBeDisabled();
     expect(api.veces('POST /identity/temas')).toBe(0);
+  });
+
+  it('quitar un tema avisa que no se borra nada', async () => {
+    const api = simularSesionIniciada(RRHH_PLANTA, {
+      ...rutas(),
+      [`DELETE /identity/temas/${EXCEL.id}`]: { status: 204 },
+    });
+    const usuario = userEvent.setup();
+    renderizar(<App />, { ruta: '/temas' });
+
+    await usuario.click(await screen.findByRole('button', { name: 'Quitar' }));
+
+    // Un botón «Quitar» hace pensar en borrar, y acá no se borra nada: de un tema cuelgan los
+    // perfiles de la gente y los talleres ya convocados.
+    const dialogo = screen.getByRole('dialog');
+    expect(dialogo).toHaveTextContent(/no se borra nada/i);
+    expect(dialogo).toHaveTextContent(/5 declaraciones/);
+
+    await usuario.click(within(dialogo).getByRole('button', { name: 'Quitar del catálogo' }));
+
+    await waitFor(() => {
+      expect(api.veces(`DELETE /identity/temas/${EXCEL.id}`)).toBe(1);
+    });
+    expect(await screen.findByText(/salió del catálogo/i)).toBeInTheDocument();
   });
 
   it('quien no administra el catálogo no entra', async () => {
