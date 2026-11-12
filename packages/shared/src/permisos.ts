@@ -70,6 +70,27 @@ const PERMISOS_POR_ROL: Record<Rol, readonly Permiso[]> = {
   ESTUDIANTE: [],
 };
 
+/**
+ * Quién participa de la capacitación entre pares, y quién solo la administra
+ * **[C, 2026-11-11]**: *«que el perfil de RRHH esté separado del perfil de quien enseña y quien
+ * aprende […] que solo sea un administrador»*.
+ *
+ * RRHH gestiona a su gente, el catálogo y las solicitudes; no declara lo que sabe, no hace swipe
+ * ni se inscribe. El equipo de ENACTIVA tampoco, que además no pertenece a ninguna empresa.
+ *
+ * Esto no es una preferencia de pantalla: quien administra decide sobre la participación de
+ * otros, y participar al mismo tiempo mezcla las dos cosas. Por eso los servicios también lo
+ * exigen, con `@SoloQuienParticipa()`.
+ */
+export function participaEnLaRed(roles: readonly Rol[]): boolean {
+  return !roles.includes('RRHH') && !roles.includes('ADMIN_ENACTIVA');
+}
+
+/** El rol RRHH es excluyente: no convive con enseñar ni con aprender. */
+export function rolesCompatibles(roles: readonly Rol[]): boolean {
+  return roles.includes('RRHH') ? roles.length === 1 : true;
+}
+
 export function permisosDe(roles: readonly Rol[], nivelAdmin: NivelAdmin | null): Set<Permiso> {
   const permisos = new Set<Permiso>();
 

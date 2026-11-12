@@ -25,7 +25,7 @@ interface MisDatosProps {
  * alguien conteste no es algo que la persona pueda ejercer.
  */
 export function MisDatos({ puedeEliminar }: MisDatosProps) {
-  const { cerrarSesion } = useSesion();
+  const { usuario, cerrarSesion } = useSesion();
   const descargarDatos = useDescargarMisDatos();
   const suprimir = useSuprimirCuenta();
 
@@ -83,7 +83,9 @@ export function MisDatos({ puedeEliminar }: MisDatosProps) {
 
         {!puedeEliminar && (
           <p className="mt-2 text-xs text-texto-suave">
-            Tu cuenta es del equipo ENACTIVA y no se elimina desde aquí: pídelo al Admin Principal.
+            {usuario?.empresaId
+              ? 'Tu cuenta administra la capacitación de tu organización y no se elimina desde aquí: si fueras la única, nadie podría administrarla. Pídeselo a ENACTIVA.'
+              : 'Tu cuenta es del equipo ENACTIVA y no se elimina desde aquí: pídelo al Admin Principal.'}
           </p>
         )}
       </Card>

@@ -1,3 +1,4 @@
+import { participaEnLaRed } from '@enactiva/shared';
 import { Link } from 'react-router';
 import { useSesion } from '@/auth/sesion';
 import { botonVariants } from '@/components/ui/button';
@@ -6,6 +7,43 @@ import { Card, CardDescription, CardTitle } from '@/components/ui/card';
 export function InicioPage() {
   const { usuario } = useSesion();
   const deUnaEmpresa = Boolean(usuario?.empresaId);
+  // RRHH administra y no participa (2026-11-11): mandarla a completar su perfil sería mandarla
+  // a una pantalla que no tiene.
+  const participa = usuario ? participaEnLaRed(usuario.roles) : false;
+
+  if (deUnaEmpresa && !participa) {
+    return (
+      <section>
+        <header className="mb-6">
+          <h1 className="text-2xl font-extrabold tracking-tight">
+            Hola{usuario?.nombre ? `, ${usuario.nombre}` : ''}
+          </h1>
+          <p className="text-sm text-texto-suave">
+            Administras la capacitación interna de tu organización.
+          </p>
+        </header>
+
+        <Card>
+          <CardTitle>Por dónde empezar</CardTitle>
+          <CardDescription>
+            Carga a tu gente, arma el catálogo de temas y resuelve lo que te pidan. Quien enseña y
+            quien aprende se encargan del resto.
+          </CardDescription>
+          <div className="mt-4 flex flex-wrap gap-2">
+            <Link to="/personas" className={botonVariants()}>
+              Ver a mi gente
+            </Link>
+            <Link to="/solicitudes" className={botonVariants({ variant: 'outline' })}>
+              Solicitudes
+            </Link>
+            <Link to="/temas" className={botonVariants({ variant: 'outline' })}>
+              Catálogo de temas
+            </Link>
+          </div>
+        </Card>
+      </section>
+    );
+  }
 
   return (
     <section>

@@ -1,4 +1,4 @@
-import { ETIQUETAS_ROL, type ResultadoImportacion } from '@enactiva/shared';
+import { ETIQUETAS_ROL, type PersonaResumen, type ResultadoImportacion } from '@enactiva/shared';
 import { useState } from 'react';
 import { InteresesDeclarados } from '@/components/metricas/InteresesDeclarados';
 import { ImportarPersonas } from '@/components/personas/ImportarPersonas';
@@ -7,13 +7,16 @@ import { Alert } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardDescription, CardTitle } from '@/components/ui/card';
+import { Dialog } from '@/components/ui/dialog';
 import { Kpi } from '@/components/ui/kpi';
+import { Reconocimiento } from '@/components/valoracion/Reconocimiento';
 import { usePersonas, useReenviarInvitacionPersona } from '@/lib/personas';
 
 export function PersonasPage() {
   const { data: personas, isPending, isError } = usePersonas();
   const reenviar = useReenviarInvitacionPersona();
   const [invitarAbierto, setInvitarAbierto] = useState(false);
+  const [viendo, setViendo] = useState<PersonaResumen | null>(null);
   const [importarAbierto, setImportarAbierto] = useState(false);
   const [aviso, setAviso] = useState<string | null>(null);
 
@@ -118,10 +121,35 @@ export function PersonasPage() {
                   Reenviar invitación
                 </Button>
               )}
+
+              {/*
+               * Es la única puerta a la moderación de referencias desde que RRHH dejó de tener
+               * «Mi perfil» (2026-11-11). Antes el botón «Ocultar» solo aparecía ahí, donde
+               * además no tenía sentido: habría estado moderando referencias sobre sí misma.
+               */}
+              {persona.estado === 'ACTIVO' && (
+                <Button variant="outline" size="sm" onClick={() => setViendo(persona)}>
+                  Ver reconocimiento
+                </Button>
+              )}
             </li>
           ))}
         </ul>
       )}
+
+      <Dialog
+        abierto={viendo !== null}
+        titulo={
+          viendo
+            ? `${viendo.nombre ?? viendo.email} ${viendo.apellido ?? ''}`.trim()
+            : 'Reconocimiento'
+        }
+        descripcion="Lo que recibe por enseñar, y las referencias que le escribieron."
+        variante="lateral"
+        onCerrar={() => setViendo(null)}
+      >
+        {viendo && <Reconocimiento usuarioId={viendo.id} />}
+      </Dialog>
 
       <InvitarPersona
         abierto={invitarAbierto}

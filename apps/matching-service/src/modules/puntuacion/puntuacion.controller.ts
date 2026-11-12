@@ -8,7 +8,7 @@ import {
 import {
   RequierePermiso,
   Sesion,
-  SoloSesion,
+  SoloQuienParticipa,
   ZodValidationPipe,
   type SesionActual,
 } from '@enactiva/service-kit';
@@ -25,7 +25,7 @@ export class PuntuacionController {
   constructor(private readonly puntuacion: PuntuacionService) {}
 
   @Post('talleres/:id/puntuacion')
-  @SoloSesion()
+  @SoloQuienParticipa()
   puntuar(
     @Param('id', ParseUUIDPipe) tallerId: string,
     @Body(new ZodValidationPipe(puntuarMatchSchema)) entrada: PuntuarMatchInput,
@@ -35,7 +35,7 @@ export class PuntuacionController {
   }
 
   @Get('talleres/:id/puntuacion')
-  @SoloSesion()
+  @SoloQuienParticipa()
   delTaller(
     @Param('id', ParseUUIDPipe) tallerId: string,
     @Sesion() sesion: SesionActual,
@@ -45,7 +45,7 @@ export class PuntuacionController {
 
   /** Los talleres míos que ya terminaron y todavía no puntué. */
   @Get('puntuaciones/pendientes')
-  @SoloSesion()
+  @SoloQuienParticipa()
   pendientes(@Sesion() sesion: SesionActual): Promise<string[]> {
     return this.puntuacion.pendientesDe(sesion);
   }

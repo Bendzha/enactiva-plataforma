@@ -10,9 +10,15 @@ import {
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { JwtService } from '@nestjs/jwt';
-import { CABECERA_INTERNO, tienePermisos, type Permiso } from '@enactiva/shared';
+import { CABECERA_INTERNO, participaEnLaRed, tienePermisos, type Permiso } from '@enactiva/shared';
 import { ClsService } from 'nestjs-cls';
-import { CLAVE_INTERNO, CLAVE_PERMISOS, CLAVE_PUBLICO, CLAVE_SOLO_SESION } from './decoradores.js';
+import {
+  CLAVE_INTERNO,
+  CLAVE_PERMISOS,
+  CLAVE_PUBLICO,
+  CLAVE_SOLO_PARTICIPA,
+  CLAVE_SOLO_SESION,
+} from './decoradores.js';
 import { CacheEstadoSesion } from './estado-sesion.js';
 import { SECRETO_INTERNO, verificarSecretoInterno } from './secreto-interno.js';
 import {
@@ -74,6 +80,16 @@ export class AuthGuard implements CanActivate {
 
     req.sesion = sesion;
     this.cls.set(CLS_SESION, sesion);
+
+    // Va antes que los permisos: quien administra no participa, tenga el permiso que tenga.
+    if (this.reflector.getAllAndOverride<boolean>(CLAVE_SOLO_PARTICIPA, destinos)) {
+      if (!participaEnLaRed(sesion.roles)) {
+        throw new ForbiddenException(
+          'Tu cuenta administra la plataforma: no participa de los talleres',
+        );
+      }
+      return true;
+    }
 
     const requeridos = this.reflector.getAllAndOverride<Permiso[]>(CLAVE_PERMISOS, destinos);
     if (requeridos?.length) {

@@ -152,15 +152,13 @@ describe('Descubrir (el mazo del swipe)', () => {
     expect(screen.getByRole('link', { name: 'Revisar mi perfil' })).toBeInTheDocument();
   });
 
-  it('el equipo de ENACTIVA no tiene mazo', async () => {
+  it('el equipo de ENACTIVA no entra al mazo: administra y no participa', async () => {
     const api = simularSesionIniciada(ADMIN_PRINCIPAL, {
       'GET /matching/mazo': { status: 200, cuerpo: [EXCEL] },
     });
     renderizar(<App />, { ruta: '/descubrir' });
 
-    expect(
-      await screen.findByRole('heading', { name: 'Tu cuenta es del equipo ENACTIVA' }),
-    ).toBeInTheDocument();
+    expect(await screen.findByText(/no tienes acceso a esta sección/i)).toBeInTheDocument();
     expect(api.veces('GET /matching/mazo')).toBe(0);
   });
 });

@@ -19,6 +19,7 @@
 - ✅ **Correcciones de la reunión del 2026-10-29** (PR #35, mergeado): login «ENACTIVA Match», recuperar contraseña, lista de asistencia, tokens nuevos, tokens privados, temas solo de RRHH y los roles renombrados en pantalla. Detalle más abajo.
 - ✅ **Slice 10 completo** (T10.1 a T10.7): solicitudes a RRHH para proponer un taller y para pasar a «quien enseña».
 - ✅ **Slice 11 completo** (T11.1 a T11.6): cada empresa pinta su propio entorno con su logo y sus colores (ADR-0011).
+- ✅ **RRHH administra y no participa** (2026-11-11): su entorno queda separado del de quien enseña y quien aprende, en el menú **y** en los servicios.
 - ⏭️ **Siguiente, por orden:** el **Slice 12** (términos y condiciones con re-aceptación), el **Slice 13** (el dashboard del Admin Principal) y **endurecer la sesión**. Después la **fase M4** (pipeline de CI por servicio y README de despliegue).
 - 🟠 **El 2026-10-29 la clienta corrigió sobre el sistema funcionando** (`docs/reuniones/2026-10-29-reunion-karina.md`). No cambia la forma del producto: ajusta reglas y pantallas. Lo que trajo trabajo nuevo son las **solicitudes a RRHH** y la **personalización por empresa** (ADR-0011), que **revierte** una decisión del equipo que estaba en «Fuera de alcance».
 - ⚠️ **El criterio 5 de SPEC §10 es el único de los siete sin cumplir.** Reescrito el 2026-11-10 con lo que contestó la clienta: el dashboard va **dentro del admin de Karina** y **no se exporta**. Es el Slice 13. Importa para la defensa.
@@ -453,6 +454,42 @@ Lo que apareció al construirlo:
   código y no vale la pena discutirlo por un logo: PNG con transparencia hace lo mismo.
 - **«Personalizada» exige los cuatro colores.** Media paleta aplicada sería una pantalla a medio
   pintar, peor que la plantilla entera.
+
+## RRHH administra y no participa ✅ — no es un slice
+**Demo:** RRHH entra y ve solo su entorno de administración. No tiene Descubrir, Mi perfil, Mi
+agenda ni Talleres, y escribir la dirección a mano tampoco la deja entrar.
+**Pedido por la clienta el 2026-11-11:** *«que el perfil de RRHH esté separado del perfil de quien
+enseña y quien aprende […] que solo sea un administrador»*. Reglas en SPEC §2.
+
+| # | Tarea | Criterio de aceptación | Estado |
+|---|---|---|---|
+| A.1 | `participaEnLaRed()` y `rolesCompatibles()` en `shared` | el rol RRHH es excluyente | ✅ |
+| A.2 | `@SoloQuienParticipa()` en service-kit, aplicado en los tres servicios | perfil, mazo, inscripción, agenda y valoración responden 403 a RRHH | ✅ |
+| A.3 | La solicitud de «quiero enseñar» se la niega a RRHH | aprobarla dejaría una cuenta que es las dos cosas | ✅ |
+| A.4 | Web: las cuatro pestañas de participar desaparecen, y las rutas se bloquean | el menú y el servidor dicen lo mismo | ✅ |
+| A.5 | Web: pantalla **«Mi cuenta»** para quien administra | puede descargar sus datos; **no** puede borrarse | ✅ |
+| A.6 | El inicio de RRHH manda a administrar, no a completar un perfil que no tiene | ni el login ni InicioPage la mandan a Descubrir | ✅ |
+| A.7 | Las métricas no cuentan a quien administra en el total de personas | «N de M con perfil» deja de tener un techo inalcanzable | ✅ |
+| A.8 | **«Ver reconocimiento» en Personas** | era la puerta que faltaba para moderar referencias | ✅ |
+
+Lo que apareció al construirlo:
+
+- **La moderación de referencias se quedaba sin puerta.** El botón «Ocultar» solo existía dentro
+  de «Mi perfil», y al quitarle esa pantalla a RRHH la función construida en el Slice 8 pasaba a
+  ser inalcanzable. Además ahí nunca tuvo sentido: RRHH habría estado moderando referencias sobre
+  sí misma. Ahora se llega desde **Personas**, que es donde ya trabaja.
+- **RRHH no puede borrar su cuenta.** Si la única persona de RRHH se elimina, su organización se
+  queda sin quien la administre. Es el mismo motivo por el que el Admin Principal tampoco puede
+  (SPEC §3.7). Descargar sus datos sí, que es un derecho de cualquiera.
+- **Un permiso no habría servido.** `red:participar` habría que acordarse de quitárselo a RRHH;
+  un decorador que pregunta por el rol no se puede olvidar.
+- **Ocho tests existentes cambiaron de expectativa**, porque el comportamiento cambió de verdad:
+  donde antes se veía «tu cuenta es del equipo ENACTIVA», ahora no se entra. Ninguno se desactivó.
+
+**Queda pendiente, y es anterior a esto:** la SPEC §3.2 dice que *RRHH crea y elimina talleres de
+su empresa* **[C, 2026-10-29]** y eso no está construido. Hoy RRHH tampoco ve el catálogo de
+talleres, porque la pantalla que existe es la de participar —con su botón «Inscribirme»—. Cuando
+se construya, será una pantalla de administración aparte.
 
 ## Slice 12 — Términos y condiciones, y la re-aceptación
 **Demo:** alguien activa su cuenta y acepta dos documentos por separado. Cuando sube la versión de

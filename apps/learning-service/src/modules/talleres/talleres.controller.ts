@@ -24,7 +24,7 @@ import {
 import {
   RequierePermiso,
   Sesion,
-  SoloSesion,
+  SoloQuienParticipa,
   ZodValidationPipe,
   type SesionActual,
 } from '@enactiva/service-kit';
@@ -42,14 +42,14 @@ export class TalleresController {
 
   /** Lo que esta persona tiene por delante: lo que dicta y a lo que va. */
   @Get('agenda')
-  @SoloSesion()
+  @SoloQuienParticipa()
   miAgenda(@Sesion() sesion: SesionActual): Promise<Agenda> {
     return this.agenda.mia(sesion);
   }
 
   /** Los talleres de mi empresa que todavía no ocurren. Cualquiera con sesión puede mirarlos. */
   @Get('talleres')
-  @SoloSesion()
+  @SoloQuienParticipa()
   proximos(@Sesion() sesion: SesionActual): Promise<TallerResumen[]> {
     return this.talleres.proximos(sesion);
   }
@@ -80,7 +80,7 @@ export class TalleresController {
   }
 
   @Post('talleres/:id/inscripcion')
-  @SoloSesion()
+  @SoloQuienParticipa()
   inscribir(
     @Param('id', ParseUUIDPipe) id: string,
     @Sesion() sesion: SesionActual,
@@ -90,7 +90,7 @@ export class TalleresController {
 
   @Delete('talleres/:id/inscripcion')
   @HttpCode(200)
-  @SoloSesion()
+  @SoloQuienParticipa()
   cancelar(
     @Param('id', ParseUUIDPipe) id: string,
     @Sesion() sesion: SesionActual,

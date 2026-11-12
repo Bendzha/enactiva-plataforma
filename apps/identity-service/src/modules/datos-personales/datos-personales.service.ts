@@ -119,6 +119,15 @@ export class DatosPersonalesService {
       );
     }
 
+    // Mismo motivo, un nivel más abajo (2026-11-11): si la única cuenta de RRHH se borra, su
+    // organización se queda sin quien la administre. Exportar sí puede, que es lo que la ley
+    // le garantiza a cualquiera.
+    if (sesion.roles.includes('RRHH')) {
+      throw new ForbiddenException(
+        'Una cuenta que administra la capacitación de su organización no se suprime desde aquí: pídeselo a ENACTIVA',
+      );
+    }
+
     const borrado = await this.prisma.$transaction(async (tx) => {
       const intereses = await tx.perfilInteres.deleteMany({ where: { usuarioId } });
       const perfil = await tx.perfilCorporativo.deleteMany({ where: { usuarioId } });

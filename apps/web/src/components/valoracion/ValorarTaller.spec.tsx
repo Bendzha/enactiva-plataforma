@@ -279,17 +279,37 @@ describe('Reconocimiento y referencias', () => {
     const rutas = rutasPerfil();
     const api = simularSesionIniciada(RRHH_PLANTA, {
       ...rutas,
-      [`GET /learning/personas/${RRHH_PLANTA.id}/reconocimiento`]:
-        rutas[`GET /learning/personas/${CAPACITADOR_PLANTA.id}/reconocimiento`]!,
-      [`GET /learning/personas/${RRHH_PLANTA.id}/referencias`]:
-        rutas[`GET /learning/personas/${CAPACITADOR_PLANTA.id}/referencias`]!,
       'POST /learning/referencias/r-1/ocultar': { status: 201, cuerpo: REFERENCIA },
+      'GET /identity/metricas/intereses': { status: 200, cuerpo: null },
+      'GET /identity/mi-empresa/personalizacion': {
+        status: 200,
+        cuerpo: { colores: null, logo: null, empresaNombre: 'Planta Norte' },
+      },
+      'GET /identity/personas': {
+        status: 200,
+        cuerpo: [
+          {
+            id: CAPACITADOR_PLANTA.id,
+            email: CAPACITADOR_PLANTA.email,
+            nombre: 'Luis',
+            apellido: 'Soto',
+            cargo: 'Supervisor',
+            areaNombre: 'Operaciones',
+            estado: 'ACTIVO',
+            roles: ['CAPACITADOR'],
+          },
+        ],
+      },
     });
-    renderizar(<App />, { ruta: '/mi-perfil' });
+    // Desde Personas, que es la puerta de RRHH a la moderación desde que dejó de tener
+    // «Mi perfil» (2026-11-11).
+    renderizar(<App />, { ruta: '/personas' });
+    await userEvent.click(await screen.findByRole('button', { name: 'Ver reconocimiento' }));
 
     await userEvent.click(await screen.findByRole('button', { name: 'Ocultar' }));
 
-    const dialogo = screen.getByRole('dialog');
+    // Hay dos abiertos: el panel lateral de la persona y el de ocultar.
+    const dialogo = screen.getByRole('dialog', { name: 'Ocultar esta referencia' });
     expect(dialogo).toHaveTextContent(/no se borra/i);
 
     const confirmar = within(dialogo).getByRole('button', { name: 'Ocultar' });

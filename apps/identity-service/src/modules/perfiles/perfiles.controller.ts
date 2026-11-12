@@ -27,6 +27,7 @@ import {
 import {
   RequierePermiso,
   Sesion,
+  SoloQuienParticipa,
   SoloSesion,
   ZodValidationPipe,
   type SesionActual,
@@ -61,13 +62,13 @@ export class PerfilesController {
   }
 
   @Get('mi-perfil')
-  @SoloSesion()
+  @SoloQuienParticipa()
   miPerfil(@Sesion() sesion: SesionActual): Promise<MiPerfil> {
     return this.perfiles.mio(sesion);
   }
 
   @Put('mi-perfil')
-  @SoloSesion()
+  @SoloQuienParticipa()
   guardarMiPerfil(
     @Body(new ZodValidationPipe(guardarPerfilSchema)) datos: GuardarPerfilInput,
     @Sesion() sesion: SesionActual,
@@ -76,7 +77,7 @@ export class PerfilesController {
   }
 
   @Post('mi-perfil/intereses')
-  @SoloSesion()
+  @SoloQuienParticipa()
   declarar(
     @Body(new ZodValidationPipe(declararInteresSchema)) datos: DeclararInteresInput,
     @Sesion() sesion: SesionActual,
@@ -85,7 +86,7 @@ export class PerfilesController {
   }
 
   @Patch('mi-perfil/intereses/:id')
-  @SoloSesion()
+  @SoloQuienParticipa()
   editar(
     @Param('id', ParseUUIDPipe) id: string,
     @Body(new ZodValidationPipe(editarInteresSchema)) datos: EditarInteresInput,
@@ -96,7 +97,7 @@ export class PerfilesController {
 
   @Delete('mi-perfil/intereses/:id')
   @HttpCode(204)
-  @SoloSesion()
+  @SoloQuienParticipa()
   eliminar(@Param('id', ParseUUIDPipe) id: string, @Sesion() sesion: SesionActual): Promise<void> {
     return this.perfiles.eliminar(id, sesion);
   }

@@ -17,10 +17,12 @@ export {
   CLAVE_INTERNO,
   CLAVE_PERMISOS,
   CLAVE_PUBLICO,
+  CLAVE_SOLO_PARTICIPA,
   CLAVE_SOLO_SESION,
   Publico,
   RequierePermiso,
   SoloInterno,
+  SoloQuienParticipa,
   SoloSesion,
 } from './decoradores.js';
 export {
