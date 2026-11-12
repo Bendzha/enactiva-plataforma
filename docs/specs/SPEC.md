@@ -287,6 +287,16 @@ Dejaba dos huecos, que contestó preguntada:
 - El mazo **se arma en cada consulta y no se guarda** **[P]**: un mazo guardado envejece solo —el cupo se llena, el taller ocurre— y mostraría tarjetas que ya no existen. Lo único que se guarda es la decisión.
 - Cada tarjeta **explica en una línea por qué apareció ahí** **[P]**: si el orden no se puede explicar, nadie confía en él.
 - Catálogo de temas: ~~lo crean Admin, RRHH y Capacitador~~ → **solo RRHH** **[C, 2026-10-29]**. Quien enseña lo **propone** por una solicitud (§2). Temas **por empresa**, con nombre normalizado único y buscador que sugiere existentes antes de crear **[P]** (evita duplicados que romperían el matching).
+- **RRHH también quita temas del catálogo** **[C, 2026-11-12]**. Quitar **no borra** **[P]**: de un
+  tema cuelgan las declaraciones de la gente —con borrado en cascada— y los talleres de
+  `learning_db`, que lo referencian sin clave foránea porque viven en otra base (ADR-0007). Un
+  borrado real se llevaría los perfiles por delante en silencio y dejaría talleres apuntando a la
+  nada, e identity no puede preguntarle a learning sin invertir la dirección de dependencias que
+  el ADR fija. El tema **se archiva**: deja de ofrecerse y de poder declararse, y lo que ya existe
+  sigue resolviendo su nombre.
+- **Volver a agregarlo con el mismo nombre lo trae de vuelta**, con sus declaraciones **[P]**: el
+  nombre normalizado es único por empresa, así que si no, quedaría imposible de recuperar y de
+  recrear. Aprobar una propuesta sobre un tema archivado también lo devuelve al catálogo.
 
 #### Perfil corporativo (construido en el Slice 4)
 - Cada persona declara, sobre un tema del catálogo de su empresa, que **puede enseñarlo** o que **quiere aprenderlo** **[C]**. Un mismo tema admite las dos cosas: enseñar Excel no impide querer aprenderlo mejor **[P]**.

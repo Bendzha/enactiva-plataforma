@@ -130,7 +130,9 @@ export class SolicitudesService {
     const temaNormalizado = normalizarNombre(datos.tema);
 
     const existente = await this.prisma.acotado.tema.findFirst({
-      where: { empresaId, nombreNormalizado: temaNormalizado },
+      // Uno archivado no cuenta como que ya está: salió del catálogo, así que proponerlo
+      // vuelve a tener sentido y RRHH decide si lo devuelve.
+      where: { empresaId, nombreNormalizado: temaNormalizado, archivadoAt: null },
       select: { nombre: true },
     });
     if (existente) {
@@ -231,8 +233,14 @@ export class SolicitudesService {
       // depende de la extensión de Prisma (misma regla que el cupo en learning).
       const existente = await tx.tema.findFirst({
         where: { empresaId: solicitud.empresaId, nombreNormalizado: solicitud.temaNormalizado! },
-        select: { id: true },
+        select: { id: true, archivadoAt: true },
       });
+
+      // Si estaba archivado, aprobar la propuesta lo devuelve al catálogo: RRHH acaba de decir
+      // que sí a ese tema, y dejarlo fuera sería contradecir su propia decisión.
+      if (existente?.archivadoAt) {
+        await tx.tema.update({ where: { id: existente.id }, data: { archivadoAt: null } });
+      }
 
       // Puede existir si alguien lo creó entre la propuesta y la aprobación. Se reusa en vez de
       // fallar: la decisión de RRHH no tiene por qué perderse por eso.

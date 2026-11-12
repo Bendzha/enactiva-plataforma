@@ -61,6 +61,20 @@ export class PerfilesController {
     return this.temas.crear(datos, sesion);
   }
 
+  /**
+   * Sacar un tema del catálogo. No lo borra: ver `TemasService.archivar`.
+   * Mismo permiso que crearlo, porque es la misma responsabilidad: el catálogo es de RRHH.
+   */
+  @Delete('temas/:id')
+  @HttpCode(204)
+  @RequierePermiso('temas:crear')
+  archivarTema(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Sesion() sesion: SesionActual,
+  ): Promise<void> {
+    return this.temas.archivar(id, sesion);
+  }
+
   @Get('mi-perfil')
   @SoloQuienParticipa()
   miPerfil(@Sesion() sesion: SesionActual): Promise<MiPerfil> {

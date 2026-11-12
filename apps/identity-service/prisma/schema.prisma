@@ -211,6 +211,11 @@ model Tema {
   nombre            String
   nombreNormalizado String   @map("nombre_normalizado")
   creadoPorId       String?  @map("creado_por_id") @db.Uuid
+  /// Fuera del catálogo (2026-11-12). No se borra: de un tema cuelgan las declaraciones de
+  /// la gente —con borrado en cascada— y los talleres de learning_db, que lo referencian sin
+  /// clave foránea porque viven en otra base. Archivar lo saca de circulación sin llevarse
+  /// nada por delante.
+  archivadoAt       DateTime? @map("archivado_at") @db.Timestamptz(3)
   createdAt         DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
   updatedAt         DateTime @updatedAt @map("updated_at") @db.Timestamptz(3)
 

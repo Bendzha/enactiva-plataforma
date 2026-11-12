@@ -1,12 +1,13 @@
-import { normalizarNombre } from '@enactiva/shared';
+import { normalizarNombre, type TemaResumen } from '@enactiva/shared';
 import { useState, type FormEvent } from 'react';
 import { Alert } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Card, CardDescription, CardTitle } from '@/components/ui/card';
+import { Dialog } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { ErrorApi } from '@/lib/api';
-import { useCrearTema, useTemas } from '@/lib/perfil';
+import { useArchivarTema, useCrearTema, useTemas } from '@/lib/perfil';
 
 /**
  * El catálogo de temas de la empresa (SPEC §3.6).
@@ -21,8 +22,24 @@ export function TemasPage() {
   const [error, setError] = useState<string | null>(null);
   const [aviso, setAviso] = useState<string | null>(null);
 
+  const [quitando, setQuitando] = useState<TemaResumen | null>(null);
+
   const { data: temas, isPending } = useTemas(busqueda);
   const crear = useCrearTema();
+  const archivar = useArchivarTema();
+
+  const quitar = async () => {
+    if (!quitando) return;
+    setError(null);
+    setAviso(null);
+    try {
+      await archivar.mutateAsync(quitando.id);
+      setAviso(`«${quitando.nombre}» salió del catálogo.`);
+      setQuitando(null);
+    } catch {
+      setError('No pudimos quitar el tema. Inténtalo de nuevo.');
+    }
+  };
 
   const propuesto = nombre.trim();
   const yaExiste = (temas ?? []).some(
@@ -139,11 +156,46 @@ export function TemasPage() {
                 <span className="ml-auto text-sm text-texto-suave">
                   {tema.puedenEnsenar} pueden enseñarlo · {tema.quierenAprender} quieren aprenderlo
                 </span>
+                <Button variant="outline" size="sm" onClick={() => setQuitando(tema)}>
+                  Quitar
+                </Button>
               </li>
             ))}
           </ul>
         )}
       </section>
+
+      <Dialog
+        abierto={quitando !== null}
+        titulo={quitando ? `Quitar «${quitando.nombre}» del catálogo` : 'Quitar del catálogo'}
+        descripcion="Deja de ofrecerse y nadie podrá declararlo de nuevo."
+        onCerrar={() => setQuitando(null)}
+      >
+        <div className="space-y-4">
+          {/*
+           * Se dice en voz alta qué NO pasa. Un botón «Quitar» hace pensar en borrar, y acá no
+           * se borra nada: de un tema cuelgan los perfiles de la gente y los talleres ya
+           * convocados.
+           */}
+          <p className="text-sm text-texto-suave">
+            No se borra nada. Las{' '}
+            {(quitando?.puedenEnsenar ?? 0) + (quitando?.quierenAprender ?? 0)} declaraciones que ya
+            existen sobre este tema se quedan, y los talleres convocados siguen mostrándolo. Si lo
+            vuelves a agregar con el mismo nombre, regresa tal como estaba.
+          </p>
+
+          {error && <Alert>{error}</Alert>}
+
+          <div className="flex justify-end gap-2">
+            <Button type="button" variant="outline" onClick={() => setQuitando(null)}>
+              Cancelar
+            </Button>
+            <Button type="button" disabled={archivar.isPending} onClick={() => void quitar()}>
+              {archivar.isPending ? 'Quitando…' : 'Quitar del catálogo'}
+            </Button>
+          </div>
+        </div>
+      </Dialog>
     </div>
   );
 }
