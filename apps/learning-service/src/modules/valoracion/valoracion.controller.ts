@@ -16,6 +16,7 @@ import {
 import {
   RequierePermiso,
   Sesion,
+  SoloQuienParticipa,
   SoloSesion,
   ZodValidationPipe,
   type SesionActual,
@@ -43,7 +44,7 @@ export class ValoracionController {
    * cualquier otro le responde 404, porque quiénes van a un taller no es información suya.
    */
   @Get('talleres/:id/asistencia')
-  @SoloSesion()
+  @SoloQuienParticipa()
   lista(
     @Param('id', ParseUUIDPipe) tallerId: string,
     @Sesion() sesion: SesionActual,
@@ -53,7 +54,7 @@ export class ValoracionController {
 
   /** Pasa lista. Con `cerrar` entrega los tokens y congela la lista, una sola vez. */
   @Put('talleres/:id/asistencia')
-  @SoloSesion()
+  @SoloQuienParticipa()
   marcar(
     @Param('id', ParseUUIDPipe) tallerId: string,
     @Body(new ZodValidationPipe(marcarAsistenciaSchema)) entrada: MarcarAsistenciaInput,
@@ -64,7 +65,7 @@ export class ValoracionController {
 
   /** Valorar un taller al que fui, después de que terminó. Una sola vez. */
   @Post('talleres/:id/valoracion')
-  @SoloSesion()
+  @SoloQuienParticipa()
   valorar(
     @Param('id', ParseUUIDPipe) tallerId: string,
     @Body(new ZodValidationPipe(valorarTallerSchema)) entrada: ValorarTallerInput,
@@ -75,7 +76,7 @@ export class ValoracionController {
 
   /** Lo que yo respondí, para no volver a pedírmelo y para poder mostrármelo. */
   @Get('talleres/:id/mi-valoracion')
-  @SoloSesion()
+  @SoloQuienParticipa()
   mia(
     @Param('id', ParseUUIDPipe) tallerId: string,
     @Sesion() sesion: SesionActual,
@@ -85,7 +86,7 @@ export class ValoracionController {
 
   /** Las estrellas del taller, promediadas. Nunca quién puso qué. */
   @Get('talleres/:id/estrellas')
-  @SoloSesion()
+  @SoloQuienParticipa()
   estrellas(
     @Param('id', ParseUUIDPipe) tallerId: string,
     @Sesion() sesion: SesionActual,

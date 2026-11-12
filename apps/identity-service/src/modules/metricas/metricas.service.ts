@@ -7,6 +7,7 @@ import {
   type TemaDemanda,
 } from '@enactiva/shared';
 import { type SesionActual } from '@enactiva/service-kit';
+import type { Prisma } from '../../generated/prisma/client.js';
 import { PrismaService } from '../../prisma/prisma.service.js';
 
 /** Conteo de declaraciones agrupadas por tema y tipo, tal como lo devuelve Prisma. */
@@ -18,6 +19,18 @@ interface ConteoPorTema {
 }
 
 const COLACION_ES = new Intl.Collator('es', { sensitivity: 'base' });
+
+/**
+ * Quién cuenta como «persona» en estas métricas.
+ *
+ * RRHH queda fuera desde el 2026-11-11: administra y no participa, así que no puede declarar un
+ * perfil. Contarla en el total dejaría «5 de 6 con perfil» como techo permanente, y ese número
+ * se lee como que falta alguien por completarlo.
+ */
+const PERSONAS_QUE_PARTICIPAN: Prisma.UsuarioWhereInput = {
+  estado: 'ACTIVO',
+  roles: { none: { rol: { in: ['RRHH', 'ADMIN_ENACTIVA'] } } },
+};
 
 /**
  * Las métricas que la clienta pidió ver cuando la gente empezara a registrar sus intereses
@@ -37,7 +50,7 @@ export class MetricasService {
     }
 
     const [personasActivas, temas, declaraciones, porPersona, porTema] = await Promise.all([
-      this.prisma.acotado.usuario.count({ where: { estado: 'ACTIVO' } }),
+      this.prisma.acotado.usuario.count({ where: PERSONAS_QUE_PARTICIPAN }),
       this.prisma.acotado.tema.findMany({ select: { id: true, nombre: true } }),
       this.prisma.acotado.perfilInteres.count(),
       this.prisma.acotado.perfilInteres.groupBy({ by: ['usuarioId'] }),
@@ -82,7 +95,7 @@ export class MetricasService {
           id: true,
           nombre: true,
           temas: { select: { id: true, nombre: true } },
-          _count: { select: { usuarios: { where: { estado: 'ACTIVO' } } } },
+          _count: { select: { usuarios: { where: PERSONAS_QUE_PARTICIPAN } } },
         },
       }),
       this.prisma.perfilInteres.groupBy({ by: ['empresaId', 'usuarioId'] }),

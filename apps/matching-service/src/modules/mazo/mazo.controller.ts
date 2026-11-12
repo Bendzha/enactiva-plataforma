@@ -5,7 +5,12 @@ import {
   type ResultadoDecision,
   type TarjetaMazo,
 } from '@enactiva/shared';
-import { Sesion, SoloSesion, ZodValidationPipe, type SesionActual } from '@enactiva/service-kit';
+import {
+  Sesion,
+  SoloQuienParticipa,
+  ZodValidationPipe,
+  type SesionActual,
+} from '@enactiva/service-kit';
 import { DecisionService } from './decision.service.js';
 import { MazoService } from './mazo.service.js';
 
@@ -18,13 +23,13 @@ export class MazoController {
 
   /** Las tarjetas de esta persona, ordenadas por afinidad. `buscar` filtra por tema. */
   @Get()
-  @SoloSesion()
+  @SoloQuienParticipa()
   mio(@Sesion() sesion: SesionActual, @Query('buscar') buscar?: string): Promise<TarjetaMazo[]> {
     return this.mazo.paraMi(sesion, buscar);
   }
 
   @Post(':tallerId/decision')
-  @SoloSesion()
+  @SoloQuienParticipa()
   decidir(
     @Param('tallerId', ParseUUIDPipe) tallerId: string,
     @Body(new ZodValidationPipe(decidirSchema)) datos: DecidirInput,

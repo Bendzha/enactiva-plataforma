@@ -1,5 +1,5 @@
 import { Marca } from '@/components/marca/Marca';
-import { ETIQUETAS_ROL, type Permiso } from '@enactiva/shared';
+import { ETIQUETAS_ROL, participaEnLaRed, type Permiso } from '@enactiva/shared';
 import { NavLink, Outlet, useNavigate } from 'react-router';
 import { useSesion } from '@/auth/sesion';
 import { Button } from '@/components/ui/button';
@@ -12,13 +12,20 @@ interface Pestana {
   permiso?: Permiso;
   /** El perfil corporativo es de quien trabaja en una empresa; el equipo ENACTIVA no tiene. */
   requiereEmpresa?: boolean;
+  /**
+   * Solo para quien participa de los talleres. RRHH administra y no participa (2026-11-11):
+   * su entorno es el de administración y nada más.
+   */
+  soloParticipantes?: boolean;
+  /** Lo contrario: solo para quien administra y no participa. */
+  soloAdministradores?: boolean;
 }
 
 const PESTANAS: Pestana[] = [
-  { a: '/descubrir', texto: 'Descubrir', requiereEmpresa: true },
-  { a: '/mi-perfil', texto: 'Mi perfil', requiereEmpresa: true },
-  { a: '/agenda', texto: 'Mi agenda', requiereEmpresa: true },
-  { a: '/talleres', texto: 'Talleres', requiereEmpresa: true },
+  { a: '/descubrir', texto: 'Descubrir', requiereEmpresa: true, soloParticipantes: true },
+  { a: '/mi-perfil', texto: 'Mi perfil', requiereEmpresa: true, soloParticipantes: true },
+  { a: '/agenda', texto: 'Mi agenda', requiereEmpresa: true, soloParticipantes: true },
+  { a: '/talleres', texto: 'Talleres', requiereEmpresa: true, soloParticipantes: true },
   { a: '/personas', texto: 'Personas', permiso: 'personas:gestionar' },
   { a: '/solicitudes', texto: 'Solicitudes', permiso: 'solicitudes:resolver' },
   { a: '/temas', texto: 'Temas', permiso: 'temas:crear' },
@@ -26,6 +33,9 @@ const PESTANAS: Pestana[] = [
   { a: '/empresas', texto: 'Empresas', permiso: 'empresas:listar' },
   { a: '/metricas', texto: 'Métricas', permiso: 'metricas-globales:ver' },
   { a: '/equipo', texto: 'Equipo', permiso: 'admins:gestionar' },
+  // Va al final porque es la cuenta de quien mira, no una sección del trabajo. Quien participa
+  // llega a lo mismo —y a su perfil— desde «Mi perfil».
+  { a: '/mi-cuenta', texto: 'Mi cuenta', soloAdministradores: true },
 ];
 
 export function Layout() {
@@ -42,8 +52,13 @@ export function Layout() {
   };
 
   const iniciales = (usuario?.nombre ?? usuario?.email ?? '?').slice(0, 2).toUpperCase();
+  const participa = usuario ? participaEnLaRed(usuario.roles) : false;
   const visibles = PESTANAS.filter(
-    (p) => (!p.permiso || puede(p.permiso)) && (!p.requiereEmpresa || Boolean(usuario?.empresaId)),
+    (p) =>
+      (!p.permiso || puede(p.permiso)) &&
+      (!p.requiereEmpresa || Boolean(usuario?.empresaId)) &&
+      (!p.soloParticipantes || participa) &&
+      (!p.soloAdministradores || !participa),
   );
 
   return (

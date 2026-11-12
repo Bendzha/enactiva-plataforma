@@ -34,7 +34,8 @@ const rutas = (personalizacion: Personalizacion) => ({
   'GET /identity/mi-empresa/personalizacion': { status: 200, cuerpo: personalizacion },
   'PUT /identity/mi-empresa/personalizacion': { status: 200, cuerpo: PERSONALIZADA },
   'DELETE /identity/mi-empresa/personalizacion': { status: 200, cuerpo: SIN_PERSONALIZAR },
-  'GET /identity/personas': { status: 200, cuerpo: { personas: [], areas: [] } },
+  'GET /identity/personas': { status: 200, cuerpo: [] },
+  'GET /identity/areas': { status: 200, cuerpo: [] },
   'GET /identity/metricas/intereses': { status: 200, cuerpo: null },
 });
 

@@ -6,6 +6,7 @@ import {
 } from '@nestjs/common';
 import {
   normalizarNombre,
+  participaEnLaRed,
   type Dimension,
   type EstadoSolicitud,
   type NivelDominio,
@@ -161,6 +162,14 @@ export class SolicitudesService {
 
     if (sesion.roles.includes('CAPACITADOR')) {
       throw new ConflictException('Ya puedes enseñar: publica tu taller desde «Mis talleres».');
+    }
+
+    // El rol RRHH es excluyente (2026-11-11): quien administra la participación de otros no
+    // participa. Sin esto, aprobar la solicitud dejaría una cuenta que es las dos cosas.
+    if (!participaEnLaRed(sesion.roles)) {
+      throw new ForbiddenException(
+        'Tu cuenta administra la plataforma: no participa de los talleres',
+      );
     }
 
     return this.crear(

@@ -6,7 +6,6 @@ import { App } from '@/App';
 import {
   ADMIN_PRINCIPAL,
   CAPACITADOR_PLANTA,
-  RRHH_PLANTA,
   ESTUDIANTE_PLANTA,
   renderizar,
   simularSesionIniciada,
@@ -107,32 +106,6 @@ describe('Mi perfil', () => {
     expect(api.veces('POST /identity/mi-perfil/intereses')).toBe(0);
   });
 
-  it('RRHH suma al catálogo los temas que no existen', async () => {
-    const api = simularSesionIniciada(RRHH_PLANTA, {
-      ...rutasBase,
-      'GET /identity/temas': { status: 200, cuerpo: [] },
-      'POST /identity/temas': {
-        status: 201,
-        cuerpo: {
-          id: '55555555-5555-7555-8555-555555555555',
-          nombre: 'Hablar en público',
-          puedenEnsenar: 0,
-          quierenAprender: 0,
-        },
-      },
-    });
-    const usuario = userEvent.setup();
-    renderizar(<App />, { ruta: '/mi-perfil' });
-
-    await usuario.click((await screen.findAllByRole('button', { name: '+ Agregar tema' }))[0]!);
-    await usuario.type(screen.getByLabelText('Tema'), 'Hablar en público');
-    await usuario.click(screen.getByRole('button', { name: /Crear el tema/ }));
-
-    await waitFor(() => {
-      expect(api.veces('POST /identity/temas')).toBe(1);
-    });
-  });
-
   it('quien enseña ya no crea temas: lo propone a RRHH', async () => {
     // El catálogo es de RRHH desde el 2026-10-29. Antes el capacitador podía crearlos, y entre
     // esa reunión y el Slice 10 lo único que había era un aviso que no hacía nada.
@@ -193,13 +166,11 @@ describe('Mi perfil', () => {
     ).toBeInTheDocument();
   });
 
-  it('el equipo de ENACTIVA no tiene perfil corporativo', async () => {
+  it('el equipo de ENACTIVA no entra a Mi perfil: administra y no participa', async () => {
     const api = simularSesionIniciada(ADMIN_PRINCIPAL, rutasBase);
     renderizar(<App />, { ruta: '/mi-perfil' });
 
-    expect(
-      await screen.findByRole('heading', { name: 'Tu cuenta es del equipo ENACTIVA' }),
-    ).toBeInTheDocument();
+    expect(await screen.findByText(/no tienes acceso a esta sección/i)).toBeInTheDocument();
     expect(screen.queryByRole('link', { name: 'Mi perfil' })).not.toBeInTheDocument();
     expect(api.veces('GET /identity/mi-perfil')).toBe(0);
   });

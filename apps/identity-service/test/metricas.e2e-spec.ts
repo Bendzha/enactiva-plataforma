@@ -172,8 +172,9 @@ describe('Métricas de intereses declarados (e2e)', () => {
       .expect(200);
 
     const metricas = res.body as MetricasIntereses;
+    // Dos y no tres: RRHH administra y no participa, así que no entra en el total (2026-11-11).
     expect(metricas).toMatchObject({
-      personasActivas: 3,
+      personasActivas: 2,
       personasConPerfil: 2,
       temas: 3,
       declaraciones: 4,
@@ -198,7 +199,8 @@ describe('Métricas de intereses declarados (e2e)', () => {
       .set('Authorization', `Bearer ${tokenOtraEmpresa}`)
       .expect(200);
 
-    expect(res.body).toMatchObject({ personasActivas: 1, declaraciones: 0, temas: 0 });
+    // Cero: en esa empresa la única cuenta activa es la de RRHH, que no participa.
+    expect(res.body).toMatchObject({ personasActivas: 0, declaraciones: 0, temas: 0 });
     expect((res.body as MetricasIntereses).brechas).toEqual([]);
   });
 
@@ -218,7 +220,7 @@ describe('Métricas de intereses declarados (e2e)', () => {
     const metricas = res.body as MetricasGlobales;
     const austral = metricas.empresas.find((e) => e.empresaId === empresaAId);
     expect(austral).toMatchObject({
-      personasActivas: 3,
+      personasActivas: 2,
       personasConPerfil: 2,
       temas: 3,
       declaraciones: 4,

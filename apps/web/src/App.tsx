@@ -11,6 +11,7 @@ import { LoginPage } from '@/pages/LoginPage';
 import { RecuperarPage } from '@/pages/RecuperarPage';
 import { RestablecerPage } from '@/pages/RestablecerPage';
 import { MetricasPage } from '@/pages/MetricasPage';
+import { MiCuentaPage } from '@/pages/MiCuentaPage';
 import { MiPerfilPage } from '@/pages/MiPerfilPage';
 import { PersonasPage } from '@/pages/PersonasPage';
 import { SolicitudesPage } from '@/pages/SolicitudesPage';
@@ -37,12 +38,41 @@ export function App() {
       >
         <Route index element={<Navigate to="/inicio" replace />} />
         <Route path="/inicio" element={<InicioPage />} />
-        {/* Sin permiso: cualquiera con sesión gestiona su propio perfil. */}
-        <Route path="/mi-perfil" element={<MiPerfilPage />} />
-        {/* Sin permiso: cualquiera de una empresa mira los talleres y se inscribe. */}
-        <Route path="/talleres" element={<TalleresPage />} />
-        <Route path="/descubrir" element={<DescubrirPage />} />
-        <Route path="/agenda" element={<AgendaPage />} />
+        {/* La cuenta de quien administra: sus datos y nada de enseñar ni aprender. */}
+        <Route path="/mi-cuenta" element={<MiCuentaPage />} />
+        {/* Las cuatro de participar. RRHH administra y no participa (2026-11-11). */}
+        <Route
+          path="/mi-perfil"
+          element={
+            <RutaProtegida soloParticipantes>
+              <MiPerfilPage />
+            </RutaProtegida>
+          }
+        />
+        <Route
+          path="/talleres"
+          element={
+            <RutaProtegida soloParticipantes>
+              <TalleresPage />
+            </RutaProtegida>
+          }
+        />
+        <Route
+          path="/descubrir"
+          element={
+            <RutaProtegida soloParticipantes>
+              <DescubrirPage />
+            </RutaProtegida>
+          }
+        />
+        <Route
+          path="/agenda"
+          element={
+            <RutaProtegida soloParticipantes>
+              <AgendaPage />
+            </RutaProtegida>
+          }
+        />
         <Route
           path="/empresas"
           element={

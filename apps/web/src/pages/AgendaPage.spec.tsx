@@ -134,15 +134,13 @@ describe('Mi agenda', () => {
     expect(vacio).toHaveAttribute('href', '/descubrir');
   });
 
-  it('el equipo de ENACTIVA no tiene agenda', async () => {
+  it('el equipo de ENACTIVA no entra a la agenda: administra y no participa', async () => {
     const api = simularSesionIniciada(ADMIN_PRINCIPAL, {
       'GET /learning/agenda': { status: 200, cuerpo: AGENDA },
     });
     renderizar(<App />, { ruta: '/agenda' });
 
-    expect(
-      await screen.findByRole('heading', { name: 'Tu cuenta es del equipo ENACTIVA' }),
-    ).toBeInTheDocument();
+    expect(await screen.findByText(/no tienes acceso a esta sección/i)).toBeInTheDocument();
     expect(api.veces('GET /learning/agenda')).toBe(0);
   });
 

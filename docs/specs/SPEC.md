@@ -47,13 +47,27 @@ Piloto: 3–4 empresas. Equipo: 4–5 estudiantes. Plazo: un semestre.
 
 ## 2. Usuarios, roles y permisos
 
-Una persona puede tener **varios roles a la vez** (ej. Capacitador y Estudiante) **[C]**.
+Una persona puede tener **varios roles a la vez** (ej. Capacitador y Estudiante) **[C]**, con una
+excepción: **el rol RRHH es excluyente** **[C, 2026-11-11]**.
+
+> **Quien administra no participa.** La clienta pidió que *«el perfil de RRHH esté separado del
+> perfil de quien enseña y quien aprende […] que solo sea un administrador de RRHH, que solo tenga
+> la vista de RRHH y no ambas»*. RRHH gestiona a su gente, el catálogo, las solicitudes y el
+> entorno de su empresa; **no declara lo que sabe, no hace swipe, no se inscribe y no valora**.
+> El equipo de ENACTIVA tampoco, que además no pertenece a ninguna empresa.
+>
+> No es una preferencia de pantalla: quien administra decide sobre la participación de otros, y
+> participar al mismo tiempo mezcla las dos cosas. Por eso **los servicios también lo exigen**
+> (`@SoloQuienParticipa()`), y no solo el menú: una pantalla que se alcanza escribiendo la
+> dirección a mano no está separada de nada **[P]**.
+>
+> Si alguien de RRHH quiere participar de los talleres, usa **una segunda cuenta** **[C]**.
 
 | Rol | Alcance de datos | Qué hace |
 |---|---|---|
 | Admin ENACTIVA — **Principal** (Karina) | Todas las empresas | Todo lo del Admin Operativo + métricas/dashboards globales + gestión de otros admins **[C]** |
 | Admin ENACTIVA — **Operativo** (equipo de Karina) | Todas las empresas | Cargar empresas, enviar/reenviar invitaciones **[C]**. **No** activa empresas **[C]**. **No** ve métricas ni dashboards **[C]** (la clienta lo plantea como necesidad futura; se diseña así desde ya) |
-| RRHH | Solo su empresa | Dashboard y reportes de su empresa, con resultados individuales nominativos **[C]**; **es el único que crea temas** **[C, 2026-10-29]**; crea y elimina talleres **[C, 2026-10-29]**; resuelve las solicitudes de su empresa **[C, 2026-10-29]**; personaliza el entorno de su empresa (§3.8) **[C, 2026-10-29]**; oculta referencias **[C]** |
+| RRHH — **solo administra** | Solo su empresa | Dashboard y reportes de su empresa, con resultados individuales nominativos **[C]**; **es el único que crea temas** **[C, 2026-10-29]**; crea y elimina talleres **[C, 2026-10-29]**; resuelve las solicitudes de su empresa **[C, 2026-10-29]**; personaliza el entorno de su empresa (§3.8) **[C, 2026-10-29]**; oculta referencias **[C]**. **No participa** de los talleres **[C, 2026-11-11]**: sin perfil corporativo, sin mazo, sin inscripciones y sin valorar |
 | Capacitador — **«Quien enseña»** en pantalla | Sus cursos | Publica la ficha de sus talleres, declara su disponibilidad **[C]** y **pasa la lista de asistencia** al terminar **[C, 2026-10-29]**. **Ya no crea temas**: los **propone** a RRHH (§3.2) **[C, 2026-10-29]**. ~~Carga contenido~~ (acta 2026-09-29) y ~~define rúbrica y evalúa~~ (2026-10-13, ADR-0010) |
 | Estudiante — **«Quien aprende»** en pantalla | Lo propio | Declara intereses, hace swipe, se inscribe y valora el encuentro al final **[C]**. Puede **pedirle a RRHH el rol de quien enseña** **[C, 2026-10-29]**. ~~Rinde tests~~ (2026-10-13, ADR-0010) |
 
@@ -281,7 +295,7 @@ Dejaba dos huecos, que contestó preguntada:
 - El perfil guarda además los **intereses generales** en texto libre **[C, acta 2026-09-29]**: la clienta pidió recoger datos corporativos y limitar los personales. No hay biografía, foto ni teléfono **[P]**.
 - El cargo y el área los administra RRHH; la persona los ve pero no los edita **[P]**.
 - Cada quien gestiona **solo su propio perfil**: el usuario sale del token verificado y nunca de la URL **[P]**.
-- Sobre estas declaraciones se calculan las **métricas de intereses** que la clienta pidió ver cuando la gente registrara sus temas **[C, acta 2026-09-29]**: cuánta gente tiene perfil, qué se ofrece, qué se busca y las **brechas** (temas que alguien quiere aprender y nadie de la empresa puede enseñar). Son agregados: nunca dicen quién declaró qué **[P]**.
+- Sobre estas declaraciones se calculan las **métricas de intereses** que la clienta pidió ver cuando la gente registrara sus temas **[C, acta 2026-09-29]**: cuánta gente tiene perfil, qué se ofrece, qué se busca y las **brechas** (temas que alguien quiere aprender y nadie de la empresa puede enseñar). Son agregados: nunca dicen quién declaró qué **[P]**. **El total de personas deja fuera a quien administra** **[P, 2026-11-11]**: contando a RRHH, «N de M con perfil» tendría un techo que nunca se alcanza y se leería como que falta alguien por completarlo.
 
 ### 3.7 Privacidad y cumplimiento (Ley 21.719)
 - Registro de auditoría append-only desde el Slice 0 **[C]**. Guarda la acción, la entidad y los **nombres** de los campos tocados, nunca su contenido **[P]**: así sobrevive a la supresión sin volver a identificar a nadie.

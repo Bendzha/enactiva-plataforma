@@ -1,4 +1,4 @@
-import { loginSchema, permisosDe, type UsuarioSesion } from '@enactiva/shared';
+import { loginSchema, participaEnLaRed, permisosDe, type UsuarioSesion } from '@enactiva/shared';
 import { useState, type FormEvent } from 'react';
 import { Link, Navigate, useLocation, useNavigate } from 'react-router';
 import { useSesion } from '@/auth/sesion';
@@ -47,7 +47,9 @@ function destinoElegido(puerta: Puerta, persona: UsuarioSesion): string | null {
       ? '/personas'
       : null;
   }
-  return persona.empresaId ? '/descubrir' : null;
+  // Quien administra no tiene Descubrir (2026-11-11): la puerta de «Trabajador/a» no lleva a
+  // ninguna parte para RRHH, y entonces manda el destino propio de su cuenta.
+  return persona.empresaId && participaEnLaRed(persona.roles) ? '/descubrir' : null;
 }
 
 export function LoginPage() {

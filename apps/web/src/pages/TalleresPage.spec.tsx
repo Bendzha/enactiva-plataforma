@@ -199,16 +199,14 @@ describe('Talleres', () => {
     });
   });
 
-  it('el equipo de ENACTIVA no convoca talleres', async () => {
+  it('el equipo de ENACTIVA no entra a Talleres: administra y no participa', async () => {
     const api = simularSesionIniciada(
       { ...ESTUDIANTE_PLANTA, empresaId: null, roles: ['ADMIN_ENACTIVA'], nivelAdmin: 'PRINCIPAL' },
       rutasBase,
     );
     renderizar(<App />, { ruta: '/talleres' });
 
-    expect(
-      await screen.findByRole('heading', { name: 'Tu cuenta es del equipo ENACTIVA' }),
-    ).toBeInTheDocument();
+    expect(await screen.findByText(/no tienes acceso a esta sección/i)).toBeInTheDocument();
     expect(api.veces('GET /learning/talleres')).toBe(0);
   });
 });

@@ -113,8 +113,9 @@ describe('Mis datos y mi cuenta', () => {
   });
 
   it('una cuenta del equipo ENACTIVA puede descargar, pero no eliminarse', async () => {
+    // Quien administra no tiene «Mi perfil»: sus datos viven en «Mi cuenta» (2026-11-11).
     simularSesionIniciada(ADMIN_PRINCIPAL, rutasBase);
-    renderizar(<App />, { ruta: '/mi-perfil' });
+    renderizar(<App />, { ruta: '/mi-cuenta' });
 
     expect(await screen.findByRole('button', { name: 'Descargar mis datos' })).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'Eliminar mi cuenta' })).not.toBeInTheDocument();
