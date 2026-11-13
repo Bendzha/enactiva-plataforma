@@ -162,6 +162,9 @@ credenciales de tu `.env` y no están en este documento a propósito.
 
 ## Un recorrido que funciona
 
+> Para la presentación del 23-10, el guion con el reparto por persona, los tiempos y las
+> preguntas probables está en [GUION-DEMO.md](GUION-DEMO.md).
+
 1. **Admin Principal** → *Empresas*: las dos del piloto, con su estado y su gente.
 2. Crear una empresa en vivo → el correo de invitación llega a http://localhost:8025.
 3. **Admin Principal** → *Métricas*: perfiles completos, temas, declaraciones y **brechas** por
