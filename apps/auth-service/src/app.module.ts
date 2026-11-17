@@ -14,6 +14,8 @@ import { AuthModule } from './modules/auth/auth.module.js';
   imports: [
     ServiceKitModule.forRoot({
       secretoJwt: env().JWT_ACCESS_SECRET,
+      // Siempre detrás del gateway: la IP de quien pide llega en X-Forwarded-For.
+      proxiesDelanteDelGateway: env().PROXIES_DELANTE_DEL_GATEWAY,
       // `GET /auth/yo` es la única ruta autenticada de este servicio; su sesión se resuelve
       // preguntándole a identity y se cachea 30 s.
       proveedorEstadoSesion: proveedorEstadoSesionRemoto(env().URL_IDENTITY_SERVICE),

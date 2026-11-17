@@ -23,7 +23,7 @@
 - ✅ **Slice 12 completo** (T12.1 a T12.5): dos documentos legales con su versión, y re-aceptación al entrar cuando cambian.
 - ✅ **Slice 13 completo** (T13.1 a T13.4): el dashboard del Admin Principal muestra las puntuaciones de los matches y las estrellas promediadas, empresa por empresa. **Con esto los siete criterios de éxito de SPEC §10 están cumplidos.**
 - ✅ **Sesión endurecida** (S.1 a S.3, 2026-11-16): «mantener sesión iniciada» en el login, desmarcada por omisión. Sin marcarla, la sesión muere al cerrar el navegador; antes sobrevivía siempre, para todo el mundo.
-- ⏭️ **Siguiente:** la **fase M4** (pipeline de CI por servicio y README de despliegue).
+- ✅ **Fase M4 completa** (2026-11-16): CI con un job por servicio y `docs/despliegue.md`. **Con esto el plan queda sin tareas pendientes**: lo que falta para publicar no es código, es la revisión legal (Q3), el dominio (Q1) y el hosting (Q13).
 - 🟠 **El 2026-10-29 la clienta corrigió sobre el sistema funcionando** (`docs/reuniones/2026-10-29-reunion-karina.md`). No cambia la forma del producto: ajusta reglas y pantallas. Lo que trajo trabajo nuevo son las **solicitudes a RRHH** y la **personalización por empresa** (ADR-0011), que **revierte** una decisión del equipo que estaba en «Fuera de alcance».
 - ✅ **El criterio 5 de SPEC §10 era el único de los siete sin cumplir; el Slice 13 lo cerró el 2026-11-16.** Reescrito el 2026-11-10 con lo que contestó la clienta: el dashboard va **dentro del admin de Karina** y **no se exporta**. Importa para la defensa.
 - 📄 **Los dos textos legales son borradores del equipo** y necesitan revisión legal: el aviso de privacidad y los términos y condiciones, los dos en `2026-11-borrador` (Slice 12). El aviso ya declara las referencias y los tokens, que la SPEC §3.5 exige y el Slice 8 guarda.
@@ -92,8 +92,26 @@ Dos cosas que solo aparecieron al armarlo:
 Slice 4 (temas y perfiles) → `identity-service`. Slices 5 y 7 (cursos, contenidos, rúbrica, mediciones) → `learning-service`. Slice 6 (matching) → `matching-service`.
 A diseñar antes de empezar: el mazo del swipe deja de ser una consulta SQL y pasa a componerse con llamadas a identity y learning (ADR-0007).
 
-## Fase M4 — CI/CD y cierre
-Pipeline por servicio (matriz) y README de despliegue. La exportación y supresión de datos por usuario ya está hecha (ver "Ley 21.719" más abajo).
+## Fase M4 — CI/CD y cierre ✅
+**Resultado:** CI reparte el trabajo en jobs —calidad, web y paquetes, y uno por servicio— y
+existe un README de despliegue. La exportación y supresión de datos por usuario ya estaba hecha
+(ver "Ley 21.719" más abajo).
+
+| # | Tarea | Criterio de aceptación |
+|---|---|---|
+| M4.1 | Un job por servicio, cada uno con su Postgres y su Mailpit | ✅ los e2e dejan de compartir base; Actions dice qué servicio falló |
+| M4.2 | Lint, formato, tipos y build en un job aparte, sin base | ✅ falla temprano sin esperar a que levanten los contenedores |
+| M4.3 | Un solo check (`CI`) que resuma a todos, para la protección de rama | ✅ verde solo si lo están todos |
+| M4.4 | Nadie puede agregar un workspace con tests y dejarlo fuera del pipeline | ✅ `tools/ci/cobertura-de-ci.mjs`, que corre en el job de calidad |
+| M4.5 | README de despliegue: secretos, bases, proxy inverso, respaldos y lo que nunca se sube | ✅ `docs/despliegue.md` |
+
+**Un error que apareció escribiéndolo:** el gateway mandaba `X-Forwarded-For` desde siempre —su
+comentario decía que era para auditar la IP de quien pide— pero **ningún proceso leía la
+cabecera**, porque a Express hay que decirle en cuántos saltos confía. Así que la auditoría
+guardaba la dirección del gateway, y el límite de intentos de login, que es **por IP**, contaba
+los intentos de todo el mundo como si vinieran de uno solo: detrás de un proxy habría dejado
+fuera a la empresa entera en vez de proteger una cuenta. Se arregla con
+`PROXIES_DELANTE_DEL_GATEWAY`, que por omisión es lo conservador.
 
 ---
 

@@ -42,6 +42,7 @@ export {
   type ProveedorEstadoSesion,
 } from './estado-sesion.js';
 export { ProveedorEstadoSesionRemoto, proveedorEstadoSesionRemoto } from './proveedor-remoto.js';
+export { confiarEnProxies, saltosDeConfianza } from './proxies.js';
 export { resolverRequestId } from './request-id.js';
 export { SECRETO_INTERNO, verificarSecretoInterno } from './secreto-interno.js';
 export { SaludModule, type EstadoSalud } from './salud.module.js';
