@@ -1,16 +1,27 @@
+import { MatchesPorEmpresa } from '@/components/metricas/MatchesPorEmpresa';
+import { ValoracionesPorEmpresa } from '@/components/metricas/ValoracionesPorEmpresa';
 import { Alert } from '@/components/ui/alert';
 import { Card, CardDescription, CardTitle } from '@/components/ui/card';
 import { Kpi } from '@/components/ui/kpi';
 import { useEmpresas } from '@/lib/empresas';
-import { useMetricasGlobales } from '@/lib/metricas';
+import { useMatchesPorEmpresa, useMetricasGlobales } from '@/lib/metricas';
 
 export function MetricasPage() {
   const { data: empresas } = useEmpresas();
   const { data: intereses, isError } = useMetricasGlobales();
+  const { data: matches } = useMatchesPorEmpresa();
 
   const activas = (empresas ?? []).filter((e) => e.estado === 'ACTIVA').length;
   const pendientes = (empresas ?? []).filter((e) => e.estado !== 'ACTIVA').length;
   const personas = (empresas ?? []).reduce((suma, e) => suma + e.personasActivas, 0);
+
+  /**
+   * Los agregados de matching y de learning llegan con `empresaId` y sin nombre: ninguno de los
+   * dos servicios conoce el catálogo de empresas, que vive en identity (ADR-0007). El cruce se
+   * hace aquí, con la lista que esta pantalla ya pide.
+   */
+  const nombres = new Map((empresas ?? []).map((empresa) => [empresa.id, empresa.nombre]));
+  const nombreDe = (empresaId: string) => nombres.get(empresaId) ?? 'Empresa del piloto';
 
   return (
     <section>
@@ -25,10 +36,18 @@ export function MetricasPage() {
         <Kpi etiqueta="Personas activas" valor={empresas ? personas : '—'} />
       </div>
 
-      <div className="mb-6 grid gap-4 sm:grid-cols-3">
+      <div className="mb-4 grid gap-4 sm:grid-cols-3">
         <Kpi etiqueta="Personas con perfil" valor={intereses?.personasConPerfil ?? '—'} />
         <Kpi etiqueta="Temas declarados" valor={intereses?.temas ?? '—'} />
         <Kpi etiqueta="Declaraciones" valor={intereses?.declaraciones ?? '—'} />
+      </div>
+
+      <div className="mb-6 grid gap-4 sm:grid-cols-2">
+        <Kpi etiqueta="Matches aceptados" valor={matches?.matches ?? '—'} />
+        <Kpi
+          etiqueta="Matches puntuados"
+          valor={matches ? `${matches.matchesConRespuesta} de ${matches.matches}` : '—'}
+        />
       </div>
 
       {isError && <Alert>No pudimos cargar los intereses declarados. Actualiza la página.</Alert>}
@@ -71,6 +90,9 @@ export function MetricasPage() {
           )}
         </Card>
       )}
+
+      <MatchesPorEmpresa nombreDe={nombreDe} />
+      <ValoracionesPorEmpresa nombreDe={nombreDe} />
     </section>
   );
 }

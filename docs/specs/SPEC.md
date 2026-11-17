@@ -461,9 +461,9 @@ export class EmpresasController {
    Excel.~~ → **Reescrito el 2026-11-10** **[C]**: *«todo el dashboard se ve dentro de el admin de
    Karina, nada de exportar todavía»*. Queda así: **el Admin Principal ve, dentro de su panel, las
    puntuaciones de los matches y las valoraciones agregadas, empresa por empresa.** Sin exportar.
-   ⚠️ **Es el único de los siete sin cumplir:** las puntuaciones del match se guardan pero no se
-   agregan en ninguna pantalla. La **exportación a PDF y Excel sale de alcance** por ahora, y RRHH
-   mantiene las métricas de intereses de su empresa, que ya existen.
+   ✅ **Cumplido el 2026-11-16** (Slice 13): «Métricas globales» muestra las cuatro preguntas del
+   match y las estrellas promediadas, fila por empresa. La **exportación a PDF y Excel sigue fuera
+   de alcance**, y RRHH mantiene las métricas de intereses de su empresa.
 6. Ningún usuario puede leer datos de otra empresa (verificado por tests e2e).
 7. Un usuario puede exportar sus datos y solicitar supresión; toda acción queda en auditoría.
 

@@ -118,3 +118,31 @@ export interface MetricasDeMatches {
   comoLoEsperaban: number;
   repetirian: number;
 }
+
+/**
+ * Las mismas cuatro respuestas, agregadas **empresa por empresa**, para el panel del Admin
+ * Principal (criterio 5 de SPEC §10, reescrito el 2026-11-10).
+ *
+ * Es la única vista que cruza empresas, y sigue sin decir quién respondió qué: solo cuántos.
+ */
+export interface MatchesDeEmpresa extends MetricasDeMatches {
+  empresaId: string;
+  /**
+   * Matches aceptados en Descubrir. Va aquí porque sin denominador las respuestas no se leen:
+   * «3 se reunieron» no dice nada si no se sabe si hubo 3 matches o 30.
+   */
+  matches: number;
+  /**
+   * Cuántas respuestas llegaron en total, que es el denominador de los cuatro conteos de
+   * arriba. **No es `matchesConRespuesta`**: un match puede traer dos respuestas, una por parte.
+   */
+  respuestas: number;
+}
+
+export interface MetricasDeMatchesGlobales {
+  /** Totales del piloto, para los indicadores de arriba. */
+  matches: number;
+  matchesConRespuesta: number;
+  respuestas: number;
+  empresas: MatchesDeEmpresa[];
+}

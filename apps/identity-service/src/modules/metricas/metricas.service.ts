@@ -33,6 +33,18 @@ const PERSONAS_QUE_PARTICIPAN: Prisma.UsuarioWhereInput = {
 };
 
 /**
+ * Las declaraciones que cuentan: las de esa misma gente.
+ *
+ * El numerador tiene que salir del mismo universo que el denominador. Sin esto, una declaración
+ * que quedó de antes del 2026-11-11 —cuando RRHH todavía podía declarar— se sigue contando y
+ * aparece un «2 de 1 con perfil», que es imposible y se lee como un error de la pantalla. La API
+ * ya no deja declarar a quien administra (`@SoloQuienParticipa`); esto cubre lo que ya estaba.
+ */
+const DECLARACIONES_QUE_CUENTAN: Prisma.PerfilInteresWhereInput = {
+  usuario: PERSONAS_QUE_PARTICIPAN,
+};
+
+/**
  * Las métricas que la clienta pidió ver cuando la gente empezara a registrar sus intereses
  * (acta 2026-09-29).
  *
@@ -52,10 +64,14 @@ export class MetricasService {
     const [personasActivas, temas, declaraciones, porPersona, porTema] = await Promise.all([
       this.prisma.acotado.usuario.count({ where: PERSONAS_QUE_PARTICIPAN }),
       this.prisma.acotado.tema.findMany({ select: { id: true, nombre: true } }),
-      this.prisma.acotado.perfilInteres.count(),
-      this.prisma.acotado.perfilInteres.groupBy({ by: ['usuarioId'] }),
+      this.prisma.acotado.perfilInteres.count({ where: DECLARACIONES_QUE_CUENTAN }),
+      this.prisma.acotado.perfilInteres.groupBy({
+        by: ['usuarioId'],
+        where: DECLARACIONES_QUE_CUENTAN,
+      }),
       this.prisma.acotado.perfilInteres.groupBy({
         by: ['temaId', 'tipo'],
+        where: DECLARACIONES_QUE_CUENTAN,
         _count: { _all: true },
       }),
     ]);
@@ -98,9 +114,13 @@ export class MetricasService {
           _count: { select: { usuarios: { where: PERSONAS_QUE_PARTICIPAN } } },
         },
       }),
-      this.prisma.perfilInteres.groupBy({ by: ['empresaId', 'usuarioId'] }),
+      this.prisma.perfilInteres.groupBy({
+        by: ['empresaId', 'usuarioId'],
+        where: DECLARACIONES_QUE_CUENTAN,
+      }),
       this.prisma.perfilInteres.groupBy({
         by: ['empresaId', 'temaId', 'tipo'],
+        where: DECLARACIONES_QUE_CUENTAN,
         _count: { _all: true },
       }),
     ]);

@@ -5,6 +5,7 @@ import { PROVEEDOR_ESTADO_SESION } from '@enactiva/service-kit';
 import {
   VALORACIONES_PARA_CONTAR_EN_EL_SCORE,
   type EstrellasDelTaller,
+  type MetricasDeValoracionesGlobales,
   type MiValoracion,
   type ReconocimientoPersona,
   type ReferenciaPublicada,
@@ -24,6 +25,8 @@ import {
 } from './utilidades.js';
 
 const EMPRESA = '21212121-2121-7121-8121-212121212121';
+const EMPRESA_2 = '21212121-2121-7121-8121-212121212129';
+const KARINA = '22222222-2222-7222-8222-222222222229';
 const LUIS = '22222222-2222-7222-8222-222222222221';
 const ANA = '22222222-2222-7222-8222-222222222222';
 const CARLA = '22222222-2222-7222-8222-222222222223';
@@ -49,14 +52,16 @@ describe('Valoración del encuentro, referencias y tokens (e2e)', () => {
   let tokenCarla: string;
   let tokenDiego: string;
   let tokenRrhh: string;
+  let tokenKarina: string;
   let tallerPasado: string;
 
   const limpiar = async () => {
-    await prisma.referencia.deleteMany({ where: { empresaId: EMPRESA } });
-    await prisma.valoracionTaller.deleteMany({ where: { empresaId: EMPRESA } });
-    await prisma.token.deleteMany({ where: { empresaId: EMPRESA } });
-    await prisma.inscripcion.deleteMany({ where: { empresaId: EMPRESA } });
-    await prisma.taller.deleteMany({ where: { empresaId: EMPRESA } });
+    const empresaId = { in: [EMPRESA, EMPRESA_2] };
+    await prisma.referencia.deleteMany({ where: { empresaId } });
+    await prisma.valoracionTaller.deleteMany({ where: { empresaId } });
+    await prisma.token.deleteMany({ where: { empresaId } });
+    await prisma.inscripcion.deleteMany({ where: { empresaId } });
+    await prisma.taller.deleteMany({ where: { empresaId } });
   };
 
   /** Un taller que ya terminó, con su gente inscrita: es lo único que se puede valorar. */
@@ -126,6 +131,16 @@ describe('Valoración del encuentro, referencias y tokens (e2e)', () => {
       activo: true,
     });
 
+    // El Admin Principal no pertenece a ninguna empresa: por eso puede ver el piloto completo.
+    sesiones.agregar({
+      usuarioId: KARINA,
+      roles: ['ADMIN_ENACTIVA'],
+      nivelAdmin: 'PRINCIPAL',
+      empresaId: null,
+      activo: true,
+    });
+
+    tokenKarina = tokenDe(app, KARINA);
     tokenLuis = tokenDe(app, LUIS);
     tokenAna = tokenDe(app, ANA);
     tokenCarla = tokenDe(app, CARLA);
@@ -404,6 +419,96 @@ describe('Valoración del encuentro, referencias y tokens (e2e)', () => {
     expect(JSON.stringify(registros.map((r) => r.camposModificados))).not.toContain(
       'desafortunado',
     );
+  });
+
+  describe('el panel del Admin Principal (criterio 5 de SPEC §10)', () => {
+    const RUTA = '/metricas/valoraciones/globales';
+
+    const globales = (token: string) =>
+      request(app.getHttpServer()).get(RUTA).set('Authorization', `Bearer ${token}`);
+
+    /** Un taller terminado y valorado en otra empresa, sin sesiones: solo cuentan sus cifras. */
+    const enLaOtraEmpresa = async () => {
+      const taller = await prisma.taller.create({
+        data: {
+          empresaId: EMPRESA_2,
+          capacitadorId: LUIS,
+          temaId: TEMA,
+          nombre: 'Prevención de riesgos',
+          objetivo: 'Un objetivo que alcanza el mínimo de caracteres',
+          resultadosEsperados: 'Un resultado que alcanza el mínimo',
+          ubicacion: 'Sala 2',
+          inicioAt: new Date(enDias(-5)),
+          finAt: new Date(enDias(-5, 12)),
+          cupo: 10,
+        },
+      });
+      await prisma.valoracionTaller.create({
+        data: {
+          empresaId: EMPRESA_2,
+          tallerId: taller.id,
+          usuarioId: ANA,
+          estrellas: { create: [{ dimension: 'CLARIDAD', estrellas: 2 }] },
+        },
+      });
+    };
+
+    it('promedia por empresa y no mezcla una con otra', async () => {
+      await valorar(tallerPasado, tokenAna).expect(201);
+      await valorar(tallerPasado, tokenCarla, MALA).expect(201);
+      await enLaOtraEmpresa();
+
+      const { body } = await globales(tokenKarina).expect(200);
+      const metricas = body as MetricasDeValoracionesGlobales;
+
+      const mia = metricas.empresas.find((fila) => fila.empresaId === EMPRESA)!;
+      // BUENA (5,5,4,4) y MALA (1,2,1,1): ocho estrellas, promedio 2.9.
+      expect(mia).toMatchObject({
+        talleresTerminados: 1,
+        talleresValorados: 1,
+        valoraciones: 2,
+        promedio: 2.9,
+      });
+
+      const otra = metricas.empresas.find((fila) => fila.empresaId === EMPRESA_2)!;
+      expect(otra).toMatchObject({ valoraciones: 1, promedio: 2 });
+    });
+
+    it('un taller que nadie valoró deja el promedio en null, no en cero', async () => {
+      const { body } = await globales(tokenKarina).expect(200);
+      const metricas = body as MetricasDeValoracionesGlobales;
+
+      // El `beforeEach` dejó un taller terminado y sin valorar: «sin datos» no es «mala nota».
+      // Se busca la fila de esta empresa y no se afirma nada sobre la lista completa: estos
+      // agregados cruzan empresas, así que otras suites dejan sus propias filas en la base.
+      expect(metricas.empresas.find((fila) => fila.empresaId === EMPRESA)).toEqual({
+        empresaId: EMPRESA,
+        talleresTerminados: 1,
+        talleresValorados: 0,
+        valoraciones: 0,
+        promedio: null,
+        porDimension: [],
+      });
+    });
+
+    it('es un agregado: no dice quién valoró ni a quién', async () => {
+      await valorar(tallerPasado, tokenAna, {
+        referencia: 'Luis explica muy claro, volvería a su taller.',
+      }).expect(201);
+
+      const { body } = await globales(tokenKarina).expect(200);
+
+      const texto = JSON.stringify(body);
+      expect(texto).not.toContain(ANA);
+      expect(texto).not.toContain(LUIS);
+      expect(texto).not.toContain('explica muy claro');
+    });
+
+    it('RRHH no ve el piloto completo: su panel es de su empresa', async () => {
+      await globales(tokenRrhh).expect(403);
+      await globales(tokenAna).expect(403);
+      await request(app.getHttpServer()).get(RUTA).expect(401);
+    });
   });
 
   it('sin token no se valora ni se lee nada', async () => {

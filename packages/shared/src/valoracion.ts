@@ -144,3 +144,29 @@ export interface ValoracionDeFacilitador {
   /** Null mientras no llegue a VALORACIONES_PARA_CONTAR_EN_EL_SCORE. */
   promedio: number | null;
 }
+
+/**
+ * Las estrellas promediadas **por empresa**, para el panel del Admin Principal (criterio 5 de
+ * SPEC §10, reescrito el 2026-11-10).
+ *
+ * El promedio es de la empresa, nunca de una persona: quién valoró a quién no sale de aquí, y
+ * el reconocimiento individual ya tiene su propia pantalla dentro de cada organización.
+ */
+export interface ValoracionesDeEmpresa {
+  empresaId: string;
+  /** Talleres que ya terminaron: el universo de lo que se puede valorar. */
+  talleresTerminados: number;
+  /** De esos, cuántos recibieron al menos una valoración. */
+  talleresValorados: number;
+  valoraciones: number;
+  /** Las cuatro dimensiones juntas, de 1 a 5. `null` mientras nadie haya valorado. */
+  promedio: number | null;
+  porDimension: EstrellasPorDimension[];
+}
+
+export interface MetricasDeValoracionesGlobales {
+  talleresTerminados: number;
+  valoraciones: number;
+  promedio: number | null;
+  empresas: ValoracionesDeEmpresa[];
+}

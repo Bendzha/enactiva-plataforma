@@ -165,7 +165,11 @@ credenciales de tu `.env` y no están en este documento a propósito.
 1. **Admin Principal** → *Empresas*: las dos del piloto, con su estado y su gente.
 2. Crear una empresa en vivo → el correo de invitación llega a http://localhost:8025.
 3. **Admin Principal** → *Métricas*: perfiles completos, temas, declaraciones y **brechas** por
-   empresa. Las brechas son temas que alguien quiere aprender y nadie puede enseñar.
+   empresa. Las brechas son temas que alguien quiere aprender y nadie puede enseñar. Más abajo,
+   la **puntuación de los matches** y la **valoración de los talleres**, también empresa por
+   empresa: es el criterio 5 de la SPEC. La demo parte sin matches, así que esa tabla muestra su
+   mensaje de «todavía no hay» hasta que alguien acepte una tarjeta en *Descubrir* — hazlo en
+   vivo en el paso 7 si quieres verla con datos.
 4. **RRHH** → *Personas*: la lista, y abajo "Qué quiere aprender tu gente" con esas mismas
    brechas. *Inglés técnico* lo quieren dos personas y no lo enseña nadie.
 5. **Facilitador** → *Mi perfil*: lo que puede enseñar y lo que quiere aprender.
