@@ -1,7 +1,7 @@
 import type { INestApplication } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import type { EstadoSesion, ProveedorEstadoSesion } from '@enactiva/service-kit';
-import type { PersonaConContacto, PersonaInterna } from '@enactiva/shared';
+import type { PersonaConContacto, PersonaInterna, TemaInterno } from '@enactiva/shared';
 import { IdentityCliente } from '../src/identity.cliente.js';
 
 /**
@@ -28,11 +28,17 @@ export class ProveedorEstadoSesionFalso implements ProveedorEstadoSesion {
 /** Catálogo de temas y personas falso: responde como identity, acotado a lo que el test declaró. */
 export class IdentityClienteFalso {
   private readonly temas = new Map<string, string>();
+  private readonly archivados = new Set<string>();
   private readonly personas = new Map<string, PersonaInterna>();
 
   agregarTema(id: string, nombre: string): string {
     this.temas.set(id, nombre);
     return id;
+  }
+
+  /** RRHH lo sacó del catálogo: sigue resolviendo su nombre y ya no admite talleres nuevos. */
+  archivarTema(id: string): void {
+    this.archivados.add(id);
   }
 
   agregarPersona(id: string, nombre: string, apellido = ''): string {
@@ -79,6 +85,13 @@ export class IdentityClienteFalso {
       if (nombre) encontrados.set(id, nombre);
     }
     return Promise.resolve(encontrados);
+  }
+
+  /** Como identity: los archivados vuelven igual, con la marca puesta. */
+  temaPorId(id: string): Promise<TemaInterno | null> {
+    const nombre = this.temas.get(id);
+    if (nombre === undefined) return Promise.resolve(null);
+    return Promise.resolve({ id, nombre, archivado: this.archivados.has(id) });
   }
 }
 

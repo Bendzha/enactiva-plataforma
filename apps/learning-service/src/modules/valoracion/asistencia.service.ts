@@ -144,7 +144,10 @@ export class AsistenciaService {
     });
 
     await this.auditoria.registrar({
-      accion: entrada.cerrar ? 'ACTUALIZAR' : 'LEER',
+      // Siempre ACTUALIZAR: guardar la lista sin cerrarla también escribe `asistio` en cada
+      // inscripción. Estaba como 'LEER' cuando no se cerraba, y esta tabla es append-only: una
+      // fila mal etiquetada no se corrige después, se queda diciendo que alguien solo miró.
+      accion: 'ACTUALIZAR',
       entidad: 'Asistencia',
       entidadId: tallerId,
       actorId: sesion.usuarioId,

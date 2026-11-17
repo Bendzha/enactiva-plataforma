@@ -170,6 +170,20 @@ describe('Talleres convocados (e2e)', () => {
       await crearTaller(tokenCapacitador, { temaId: TEMA_DE_OTRA_EMPRESA }).expect(404);
     });
 
+    it('no se publica sobre un tema que RRHH sacó del catálogo', async () => {
+      // Archivar deja el tema resolviendo su nombre para los talleres que ya existen, pero no
+      // admitiendo nuevos (SPEC §3.6). La pantalla ya no lo ofrece; esto lo cierra en el
+      // servidor, que es donde tiene que estar: una pestaña abierta desde antes lo intentaría.
+      const archivado = identity.agregarTema(
+        'cccccccc-0000-7000-8000-00000000c001',
+        'Tema que ya no se ofrece',
+      );
+      identity.archivarTema(archivado);
+
+      const { body } = await crearTaller(tokenCapacitador, { temaId: archivado }).expect(400);
+      expect(body.mensaje ?? body.message).toMatch(/ya no está en el catálogo/i);
+    });
+
     it('un estudiante no publica talleres', async () => {
       await crearTaller(tokenEstudiante).expect(403);
     });

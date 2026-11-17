@@ -24,6 +24,9 @@
 - ✅ **Slice 13 completo** (T13.1 a T13.4): el dashboard del Admin Principal muestra las puntuaciones de los matches y las estrellas promediadas, empresa por empresa. **Con esto los siete criterios de éxito de SPEC §10 están cumplidos.**
 - ✅ **Sesión endurecida** (S.1 a S.3, 2026-11-16): «mantener sesión iniciada» en el login, desmarcada por omisión. Sin marcarla, la sesión muere al cerrar el navegador; antes sobrevivía siempre, para todo el mundo.
 - ✅ **Fase M4 completa** (2026-11-16): CI con un job por servicio y `docs/despliegue.md`. **Con esto el plan queda sin tareas pendientes**: lo que falta para publicar no es código, es la revisión legal (Q3), el dominio (Q1) y el hosting (Q13).
+- 🔎 **Revisión completa del sistema (2026-11-17).** Se repasó la SPEC entera contra el código. Lo que se corrigió: el aviso de privacidad prometía un registro de **lecturas** que no existe (versión `2026-11-17-borrador`, todos la vuelven a aceptar); guardar la lista de asistencia sin cerrarla se auditaba como `LEER` siendo una escritura; publicar un taller sobre un tema **archivado** solo lo impedía la pantalla, ahora también el servidor; y se sacó del login el correo `contacto@enactiva.cl`, que el equipo había inventado. Más seis puntos de documentación desactualizada.
+- ⏸️ **«RRHH crea y elimina talleres»** **[C, 2026-10-29]** **no se construye** **[E, 2026-11-17]**: RRHH administra el catálogo de temas y la ficha la publica quien dicta. **Contradice lo que pidió la clienta y hay que confirmárselo.** Ver SPEC §3.2.
+- ⚠️ **Riesgo conocido: nadie puede cancelar un taller**, tampoco quien lo dicta. Si uno se cae, la gente sigue inscrita y los recordatorios salen igual; lo mismo con los talleres futuros de alguien que elimina su cuenta. Es lo primero que habría que construir antes de un uso real.
 - 🟠 **El 2026-10-29 la clienta corrigió sobre el sistema funcionando** (`docs/reuniones/2026-10-29-reunion-karina.md`). No cambia la forma del producto: ajusta reglas y pantallas. Lo que trajo trabajo nuevo son las **solicitudes a RRHH** y la **personalización por empresa** (ADR-0011), que **revierte** una decisión del equipo que estaba en «Fuera de alcance».
 - ✅ **El criterio 5 de SPEC §10 era el único de los siete sin cumplir; el Slice 13 lo cerró el 2026-11-16.** Reescrito el 2026-11-10 con lo que contestó la clienta: el dashboard va **dentro del admin de Karina** y **no se exporta**. Importa para la defensa.
 - 📄 **Los dos textos legales son borradores del equipo** y necesitan revisión legal: el aviso de privacidad y los términos y condiciones, los dos en `2026-11-borrador` (Slice 12). El aviso ya declara las referencias y los tokens, que la SPEC §3.5 exige y el Slice 8 guarda.
@@ -599,3 +602,8 @@ La elección viaja con la rotación del refresh y **la pone el servidor**, nunca
   ya está contestada y el multi-sesión sigue diferido.
 - Confirmar con Karina que **RRHH conserva** sus métricas de intereses: ella dijo que el dashboard
   va en su admin, y conviene no leer eso como que RRHH pierde el suyo.
+- Confirmar con Karina que **RRHH no crea talleres**: el 2026-10-29 pidió que sí, y el 2026-11-11
+  separó a RRHH de quien enseña, con lo que no puede quedar como facilitador de ninguno. Se
+  resolvió por lo segundo **[E, 2026-11-17]** y la ficha la publica quien dicta.
+- **Un correo de contacto para el login.** El `contacto@enactiva.cl` que había lo inventó el
+  equipo y se sacó el 2026-11-17; el dominio depende de la Q1.

@@ -158,8 +158,8 @@ describe('Mazo del swipe (e2e)', () => {
         },
       ],
       temas: [
-        { id: TEMA_EXCEL, nombre: 'Excel avanzado' },
-        { id: TEMA_INGLES, nombre: 'Inglés técnico' },
+        { id: TEMA_EXCEL, nombre: 'Excel avanzado', archivado: false },
+        { id: TEMA_INGLES, nombre: 'Inglés técnico', archivado: false },
       ],
     };
   });

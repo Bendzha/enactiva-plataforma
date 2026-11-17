@@ -22,9 +22,14 @@ export type DocumentoLegal = (typeof DOCUMENTOS_LEGALES)[number];
  * del piloto con datos reales (SPEC Q3).
  */
 export const VERSIONES_LEGALES: Record<DocumentoLegal, string> = {
-  // Sube de 2026-10 a 2026-11: le faltaba declarar las referencias públicas y los tokens, que
-  // la SPEC §3.5 exige decir antes de que alguien escriba la primera.
-  AVISO_PRIVACIDAD: '2026-11-borrador',
+  // 2026-10 → 2026-11: le faltaba declarar las referencias públicas y los tokens, que la SPEC
+  // §3.5 exige decir antes de que alguien escriba la primera.
+  //
+  // 2026-11 → 2026-11-17: el párrafo del registro prometía que se guarda «quién accede» a cada
+  // dato, y las lecturas no se auditan. Un aviso que promete de más es peor que uno escueto:
+  // describe un control que nadie puede ejercer. Ahora dice exactamente qué queda registrado.
+  // La versión lleva el día porque dos cambios cayeron en el mismo mes.
+  AVISO_PRIVACIDAD: '2026-11-17-borrador',
   TERMINOS: '2026-11-borrador',
 };
 

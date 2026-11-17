@@ -49,6 +49,23 @@ describe('Activación de cuenta desde el correo', () => {
     expect(screen.getByText(/puedes descargar todo lo que la plataforma/i)).toBeInTheDocument();
   });
 
+  it('el aviso no promete un registro de lecturas que no existe', async () => {
+    // Hasta el 2026-11-17 decía que se guarda «quién accede o modifica cada dato», y las
+    // lecturas no se auditan: ninguna consulta de RRHH deja traza. Un aviso que promete un
+    // control que nadie puede ejercer es peor que uno escueto.
+    simularApi({
+      '/auth/refresh': { status: 401 },
+      '/identity/invitaciones/estado': INVITACION_VALIDA,
+    });
+    renderizar(<App />, { ruta: RUTA_ACTIVAR });
+
+    expect(await screen.findByText(/Planta Norte S\.A\./)).toBeInTheDocument();
+    expect(screen.queryByText(/quién accede/i)).not.toBeInTheDocument();
+    expect(
+      screen.getByText(/No se registra cada vez que alguien mira una pantalla/i),
+    ).toBeInTheDocument();
+  });
+
   it('avisa si el enlace ya no sirve', async () => {
     simularApi({
       '/auth/refresh': { status: 401 },

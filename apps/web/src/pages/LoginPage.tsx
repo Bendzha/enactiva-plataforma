@@ -246,11 +246,14 @@ export function LoginPage() {
             </Button>
           </form>
 
+          {/*
+            Aquí iba un «Escríbenos» a contacto@enactiva.cl, que el equipo inventó: ese correo no
+            está en ninguna acta y el dominio es justamente la Q1, todavía abierta. Una dirección
+            que no existe en una pantalla de login es peor que no ofrecer ninguna, porque quien
+            no puede entrar escribe y nadie le contesta. Vuelve cuando ENACTIVA confirme cuál es.
+          */}
           <p className="mt-6 text-xs text-texto-suave">
-            ¿Aún no tienes acceso?{' '}
-            <a href="mailto:contacto@enactiva.cl" className="font-semibold text-marca">
-              Escríbenos
-            </a>
+            ¿Aún no tienes acceso? Pídele el acceso a Recursos Humanos de tu organización.
             <br />
             ENACTIVA — a human learning company.
           </p>

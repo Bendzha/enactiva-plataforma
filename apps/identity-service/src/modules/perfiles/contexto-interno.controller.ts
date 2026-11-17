@@ -61,7 +61,7 @@ export class ContextoInternoController {
       idsTemas.length
         ? this.prisma.acotado.tema.findMany({
             where: { id: { in: idsTemas } },
-            select: { id: true, nombre: true },
+            select: { id: true, nombre: true, archivadoAt: true },
           })
         : Promise.resolve([]),
     ]);
@@ -78,7 +78,13 @@ export class ContextoInternoController {
     return {
       personas: personasInternas,
       declaraciones: declaraciones as DeclaracionInterna[],
-      temas: catalogo,
+      // Los archivados entran igual: el mazo se arma sobre talleres que ya existen, y uno
+      // convocado antes de que RRHH retirara el tema tiene que seguir mostrando su nombre.
+      temas: catalogo.map((tema) => ({
+        id: tema.id,
+        nombre: tema.nombre,
+        archivado: tema.archivadoAt !== null,
+      })),
     };
   }
 

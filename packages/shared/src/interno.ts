@@ -75,12 +75,19 @@ export interface EstadoSesionInterno {
 }
 
 /**
- * Tema del catálogo, tal como lo ve otro servicio. Solo el id y el nombre: learning-service
- * guarda `temaId` y necesita el nombre para mostrarlo, nada más (ADR-0007).
+ * Tema del catálogo, tal como lo ve otro servicio. Casi nada: learning-service guarda `temaId`
+ * y necesita el nombre para mostrarlo (ADR-0007).
+ *
+ * Los archivados **vuelven igual**, con la marca puesta: un taller que ya existe tiene que poder
+ * seguir mostrando el nombre de su tema aunque RRHH lo haya sacado del catálogo. Lo que no puede
+ * es nacer uno nuevo sobre un tema archivado, y para distinguir esos dos casos hace falta el
+ * dato, no su ausencia.
  */
 export interface TemaInterno {
   id: string;
   nombre: string;
+  /** RRHH lo sacó del catálogo: deja de ofrecerse y no admite nada nuevo (SPEC §3.6). */
+  archivado: boolean;
 }
 
 /** Cuántos temas se piden de una vez; es el largo de una lista de talleres en pantalla. */

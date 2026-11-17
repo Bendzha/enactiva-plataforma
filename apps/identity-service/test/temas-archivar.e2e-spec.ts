@@ -145,10 +145,18 @@ describe('Quitar un tema del catálogo (e2e)', () => {
     expect(await prisma.perfilInteres.count({ where: { temaId: tema.id } })).toBe(1);
   });
 
-  it('un taller ya convocado sigue pudiendo resolver su nombre', async () => {
+  it('un taller ya convocado sigue pudiendo resolver su nombre, y el tema viaja marcado', async () => {
     // learning pregunta por `/interno/temas?ids=`, y ahí los archivados sí entran: si no, un
-    // taller convocado sobre ese tema se quedaría sin nombre que mostrar.
+    // taller convocado sobre ese tema se quedaría sin nombre que mostrar. Pero viajan con la
+    // marca, que es con lo que learning rechaza publicar uno nuevo sobre un tema retirado.
     const tema = await crearTema(rrhhA, 'Excel avanzado');
+
+    const vigente = await request(app.getHttpServer())
+      .get(`/interno/temas?ids=${tema.id}`)
+      .set('Authorization', como(aprendeA))
+      .expect(200);
+    expect(vigente.body).toEqual([{ id: tema.id, nombre: 'Excel avanzado', archivado: false }]);
+
     await quitar(rrhhA, tema.id).expect(204);
 
     const { body } = await request(app.getHttpServer())
@@ -156,7 +164,7 @@ describe('Quitar un tema del catálogo (e2e)', () => {
       .set('Authorization', como(aprendeA))
       .expect(200);
 
-    expect(body).toEqual([{ id: tema.id, nombre: 'Excel avanzado' }]);
+    expect(body).toEqual([{ id: tema.id, nombre: 'Excel avanzado', archivado: true }]);
   });
 
   it('ya no se puede declarar', async () => {
