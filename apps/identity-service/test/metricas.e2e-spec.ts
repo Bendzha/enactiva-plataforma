@@ -229,6 +229,48 @@ describe('Métricas de intereses declarados (e2e)', () => {
     expect(metricas.declaraciones).toBeGreaterThanOrEqual(4);
   });
 
+  it('una declaración de RRHH de antes del cambio no cuenta en ningún lado', async () => {
+    // Hasta el 2026-11-11 RRHH podía declarar lo que sabía. La API ya no lo permite, pero las
+    // filas de antes siguen ahí, y contarlas daba un «2 de 1 con perfil»: imposible en pantalla.
+    const rrhh = await prisma.usuario.findUniqueOrThrow({ where: { email: EMAIL_RRHH } });
+    const tema = await prisma.tema.findFirstOrThrow({ where: { empresaId: empresaAId } });
+    const vieja = await prisma.perfilInteres.create({
+      data: {
+        empresaId: empresaAId,
+        usuarioId: rrhh.id,
+        temaId: tema.id,
+        tipo: 'ENSENAR',
+        dimensiones: ['ACTITUD'],
+        nivel: 'AVANZADO',
+      },
+    });
+
+    try {
+      const res = await request(app.getHttpServer())
+        .get('/metricas/intereses')
+        .set('Authorization', `Bearer ${tokenRrhh}`)
+        .expect(200);
+
+      expect(res.body).toMatchObject({
+        personasActivas: 2,
+        personasConPerfil: 2,
+        declaraciones: 4,
+      });
+
+      const global = await request(app.getHttpServer())
+        .get('/metricas/globales')
+        .set('Authorization', `Bearer ${tokenAdmin}`)
+        .expect(200);
+
+      const austral = (global.body as MetricasGlobales).empresas.find(
+        (e) => e.empresaId === empresaAId,
+      );
+      expect(austral).toMatchObject({ personasConPerfil: 2, declaraciones: 4 });
+    } finally {
+      await prisma.perfilInteres.delete({ where: { id: vieja.id } });
+    }
+  });
+
   it('RRHH no ve las métricas globales del piloto', async () => {
     await request(app.getHttpServer())
       .get('/metricas/globales')

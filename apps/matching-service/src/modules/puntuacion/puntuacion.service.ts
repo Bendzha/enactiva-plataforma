@@ -6,8 +6,10 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import type {
+  MatchesDeEmpresa,
   MatchPuntuado,
   MetricasDeMatches,
+  MetricasDeMatchesGlobales,
   PuntuarMatchInput,
   RespuestaPuntuacionMatch,
 } from '@enactiva/shared';
@@ -119,12 +121,54 @@ export class PuntuacionService {
       },
     });
 
+    return this.contar(respuestas);
+  }
+
+  /**
+   * Lo mismo que ve RRHH de su empresa, pero del piloto completo y **empresa por empresa**.
+   *
+   * Usa el cliente sin acotar a propósito: es la única consulta de este servicio que cruza
+   * empresas, y el permiso `metricas-globales:ver` ya la deja solo para el Admin Principal.
+   *
+   * Una empresa sin un solo match no aparece en la lista: este servicio no conoce el catálogo de
+   * empresas —vive en identity— y no va a inventarlo. Quien arma la pantalla ya lo tiene.
+   */
+  async globalesPorEmpresa(): Promise<MetricasDeMatchesGlobales> {
+    const [matches, respuestas] = await Promise.all([
+      this.prisma.match.groupBy({
+        by: ['empresaId'],
+        where: { decision: 'INTERESADO' },
+        _count: { _all: true },
+      }),
+      this.prisma.puntuacionMatch.findMany({
+        select: {
+          empresaId: true,
+          matchId: true,
+          seReunieron: true,
+          aLaHoraAcordada: true,
+          comoLoEsperaban: true,
+          repetirian: true,
+        },
+      }),
+    ]);
+
+    const empresas: MatchesDeEmpresa[] = matches
+      .map((fila) => {
+        const suyas = respuestas.filter((r) => r.empresaId === fila.empresaId);
+        return {
+          empresaId: fila.empresaId,
+          matches: fila._count._all,
+          respuestas: suyas.length,
+          ...this.contar(suyas),
+        };
+      })
+      .sort((a, b) => b.matches - a.matches || a.empresaId.localeCompare(b.empresaId));
+
     return {
+      matches: empresas.reduce((suma, empresa) => suma + empresa.matches, 0),
       matchesConRespuesta: new Set(respuestas.map((fila) => fila.matchId)).size,
-      seReunieron: respuestas.filter((fila) => fila.seReunieron).length,
-      aLaHoraAcordada: respuestas.filter((fila) => fila.aLaHoraAcordada).length,
-      comoLoEsperaban: respuestas.filter((fila) => fila.comoLoEsperaban).length,
-      repetirian: respuestas.filter((fila) => fila.repetirian).length,
+      respuestas: respuestas.length,
+      empresas,
     };
   }
 
@@ -214,6 +258,31 @@ export class PuntuacionService {
     if (match.estudianteId === usuarioId) return 'ESTUDIANTE';
     if (match.capacitadorId === usuarioId) return 'CAPACITADOR';
     return null;
+  }
+
+  /**
+   * Cuántos «sí» hay en un montón de respuestas.
+   *
+   * Los cuatro conteos van sobre **respuestas** y `matchesConRespuesta` sobre **matches
+   * distintos**: un match puede traer dos respuestas, así que no son el mismo total y mezclarlos
+   * daría porcentajes que pasan del cien.
+   */
+  private contar(
+    respuestas: readonly {
+      matchId: string;
+      seReunieron: boolean;
+      aLaHoraAcordada: boolean;
+      comoLoEsperaban: boolean;
+      repetirian: boolean;
+    }[],
+  ): MetricasDeMatches {
+    return {
+      matchesConRespuesta: new Set(respuestas.map((fila) => fila.matchId)).size,
+      seReunieron: respuestas.filter((fila) => fila.seReunieron).length,
+      aLaHoraAcordada: respuestas.filter((fila) => fila.aLaHoraAcordada).length,
+      comoLoEsperaban: respuestas.filter((fila) => fila.comoLoEsperaban).length,
+      repetirian: respuestas.filter((fila) => fila.repetirian).length,
+    };
   }
 
   private empresaDe(sesion: SesionActual): string {

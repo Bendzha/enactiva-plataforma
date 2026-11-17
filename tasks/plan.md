@@ -21,10 +21,11 @@
 - ✅ **Slice 11 completo** (T11.1 a T11.6): cada empresa pinta su propio entorno con su logo y sus colores (ADR-0011).
 - ✅ **RRHH administra y no participa** (2026-11-11): su entorno queda separado del de quien enseña y quien aprende, en el menú **y** en los servicios.
 - ✅ **Slice 12 completo** (T12.1 a T12.5): dos documentos legales con su versión, y re-aceptación al entrar cuando cambian.
-- ⏭️ **Siguiente, por orden:** el **Slice 13** (el dashboard del Admin Principal) y **endurecer la sesión**. Después la **fase M4** (pipeline de CI por servicio y README de despliegue).
+- ✅ **Slice 13 completo** (T13.1 a T13.4): el dashboard del Admin Principal muestra las puntuaciones de los matches y las estrellas promediadas, empresa por empresa. **Con esto los siete criterios de éxito de SPEC §10 están cumplidos.**
+- ⏭️ **Siguiente, por orden:** **endurecer la sesión** y después la **fase M4** (pipeline de CI por servicio y README de despliegue).
 - 🟠 **El 2026-10-29 la clienta corrigió sobre el sistema funcionando** (`docs/reuniones/2026-10-29-reunion-karina.md`). No cambia la forma del producto: ajusta reglas y pantallas. Lo que trajo trabajo nuevo son las **solicitudes a RRHH** y la **personalización por empresa** (ADR-0011), que **revierte** una decisión del equipo que estaba en «Fuera de alcance».
-- ⚠️ **El criterio 5 de SPEC §10 es el único de los siete sin cumplir.** Reescrito el 2026-11-10 con lo que contestó la clienta: el dashboard va **dentro del admin de Karina** y **no se exporta**. Es el Slice 13. Importa para la defensa.
-- 📄 **Los dos textos legales son borradores del equipo** y necesitan revisión legal: el aviso de privacidad (`2026-10-borrador`) y los términos y condiciones (`docs/legal/terminos-y-condiciones-borrador.md`, escritos el 2026-11-10 a pedido de la clienta). **Al aviso le falta declarar las referencias y los tokens**, que la SPEC §3.5 exige y el Slice 8 ya guarda.
+- ✅ **El criterio 5 de SPEC §10 era el único de los siete sin cumplir; el Slice 13 lo cerró el 2026-11-16.** Reescrito el 2026-11-10 con lo que contestó la clienta: el dashboard va **dentro del admin de Karina** y **no se exporta**. Importa para la defensa.
+- 📄 **Los dos textos legales son borradores del equipo** y necesitan revisión legal: el aviso de privacidad y los términos y condiciones, los dos en `2026-11-borrador` (Slice 12). El aviso ya declara las referencias y los tokens, que la SPEC §3.5 exige y el Slice 8 guarda.
 - 🔴 **El 2026-09-29 la clienta cambió el alcance** (ADR-0008): la plataforma no aloja clases. Cae la subida de contenidos; aparecen la ficha del taller, el cupo, la ubicación, la disponibilidad, la agenda y los recordatorios.
 - 🎮 **Segundo eje del producto** (WhatsApp de la clienta, 2026-09-29, ADR-0009): valoración del encuentro con estrellas, referencias públicas y tokens de reconocimiento. "Match corporativo + gamificación corporativa". Es el Slice 8.
 - 🟢 **El 2026-10-13 la clienta cerró el alcance** (ADR-0010): se elimina el modelo de evaluación —etapas, rúbrica, logro, delta, mediciones y tests—. *"Lo mejor es que sea sólo conectar y convocar"*. Cae el Slice 9 completo.
@@ -538,7 +539,7 @@ Lo que apareció al construirlo:
 borradores; lo que no se puede es publicarlo sin el texto aprobado y revisado por alguien con
 formación legal. Los dos textos lo dicen en su primera línea.
 
-## Slice 13 — El dashboard del Admin Principal
+## Slice 13 — El dashboard del Admin Principal ✅
 **Demo:** Karina entra a su panel y ve, empresa por empresa, cómo están funcionando los matches y
 qué valoración reciben los talleres.
 **Reescribe el criterio 5 de SPEC §10** con lo que la clienta dijo el 2026-11-10: *«todo el
@@ -546,10 +547,10 @@ dashboard se ve dentro de el admin de Karina, nada de exportar todavía»*.
 
 | # | Tarea | Criterio de aceptación |
 |---|---|---|
-| T13.1 | Agregado de las puntuaciones del match en matching-service | solo agregados: nunca quién decidió qué sobre quién |
-| T13.2 | Agregado de las valoraciones por empresa en learning-service | el promedio por empresa, no por persona |
-| T13.3 | El panel global del Admin Principal los compone, empresa por empresa | RRHH recibe 403; es el mismo corte que ya tiene `/metricas/globales` |
-| T13.4 | Web: las dos secciones nuevas en Métricas | sin cifras de ejemplo cuando no hay datos |
+| T13.1 | Agregado de las puntuaciones del match en matching-service | ✅ `GET /matching/metricas/matches/globales`, solo agregados |
+| T13.2 | Agregado de las valoraciones por empresa en learning-service | ✅ `GET /learning/metricas/valoraciones/globales`, promedio por empresa |
+| T13.3 | El panel global del Admin Principal los compone, empresa por empresa | ✅ RRHH recibe 403; el cruce con los nombres lo hace la pantalla |
+| T13.4 | Web: las dos secciones nuevas en Métricas | ✅ sin cifras de ejemplo cuando no hay datos |
 | ~~T13.5~~ | ~~Exportar a PDF y Excel~~ | ⛔ **Fuera de alcance por ahora** (2026-11-10). El «todavía» es de la clienta |
 
 ## Endurecer la sesión («mantener sesión iniciada») — no es un slice

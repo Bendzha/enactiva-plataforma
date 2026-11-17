@@ -6,6 +6,7 @@ import {
   type EstrellasDelTaller,
   type ListaAsistencia,
   type MarcarAsistenciaInput,
+  type MetricasDeValoracionesGlobales,
   type MiValoracion,
   type ResultadoCierreAsistencia,
   type OcultarReferenciaInput,
@@ -92,6 +93,16 @@ export class ValoracionController {
     @Sesion() sesion: SesionActual,
   ): Promise<EstrellasDelTaller> {
     return this.valoracion.delTaller(tallerId, sesion);
+  }
+
+  /**
+   * El panel del Admin Principal: las estrellas promediadas empresa por empresa (criterio 5 de
+   * SPEC §10). Mismo corte que `/identity/metricas/globales`; a RRHH le responde 403.
+   */
+  @Get('metricas/valoraciones/globales')
+  @RequierePermiso('metricas-globales:ver')
+  metricasGlobales(): Promise<MetricasDeValoracionesGlobales> {
+    return this.valoracion.globalesPorEmpresa();
   }
 
   @Get('talleres/:id/referencias')

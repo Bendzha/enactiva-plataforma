@@ -248,8 +248,11 @@ const CL = EMPRESAS.comercialLin.id;
  * - "Excel avanzado" tiene oferta y demanda: es lo que más se ofrece.
  * - "Mantención eléctrica básica" no lo declaró nadie: está en el catálogo y no es brecha.
  *
- * Diego (07) va a talleres pero no declaró nada: así RRHH ve "5 de 6 con perfil" en vez de un
- * 100% que no le diría nada.
+ * Diego (07) va a talleres pero no declaró nada: así RRHH no ve un 100% que no le diría nada.
+ *
+ * **Nadie de RRHH declara nada.** Desde el 2026-11-11 administra y no participa, y la API ya no
+ * se lo permite (`@SoloQuienParticipa`): sembrarle un perfil dejaba la demo en un estado que la
+ * plataforma no puede producir, y el panel mostraba «2 de 1 con perfil».
  */
 export const INTERESES: readonly InteresDemo[] = [
   {
@@ -307,15 +310,6 @@ export const INTERESES: readonly InteresDemo[] = [
     nivel: 'BASICO',
   },
   {
-    id: `${I}07`,
-    usuarioId: `${U}03`,
-    temaId: TEMAS.liderazgo.id,
-    empresaId: PN,
-    tipo: 'ENSENAR',
-    dimensiones: ['ACTITUD'],
-    nivel: 'AVANZADO',
-  },
-  {
     id: `${I}08`,
     usuarioId: `${U}06`,
     temaId: TEMAS.electrica.id,
@@ -341,15 +335,6 @@ export const INTERESES: readonly InteresDemo[] = [
     tipo: 'ENSENAR',
     dimensiones: ['HABILIDAD'],
     nivel: 'INTERMEDIO',
-  },
-  {
-    id: `${I}12`,
-    usuarioId: `${U}09`,
-    temaId: TEMAS.vitrina.id,
-    empresaId: CL,
-    tipo: 'APRENDER',
-    dimensiones: ['HABILIDAD'],
-    nivel: 'BASICO',
   },
 ];
 

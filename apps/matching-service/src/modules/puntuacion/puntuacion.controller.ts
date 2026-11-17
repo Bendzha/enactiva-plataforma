@@ -3,6 +3,7 @@ import {
   puntuarMatchSchema,
   type MatchPuntuado,
   type MetricasDeMatches,
+  type MetricasDeMatchesGlobales,
   type PuntuarMatchInput,
 } from '@enactiva/shared';
 import {
@@ -55,5 +56,17 @@ export class PuntuacionController {
   @RequierePermiso('personas:gestionar')
   metricas(@Sesion() sesion: SesionActual): Promise<MetricasDeMatches> {
     return this.puntuacion.metricas(sesion);
+  }
+
+  /**
+   * El panel del Admin Principal: lo mismo, empresa por empresa (criterio 5 de SPEC §10).
+   *
+   * Mismo corte que `/identity/metricas/globales`: solo el Admin Principal. RRHH tiene su propia
+   * ruta de arriba, acotada a su empresa, y aquí recibe 403.
+   */
+  @Get('metricas/matches/globales')
+  @RequierePermiso('metricas-globales:ver')
+  globales(): Promise<MetricasDeMatchesGlobales> {
+    return this.puntuacion.globalesPorEmpresa();
   }
 }

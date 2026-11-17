@@ -2,7 +2,12 @@ import type { INestApplication } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 import { ThrottlerStorage } from '@nestjs/throttler';
 import { PROVEEDOR_ESTADO_SESION } from '@enactiva/service-kit';
-import type { MatchPuntuado, MetricasDeMatches, TallerAbierto } from '@enactiva/shared';
+import type {
+  MatchPuntuado,
+  MetricasDeMatches,
+  MetricasDeMatchesGlobales,
+  TallerAbierto,
+} from '@enactiva/shared';
 import request from 'supertest';
 import { AppModule } from '../src/app.module.js';
 import { ClientesInternos } from '../src/clientes.js';
@@ -16,6 +21,8 @@ import {
 } from './utilidades.js';
 
 const EMPRESA = 'aaaaaaaa-0000-7000-8000-000000000021';
+const EMPRESA_2 = 'aaaaaaaa-0000-7000-8000-000000000029';
+const KARINA = 'bbbbbbbb-0000-7000-8000-000000000029';
 const ANA = 'bbbbbbbb-0000-7000-8000-000000000021';
 const LUIS = 'bbbbbbbb-0000-7000-8000-000000000022';
 const CARLA = 'bbbbbbbb-0000-7000-8000-000000000023';
@@ -53,8 +60,10 @@ describe('Puntuación del match (e2e)', () => {
   let tokenLuis: string;
   let tokenCarla: string;
   let tokenRrhh: string;
+  let tokenKarina: string;
 
-  const limpiar = () => prisma.match.deleteMany({ where: { empresaId: EMPRESA } });
+  const limpiar = () =>
+    prisma.match.deleteMany({ where: { empresaId: { in: [EMPRESA, EMPRESA_2] } } });
 
   /** Un match ya decidido: es lo que existe cuando alguien hizo like a una tarjeta. */
   const crearMatch = (tallerId = TALLER, estudianteId = ANA) =>
@@ -67,6 +76,31 @@ describe('Puntuación del match (e2e)', () => {
         temaId: TEMA,
         score: 80,
         decision: 'INTERESADO',
+      },
+    });
+
+  /** Un match ya puntuado de otra empresa, para probar que los agregados no se mezclan. */
+  const crearEnLaOtraEmpresa = () =>
+    prisma.match.create({
+      data: {
+        empresaId: EMPRESA_2,
+        estudianteId: CARLA,
+        capacitadorId: LUIS,
+        tallerId: TALLER_FUTURO,
+        temaId: TEMA,
+        score: 50,
+        decision: 'INTERESADO',
+        puntuaciones: {
+          create: {
+            empresaId: EMPRESA_2,
+            autorId: CARLA,
+            papel: 'ESTUDIANTE',
+            seReunieron: false,
+            aLaHoraAcordada: false,
+            comoLoEsperaban: false,
+            repetirian: false,
+          },
+        },
       },
     });
 
@@ -103,6 +137,17 @@ describe('Puntuación del match (e2e)', () => {
       });
     }
 
+    // El Admin Principal no pertenece a ninguna empresa: por eso es quien puede ver el piloto
+    // completo, y por eso su `empresaId` es null.
+    sesiones.agregar({
+      usuarioId: KARINA,
+      roles: ['ADMIN_ENACTIVA'],
+      nivelAdmin: 'PRINCIPAL',
+      empresaId: null,
+      activo: true,
+    });
+
+    tokenKarina = tokenDe(app, KARINA);
     tokenAna = tokenDe(app, ANA);
     tokenLuis = tokenDe(app, LUIS);
     tokenCarla = tokenDe(app, CARLA);
@@ -264,6 +309,67 @@ describe('Puntuación del match (e2e)', () => {
       .get('/metricas/matches')
       .set('Authorization', `Bearer ${tokenAna}`)
       .expect(403);
+  });
+
+  describe('el panel del Admin Principal (criterio 5 de SPEC §10)', () => {
+    const globales = (token: string) =>
+      request(app.getHttpServer())
+        .get('/metricas/matches/globales')
+        .set('Authorization', `Bearer ${token}`);
+
+    it('separa las empresas y nunca mezcla sus números', async () => {
+      await crearMatch();
+      await puntuar(tokenAna).expect(201);
+      await puntuar(tokenLuis, { repetirian: false }).expect(201);
+      // La otra empresa se crea derecho contra la base: su gente no tiene sesión en este test y
+      // lo que importa es que sus cifras lleguen aparte.
+      await crearEnLaOtraEmpresa();
+
+      const { body } = await globales(tokenKarina).expect(200);
+      const metricas = body as MetricasDeMatchesGlobales;
+
+      // Se afirma sobre las filas de estas dos empresas y nunca sobre los totales: este agregado
+      // cruza empresas, así que otras suites dejan sus propias filas en la misma base.
+      const mia = metricas.empresas.find((fila) => fila.empresaId === EMPRESA)!;
+      expect(mia).toEqual({
+        empresaId: EMPRESA,
+        matches: 1,
+        matchesConRespuesta: 1,
+        respuestas: 2,
+        seReunieron: 2,
+        aLaHoraAcordada: 2,
+        comoLoEsperaban: 2,
+        // Las dos partes contestaron y una dijo que no: se cuentan respuestas, no matches.
+        repetirian: 1,
+      });
+
+      const otra = metricas.empresas.find((fila) => fila.empresaId === EMPRESA_2)!;
+      expect(otra).toMatchObject({ matches: 1, matchesConRespuesta: 1, seReunieron: 0 });
+    });
+
+    it('no dice quién respondió qué: es un agregado', async () => {
+      await crearMatch();
+      await puntuar(tokenAna).expect(201);
+
+      const { body } = await globales(tokenKarina).expect(200);
+
+      const texto = JSON.stringify(body);
+      expect(texto).not.toContain(ANA);
+      expect(texto).not.toContain(LUIS);
+    });
+
+    it('una empresa sin matches no aparece: no se inventa una fila en cero', async () => {
+      const { body } = await globales(tokenKarina).expect(200);
+
+      const metricas = body as MetricasDeMatchesGlobales;
+      expect(metricas.empresas.map((fila) => fila.empresaId)).not.toContain(EMPRESA);
+    });
+
+    it('RRHH no ve el piloto completo, aunque vea el de su empresa', async () => {
+      await globales(tokenRrhh).expect(403);
+      await globales(tokenAna).expect(403);
+      await request(app.getHttpServer()).get('/metricas/matches/globales').expect(401);
+    });
   });
 
   it('sin token no se puntúa nada', async () => {

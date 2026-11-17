@@ -11,8 +11,10 @@ import {
   type DimensionValoracion,
   type EstrellasDelTaller,
   type EstrellasPorDimension,
+  type MetricasDeValoracionesGlobales,
   type MiValoracion,
   type ReconocimientoPersona,
+  type ValoracionesDeEmpresa,
   type ValorarTallerInput,
 } from '@enactiva/shared';
 import { type SesionActual } from '@enactiva/service-kit';
@@ -160,6 +162,61 @@ export class ValoracionService {
       asistieron,
       promedioGeneral: promedio(valoraciones.flatMap((v) => v.estrellas.map((e) => e.estrellas))),
       promedioPorDimension: this.promediarPorDimension(valoraciones.flatMap((v) => v.estrellas)),
+    };
+  }
+
+  /**
+   * Las estrellas del piloto completo, **empresa por empresa** (criterio 5 de SPEC §10).
+   *
+   * Usa el cliente sin acotar a propósito: es la única consulta de este servicio que cruza
+   * empresas, y el permiso `metricas-globales:ver` ya la deja solo para el Admin Principal.
+   *
+   * El promedio es **de la empresa**: nunca de una persona ni de quien dictó. Para eso está el
+   * reconocimiento, que vive dentro de cada organización y no sale de ella.
+   *
+   * Una empresa sin talleres terminados no aparece: antes de que termine el primero no hay nada
+   * que valorar, y una fila en cero se leería como que valoraron mal.
+   */
+  async globalesPorEmpresa(): Promise<MetricasDeValoracionesGlobales> {
+    const [terminados, valoraciones] = await Promise.all([
+      this.prisma.taller.groupBy({
+        by: ['empresaId'],
+        where: { finAt: { lte: new Date() } },
+        _count: { _all: true },
+      }),
+      this.prisma.valoracionTaller.findMany({
+        select: {
+          empresaId: true,
+          tallerId: true,
+          estrellas: { select: { dimension: true, estrellas: true } },
+        },
+      }),
+    ]);
+
+    const empresas: ValoracionesDeEmpresa[] = terminados
+      .map((fila) => {
+        const suyas = valoraciones.filter((v) => v.empresaId === fila.empresaId);
+        const estrellas = suyas.flatMap((v) => v.estrellas);
+
+        return {
+          empresaId: fila.empresaId,
+          talleresTerminados: fila._count._all,
+          talleresValorados: new Set(suyas.map((v) => v.tallerId)).size,
+          valoraciones: suyas.length,
+          promedio: promedio(estrellas.map((e) => e.estrellas)),
+          porDimension: this.promediarPorDimension(estrellas),
+        };
+      })
+      .sort(
+        (a, b) =>
+          b.talleresTerminados - a.talleresTerminados || a.empresaId.localeCompare(b.empresaId),
+      );
+
+    return {
+      talleresTerminados: empresas.reduce((suma, empresa) => suma + empresa.talleresTerminados, 0),
+      valoraciones: valoraciones.length,
+      promedio: promedio(valoraciones.flatMap((v) => v.estrellas.map((e) => e.estrellas))),
+      empresas,
     };
   }
 
