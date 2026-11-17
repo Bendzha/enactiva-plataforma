@@ -69,9 +69,15 @@ export class TemasService {
   async porIds(ids: string[]): Promise<TemaInterno[]> {
     const temas = await this.prisma.acotado.tema.findMany({
       where: { id: { in: ids } },
-      select: { id: true, nombre: true },
+      select: { id: true, nombre: true, archivadoAt: true },
     });
-    return temas;
+    // Los archivados vuelven igual, marcados: quien pregunta por un taller que ya existe necesita
+    // el nombre, y quien está creando uno nuevo necesita saber que ese tema ya no se ofrece.
+    return temas.map((tema) => ({
+      id: tema.id,
+      nombre: tema.nombre,
+      archivado: tema.archivadoAt !== null,
+    }));
   }
 
   async crear(datos: CrearTemaInput, sesion: SesionActual): Promise<TemaResumen> {

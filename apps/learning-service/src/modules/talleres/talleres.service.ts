@@ -153,7 +153,7 @@ export class TalleresService {
       throw new BadRequestException('El taller tiene que empezar en el futuro');
     }
     // El tema lo valida identity con el token de quien publica: uno de otra empresa no existe.
-    await this.nombreDelTema(datos.temaId);
+    await this.temaVigente(datos.temaId);
 
     const taller = await this.prisma.acotado.taller.create({
       data: {
@@ -374,13 +374,23 @@ export class TalleresService {
     }));
   }
 
-  private async nombreDelTema(temaId: string): Promise<string> {
-    const nombres = await this.identity.temasPorIds([temaId]);
-    const nombre = nombres.get(temaId);
-    if (!nombre) {
+  /**
+   * El tema tiene que existir en el catálogo de esta empresa **y seguir vigente**.
+   *
+   * Lo archivado se rechaza aquí y no solo en la pantalla: el buscador ya no lo ofrece, pero una
+   * pestaña abierta desde antes —o una llamada directa— publicaría un taller sobre un tema que
+   * RRHH sacó del catálogo, que es exactamente lo que archivar quiere evitar (SPEC §3.6).
+   */
+  private async temaVigente(temaId: string): Promise<void> {
+    const tema = await this.identity.temaPorId(temaId);
+    if (!tema) {
       throw new NotFoundException('Tema no encontrado en el catálogo de tu empresa');
     }
-    return nombre;
+    if (tema.archivado) {
+      throw new BadRequestException(
+        'Ese tema ya no está en el catálogo de tu empresa. Pídele a Recursos Humanos que lo agregue de nuevo.',
+      );
+    }
   }
 
   private empresaDe(sesion: SesionActual): string {

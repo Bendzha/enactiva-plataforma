@@ -45,6 +45,19 @@ export class IdentityCliente {
   }
 
   /**
+   * Un tema puntual, con su marca de archivado, para validar antes de publicar un taller.
+   *
+   * Va aparte de `temasPorIds` porque esa devuelve solo nombres y se usa para mostrar, donde un
+   * tema archivado tiene que seguir resolviendo. Aquí hace falta saber si sigue vigente.
+   */
+  async temaPorId(id: string): Promise<TemaInterno | null> {
+    const temas = await this.cliente.get<TemaInterno[]>(
+      `/${PREFIJO_INTERNO}/temas?ids=${encodeURIComponent(id)}`,
+    );
+    return temas.find((tema) => tema.id === id) ?? null;
+  }
+
+  /**
    * Cómo se llaman unas personas, para firmar las referencias que escribieron (SPEC §3.5).
    *
    * Reusa la misma ruta que arma el mazo en vez de abrir otra: devuelve exactamente lo que se

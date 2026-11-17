@@ -44,9 +44,13 @@ export function AvisoPrivacidad() {
         ellos.
       </p>
       <p>
-        <strong>Registro.</strong> Se guarda un registro de quién accede o modifica cada dato, según
-        exige la Ley 21.719. Guarda la acción y los nombres de los campos, nunca tu nombre ni tu
-        correo. Versión del aviso: {VERSIONES_LEGALES.AVISO_PRIVACIDAD}.
+        <strong>Registro.</strong> Queda un registro de cada vez que alguien{' '}
+        <strong>crea, modifica o elimina</strong> un dato, de los inicios de sesión y de cuándo
+        alguien descarga o elimina sus propios datos. Guarda la acción y los nombres de los campos
+        tocados, nunca su contenido, ni tu nombre ni tu correo.{' '}
+        <strong>No se registra cada vez que alguien mira una pantalla</strong>: las consultas de
+        Recursos Humanos a la información de su gente no dejan traza. Versión del aviso:{' '}
+        {VERSIONES_LEGALES.AVISO_PRIVACIDAD}.
       </p>
     </div>
   );

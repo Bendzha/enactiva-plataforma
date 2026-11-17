@@ -67,7 +67,7 @@ excepción: **el rol RRHH es excluyente** **[C, 2026-11-11]**.
 |---|---|---|
 | Admin ENACTIVA — **Principal** (Karina) | Todas las empresas | Todo lo del Admin Operativo + métricas/dashboards globales + gestión de otros admins **[C]** |
 | Admin ENACTIVA — **Operativo** (equipo de Karina) | Todas las empresas | Cargar empresas, enviar/reenviar invitaciones **[C]**. **No** activa empresas **[C]**. **No** ve métricas ni dashboards **[C]** (la clienta lo plantea como necesidad futura; se diseña así desde ya) |
-| RRHH — **solo administra** | Solo su empresa | Dashboard y reportes de su empresa, con resultados individuales nominativos **[C]**; **es el único que crea temas** **[C, 2026-10-29]**; crea y elimina talleres **[C, 2026-10-29]**; resuelve las solicitudes de su empresa **[C, 2026-10-29]**; personaliza el entorno de su empresa (§3.8) **[C, 2026-10-29]**; oculta referencias **[C]**. **No participa** de los talleres **[C, 2026-11-11]**: sin perfil corporativo, sin mazo, sin inscripciones y sin valorar |
+| RRHH — **solo administra** | Solo su empresa | Dashboard y reportes de su empresa, con resultados individuales nominativos **[C]**; **es el único que crea temas** **[C, 2026-10-29]**; ~~crea y elimina talleres~~ **[C, 2026-10-29]** → **no se construye** **[E, 2026-11-17]**, ver §3.2; resuelve las solicitudes de su empresa **[C, 2026-10-29]**; personaliza el entorno de su empresa (§3.8) **[C, 2026-10-29]**; oculta referencias **[C]**. **No participa** de los talleres **[C, 2026-11-11]**: sin perfil corporativo, sin mazo, sin inscripciones y sin valorar |
 | Capacitador — **«Quien enseña»** en pantalla | Sus cursos | Publica la ficha de sus talleres, declara su disponibilidad **[C]** y **pasa la lista de asistencia** al terminar **[C, 2026-10-29]**. **Ya no crea temas**: los **propone** a RRHH (§3.2) **[C, 2026-10-29]**. ~~Carga contenido~~ (acta 2026-09-29) y ~~define rúbrica y evalúa~~ (2026-10-13, ADR-0010) |
 | Estudiante — **«Quien aprende»** en pantalla | Lo propio | Declara intereses, hace swipe, se inscribe y valora el encuentro al final **[C]**. Puede **pedirle a RRHH el rol de quien enseña** **[C, 2026-10-29]**. ~~Rinde tests~~ (2026-10-13, ADR-0010) |
 
@@ -83,12 +83,14 @@ Dos cosas que una persona ya no puede hacer sola y ahora pide **[C, 2026-10-29]*
 
 | Solicitud | Quién la hace | Qué pasa al aprobarla |
 |---|---|---|
-| **Proponer un taller o un tema** | Quien enseña | RRHH crea el taller y el tema **a mano**; la aprobación solo cambia el estado |
+| **Proponer un taller o un tema** | Quien enseña | Aprobar **crea el tema** y deja declarada a esa persona; la **ficha del taller la publica ella**, que es quien lo va a dictar |
 | **Pasar a «quien enseña»** | Quien aprende | RRHH le agrega el rol |
 
 - **Aprobar crea el tema** en el catálogo y deja declarado a quien propuso, con las dimensiones y
-  el nivel que esa persona eligió al proponer **[C, 2026-11-10]**. **El taller lo sigue creando
-  RRHH a mano**, que es lo que la clienta pidió: *«allí RRHH tiene que crear el taller»*.
+  el nivel que esa persona eligió al proponer **[C, 2026-11-10]**. La clienta dijo *«allí RRHH
+  tiene que crear el taller»*; **la ficha la publica quien va a dictarlo** **[E, 2026-11-17]**,
+  porque RRHH no participa de los talleres desde el 2026-11-11 y no puede quedar como facilitador
+  de uno. Lo que RRHH controla —el catálogo— lo ejecuta al aprobar. Ver §3.2.
   > La primera versión no creaba nada, leyendo al pie de la letra *«el tema en sí»*. No servía:
   > RRHH aprobaba y después tenía que reescribir el tema, que es tomar la misma decisión dos
   > veces. Aprobar **es** el control de RRHH sobre el catálogo, así que lo ejecuta.
@@ -114,8 +116,19 @@ Dos cosas que una persona ya no puede hacer sola y ahora pide **[C, 2026-10-29]*
 
 - El facilitador publica una **ficha del taller** con: nombre, fecha, horario, cupo, objetivo,
   resultados esperados y **ubicación de la actividad presencial** **[C, acta 2026-09-29]**.
-- **RRHH también crea y elimina talleres de su empresa** **[C, 2026-10-29]**, y es quien crea el
-  taller cuando aprueba una propuesta (§2).
+- ~~**RRHH también crea y elimina talleres de su empresa**~~ **[C, 2026-10-29]** → ⏸️ **No se
+  construye** **[E, 2026-11-17]**. RRHH administra **el catálogo de temas**, y los talleres los
+  publica quien los dicta.
+  > **Esto contradice lo que la clienta pidió el 2026-10-29 y hay que confirmárselo.** La razón
+  > de la decisión es que el 2026-11-11 ella misma separó a RRHH de quien enseña y quien aprende,
+  > y un taller necesita a alguien que lo dicte: si RRHH lo crea, hay que decidir a quién se lo
+  > asigna, y eso no está contestado. Mientras tanto el camino existe y funciona: quien quiere
+  > dictar algo lo **propone**, RRHH aprueba, el tema entra al catálogo y esa persona publica la
+  > ficha (§2).
+- ⚠️ **Nadie puede cancelar ni eliminar un taller**, tampoco quien lo dicta **[riesgo conocido,
+  2026-11-17]**. Si un taller se cae, la gente sigue inscrita y los recordatorios salen igual;
+  lo mismo pasa con los talleres futuros de alguien que elimina su cuenta. Se asume para el
+  piloto y se anota para resolverlo antes de un uso real.
 - **Un taller es de una sola sesión** **[E, 2026-11-09]** mientras Q20 siga abierta.
 - La ficha cuelga de un **tema del catálogo** de la empresa **[P]**: sin tema no habría con qué armar
   el mazo del swipe, que es por donde la gente busca (§3.6). El tema no se cambia después, porque
@@ -262,8 +275,10 @@ Dejaba dos huecos, que contestó preguntada:
   el momento damos el recuento"*. Q18 resuelta.
 - La plataforma lleva **el recuento y nada más**: ni saldo, ni canje, ni premios, ni transferencias
   entre personas **[P]**.
-- Como afuera valen algo, el recuento es un **registro auditado**: se suma al valorar un taller y de
-  ninguna otra forma; nadie lo edita a mano **[P]**.
+- Como afuera valen algo, el recuento es un **registro auditado**: los tokens nacen **al cerrar la
+  lista de asistencia** y de ninguna otra forma; nadie los edita a mano **[P]**. (Decía «al valorar
+  un taller», que era la regla anterior al 2026-10-29, cuando la asistencia la declaraba quien
+  participaba.)
 
 #### Lo que se conserva del modelo anterior
 - El facilitador se sigue midiendo por **talleres dictados** y por la valoración que recibe **[C]**.
@@ -403,7 +418,7 @@ Ver ADR-0001 y **ADR-0007** (microservicios; migración terminada el 2026-09-28)
 apps/api-gateway       único punto de entrada del frontend
 apps/auth-service      emisión y rotación de JWT
 apps/identity-service  empresas, personas, invitaciones, temas y correo
-apps/learning-service  talleres, agenda y (si sigue en alcance) rúbricas y mediciones
+apps/learning-service  talleres, inscripciones, agenda, asistencia, valoraciones y recordatorios
 apps/matching-service  motor de matching
 apps/web               React + Vite + TanStack Query + shadcn/ui
 packages/shared        Zod schemas, tipos, enums y permisos compartidos
@@ -420,14 +435,16 @@ pnpm install
 docker compose up -d                           # Postgres + Mailpit
 cp .env.example .env                           # completar secretos y SEED_ADMIN_*
 pnpm --filter identity-service db:deploy
+pnpm --filter learning-service db:deploy
+pnpm --filter matching-service db:deploy
 pnpm --filter identity-service db:seed
 pnpm dev                                       # web, gateway y los cuatro servicios
-pnpm lint && pnpm typecheck && pnpm test
+pnpm lint && pnpm format:check && pnpm typecheck && pnpm test && pnpm build
 ```
 
 ## 7. Estilo de código
 - TypeScript estricto en todo el monorepo; ESLint + Prettier compartidos.
-- **Dominio en español** (`Empresa`, `Taller`, `Rubrica`, `logroTotal`), **términos técnicos en inglés** (`Controller`, `Service`, `Guard`, `dto`). El nombre definitivo de la entidad depende de Q11.
+- **Dominio en español** (`Empresa`, `Taller`, `PerfilInteres`, `promedioEstrellas`), **términos técnicos en inglés** (`Controller`, `Service`, `Guard`, `dto`). El código mantiene `curso` y `capacitador` donde ya estaban (Q11 cerrada el 2026-10-13): renombrarlos sería migrar las tres bases para no ganar nada.
 - Modelos Prisma en PascalCase mapeados a tablas snake_case (`@@map`).
 - Un módulo NestJS por contexto de negocio; un módulo no accede a tablas de otro sin pasar por su service.
 - Validación de entrada con Zod (esquemas en `packages/shared`).
@@ -449,7 +466,7 @@ export class EmpresasController {
 - **Backend:** Vitest (unitario, ver ADR-0005) para reglas de dominio — score de matching, cupo, promedios de valoración — con cobertura alta en esas funciones; Supertest (e2e) contra Postgres real para cada endpoint.
 - **Obligatorio en e2e:** por cada endpoint, casos 401 (sin token), 403 (rol sin permiso) y **acceso cruzado entre empresas** (RRHH de A no ve datos de B).
 - **Frontend:** React Testing Library sobre Vitest para formularios y flujos por rol.
-- CI (GitHub Actions) corre lint, typecheck y tests en cada PR.
+- CI (GitHub Actions) corre en cada PR: lint, formato, tipos y build en un job sin base de datos, los tests de la web y los paquetes en otro, y **un job por servicio** con su propio Postgres y su propio Mailpit. Un único check `CI` queda verde solo si lo están todos.
 
 ## 9. Límites
 **Siempre:** trabajar en vertical slices; auditar escrituras y lecturas de datos personales; test de scoping por empresa en cada endpoint nuevo; marcar datos sintéticos como demostración.

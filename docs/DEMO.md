@@ -97,8 +97,9 @@ pnpm --filter learning-service db:deploy
 pnpm demo:seed
 ```
 
-Deja dos empresas, diez personas, siete temas, once declaraciones de perfil, tres talleres con
-sus inscripciones y la disponibilidad de dos facilitadores. Correrlo de nuevo no duplica nada.
+Deja dos empresas, diez personas, siete temas, nueve declaraciones de perfil, tres talleres con
+sus inscripciones y la disponibilidad de dos facilitadores. Nadie de RRHH declara nada: desde el
+2026-11-11 administra y no participa, y la API ya no se lo permite. Correrlo de nuevo no duplica nada.
 
 > El seed **agrega y actualiza, pero no borra**. Si alguien edita `tools/demo/datos.ts` y quita
 > algo, ese dato sigue en la base hasta que corras `pnpm demo:reset`.
