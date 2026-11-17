@@ -18,6 +18,7 @@ export class IdentityCliente {
   login(cuerpo: {
     email: string;
     password: string;
+    mantenerSesion: boolean;
     ip: string | null;
   }): Promise<SesionEstablecida> {
     return this.pedir<SesionEstablecida>('sesiones/login', cuerpo);

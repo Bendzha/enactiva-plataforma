@@ -16,6 +16,8 @@ export interface SesionEmitida {
   respuesta: RespuestaLogin;
   refreshToken: string;
   refreshExpiraAt: Date;
+  /** Si la cookie lleva vencimiento o muere con el navegador (SPEC §3.9). Lo dice identity. */
+  mantenerSesion: boolean;
 }
 
 /**
@@ -99,6 +101,7 @@ export class AuthService {
       respuesta: { accessToken, usuario: sesion.usuario },
       refreshToken: sesion.refreshToken,
       refreshExpiraAt: new Date(sesion.refreshExpiraAt),
+      mantenerSesion: sesion.mantenerSesion,
     };
   }
 }

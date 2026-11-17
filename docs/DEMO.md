@@ -180,6 +180,10 @@ credenciales de tu `.env` y no están en este documento a propósito.
    lo que guardan los tres servicios, con un aviso adentro de qué incluye y qué no (Ley 21.719).
    Es el criterio 7 de la SPEC y lo más probable que pregunten.
 
+**En el login**, la casilla **«Mantener sesión iniciada»** viene desmarcada y así la sesión se
+cierra al cerrar el navegador. Vale la pena nombrarlo: el computador de un turno se comparte, y
+una sesión abierta para el turno siguiente es la cuenta de otra persona (SPEC §3.9).
+
 ---
 
 ## Si algo se rompe en medio

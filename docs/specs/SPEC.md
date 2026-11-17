@@ -368,9 +368,13 @@ Dejaba dos huecos, que contestó preguntada:
   refresh **sobrevive al cierre del navegador** o muere con él **[E, a partir de [C]]**.
 - Sin marcar —**el valor por omisión**— la sesión termina al cerrar el navegador.
 - Marcada, dura lo que ya dura el refresh (`REFRESH_TTL_DIAS = 7`), sin extenderse.
-- **Esto endurece lo que hay hoy**, no lo relaja: hoy no existe la casilla y la cookie se emite
-  siempre con vencimiento a 7 días, así que la sesión sobrevive al cierre del navegador **para
-  todo el mundo**. Es la opción menos segura y es la actual.
+- **Esto endureció lo que había**, no lo relajó: hasta el **2026-11-16** no existía la casilla y
+  la cookie se emitía siempre con vencimiento a 7 días, así que la sesión sobrevivía al cierre del
+  navegador **para todo el mundo**. Era la opción menos segura y era la que estaba.
+- ✅ **Construido el 2026-11-16.** La elección se guarda en el token de refresh y **la pone el
+  servidor**: al rotar el token hay que volver a emitir la cookie, y si la decisión viniera del
+  navegador cualquiera convertiría una sesión de turno en una de siete días. En la activación de
+  una invitación no se pregunta, así que queda sin marcar.
 - Importa por dónde se usa: un turno de planta comparte el computador, y una sesión que sigue
   abierta para el turno siguiente es la cuenta de otra persona **[P]**.
 
@@ -504,4 +508,4 @@ El 2026-10-13 la clienta contestó las nueve que bloqueaban el desarrollo
 | ~~Q5~~ | ✅ 2026-10-24: las estrellas van **de 1 a 5** |
 | ~~Q21~~ | ✅ 2026-11-10: **son dos documentos**. El equipo redactó el borrador de los T&C (`docs/legal/terminos-y-condiciones-borrador.md`) a pedido de la clienta, para que ella se haga una idea. Pendiente de revisión legal y de la aprobación de ENACTIVA |
 | ~~Q22~~ | ✅ 2026-11-10: **el dashboard va dentro del admin de Karina** y **no se exporta**: *«todo el dashboard se ve dentro de el admin de Karina, nada de exportar todavía»*. El PDF y el Excel salen de alcance por ahora; el criterio 5 de §10 se reescribe |
-| ~~Q23~~ | ✅ 2026-11-10: *«lo más seguro que se pueda de momento»*. Sin «recordarme» largo: la casilla decide si la cookie de refresh **sobrevive al cierre del navegador** y nada más (§3.9). Hoy sobrevive siempre, 7 días, así que esto **endurece** lo que hay |
+| ~~Q23~~ | ✅ 2026-11-10: *«lo más seguro que se pueda de momento»*. Sin «recordarme» largo: la casilla decide si la cookie de refresh **sobrevive al cierre del navegador** y nada más (§3.9). **Construido el 2026-11-16**; antes sobrevivía siempre, 7 días, así que esto **endureció** lo que había |

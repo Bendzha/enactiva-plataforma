@@ -75,6 +75,56 @@ describe('Pantalla de login', () => {
     });
   });
 
+  describe('«Mantener sesión iniciada» (SPEC §3.9)', () => {
+    const entrar = async (marcar: boolean) => {
+      const api = simularApi({
+        '/auth/refresh': { status: 401 },
+        '/auth/login': {
+          status: 200,
+          cuerpo: { accessToken: 'token-de-prueba', usuario: ADMIN_PRINCIPAL },
+        },
+      });
+      const usuario = userEvent.setup();
+      renderizar(<App />, { ruta: '/login' });
+
+      const casilla = await screen.findByLabelText('Mantener sesión iniciada');
+      // Desmarcada al cargar: el valor por omisión es el seguro.
+      expect(casilla).not.toBeChecked();
+      if (marcar) await usuario.click(casilla);
+
+      await usuario.type(
+        screen.getByLabelText('Correo de la empresa'),
+        'principal@plataforma.local',
+      );
+      await usuario.type(screen.getByLabelText('Contraseña'), 'la-clave-correcta');
+      await usuario.click(screen.getByRole('button', { name: 'Ingresar' }));
+
+      await waitFor(() => expect(api.veces('POST /auth/login')).toBe(1));
+
+      const llamada = api.fetchFalso.mock.calls.find(([url]) =>
+        String(url).endsWith('/auth/login'),
+      )!;
+      return JSON.parse(String(llamada[1]!.body)) as { mantenerSesion: boolean };
+    };
+
+    it('sin marcarla, se pide la sesión que muere con el navegador', async () => {
+      expect(await entrar(false)).toMatchObject({ mantenerSesion: false });
+    });
+
+    it('marcada, se pide que la sesión sobreviva al cierre', async () => {
+      expect(await entrar(true)).toMatchObject({ mantenerSesion: true });
+    });
+
+    it('dice lo que hace y lo que no, sin prometer una sesión más larga', async () => {
+      simularApi({ '/auth/refresh': { status: 401 } });
+      renderizar(<App />, { ruta: '/login' });
+
+      expect(
+        await screen.findByText(/tu sesión se cierra al cerrar el navegador/i),
+      ).toBeInTheDocument();
+    });
+  });
+
   it('con credenciales correctas entra y lleva a Empresas', async () => {
     simularApi({
       '/auth/refresh': { status: 401 },

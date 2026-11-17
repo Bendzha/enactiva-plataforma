@@ -31,11 +31,23 @@ const ALMACEN_SIN_LIMITE = {
   }),
 };
 
+/** El Set-Cookie completo, con sus atributos: es ahí donde se ve si lleva vencimiento. */
+function cookieCrudaDe(res: request.Response, nombre: string): string {
+  const cookies = res.headers['set-cookie'] as unknown as string[] | undefined;
+  return (cookies ?? []).find((c) => c.startsWith(`${nombre}=`)) ?? '';
+}
+
 /** Extrae una cookie del encabezado Set-Cookie para reenviarla en la siguiente petición. */
 function cookieDe(res: request.Response, nombre: string): string {
-  const cookies = res.headers['set-cookie'] as unknown as string[] | undefined;
-  const cruda = (cookies ?? []).find((c) => c.startsWith(`${nombre}=`)) ?? '';
-  return cruda.split(';')[0] ?? '';
+  return cookieCrudaDe(res, nombre).split(';')[0] ?? '';
+}
+
+/**
+ * Una cookie **de sesión** es la que no lleva ni `Expires` ni `Max-Age`: el navegador la borra
+ * al cerrarse. No es lo mismo que una con fecha pasada, que la borraría de inmediato.
+ */
+function muereConElNavegador(cookieCruda: string): boolean {
+  return !/expires=|max-age=/i.test(cookieCruda);
 }
 
 describe('Autenticación entre auth-service e identity-service (e2e)', () => {
@@ -178,6 +190,71 @@ describe('Autenticación entre auth-service e identity-service (e2e)', () => {
     await request(servidor()).post('/auth/refresh').set('Cookie', segunda).expect(401);
   });
 
+  describe('«mantener sesión iniciada» (SPEC §3.9)', () => {
+    const entrar = (mantenerSesion?: boolean) =>
+      request(servidor())
+        .post('/auth/login')
+        .send({
+          email: EMAIL_ACTIVO,
+          password: PASSWORD_PRUEBA,
+          ...(mantenerSesion === undefined ? {} : { mantenerSesion }),
+        })
+        .expect(200);
+
+    it('sin pedir nada, la sesión muere al cerrar el navegador', async () => {
+      // El valor por omisión es el seguro. Antes del 2026-11-16 la cookie salía siempre con
+      // vencimiento a 7 días, así que la sesión sobrevivía al cierre para todo el mundo.
+      const res = await entrar();
+
+      expect(muereConElNavegador(cookieCrudaDe(res, 'refresh_token'))).toBe(true);
+    });
+
+    it('marcada, la cookie lleva vencimiento', async () => {
+      const res = await entrar(true);
+
+      expect(muereConElNavegador(cookieCrudaDe(res, 'refresh_token'))).toBe(false);
+    });
+
+    it('la casilla no alarga la sesión: el token dura lo mismo en los dos casos', async () => {
+      const corta = await entrar(false);
+      const larga = await entrar(true);
+
+      const vence = async (res: request.Response) => {
+        const token = cookieDe(res, 'refresh_token').split('=')[1]!;
+        const fila = await prisma.tokenAcceso.findUniqueOrThrow({
+          where: { tokenHash: hashToken(decodeURIComponent(token)) },
+        });
+        return fila.expiraAt.getTime();
+      };
+
+      // Mismo TTL: lo único que cambia es si el navegador se queda con la cookie.
+      expect(Math.abs((await vence(larga)) - (await vence(corta)))).toBeLessThan(5_000);
+    });
+
+    it('la elección sobrevive a la rotación del refresh', async () => {
+      const login = await entrar(true);
+      const refresco = await request(servidor())
+        .post('/auth/refresh')
+        .set('Cookie', cookieDe(login, 'refresh_token'))
+        .expect(200);
+
+      // Sin esto, la primera renovación convertiría la sesión marcada en una de turno.
+      expect(muereConElNavegador(cookieCrudaDe(refresco, 'refresh_token'))).toBe(false);
+    });
+
+    it('nadie se la regala a sí mismo al refrescar: la decide el servidor', async () => {
+      const login = await entrar(false);
+      const refresco = await request(servidor())
+        .post('/auth/refresh')
+        .set('Cookie', cookieDe(login, 'refresh_token'))
+        .send({ mantenerSesion: true })
+        .expect(200);
+
+      // Si viniera en la petición, cualquiera convertiría una sesión de turno en una de 7 días.
+      expect(muereConElNavegador(cookieCrudaDe(refresco, 'refresh_token'))).toBe(true);
+    });
+  });
+
   it('sin cookie de refresh responde 401', async () => {
     await request(servidor()).post('/auth/refresh').expect(401);
   });
@@ -225,6 +302,9 @@ describe('Autenticación entre auth-service e identity-service (e2e)', () => {
 
     expect(res.body.usuario).toMatchObject({ nombre: 'Carla', apellido: 'Soto' });
     expect(cookieDe(res, 'refresh_token')).not.toBe('');
+    // En la activación no se pregunta por «mantener sesión iniciada», y lo que no se pregunta
+    // se resuelve por lo seguro: la sesión muere con el navegador (SPEC §3.9).
+    expect(muereConElNavegador(cookieCrudaDe(res, 'refresh_token'))).toBe(true);
 
     // La transacción de identity dejó la cuenta activa y la aceptación del aviso registrada.
     const usuario = await prisma.usuario.findUniqueOrThrow({
