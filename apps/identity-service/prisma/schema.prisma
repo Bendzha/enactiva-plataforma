@@ -101,9 +101,9 @@ model Empresa {
   createdAt     DateTime      @default(now()) @map("created_at") @db.Timestamptz(3)
   updatedAt     DateTime      @updatedAt @map("updated_at") @db.Timestamptz(3)
 
-  activadaPor Usuario?  @relation("EmpresaActivadaPor", fields: [activadaPorId], references: [id], onDelete: Restrict)
-  creadaPor   Usuario   @relation("EmpresaCreadaPor", fields: [creadaPorId], references: [id], onDelete: Restrict)
-  usuarios    Usuario[] @relation("UsuariosDeEmpresa")
+  activadaPor Usuario?    @relation("EmpresaActivadaPor", fields: [activadaPorId], references: [id], onDelete: Restrict)
+  creadaPor   Usuario     @relation("EmpresaCreadaPor", fields: [creadaPorId], references: [id], onDelete: Restrict)
+  usuarios    Usuario[]   @relation("UsuariosDeEmpresa")
   areas       Area[]
   temas       Tema[]
   solicitudes Solicitud[]
@@ -147,18 +147,18 @@ model Usuario {
   createdAt     DateTime      @default(now()) @map("created_at") @db.Timestamptz(3)
   updatedAt     DateTime      @updatedAt @map("updated_at") @db.Timestamptz(3)
 
-  empresa           Empresa?          @relation("UsuariosDeEmpresa", fields: [empresaId], references: [id], onDelete: Restrict)
-  area              Area?             @relation(fields: [areaId], references: [id], onDelete: SetNull)
-  roles             UsuarioRol[]
-  tokens            TokenAcceso[]
-  aceptaciones      AceptacionAviso[]
-  perfil            PerfilCorporativo?
-  intereses         PerfilInteres[]
-  temasCreados      Tema[]            @relation("TemaCreadoPor")
-  empresasCreadas   Empresa[]         @relation("EmpresaCreadaPor")
-  empresasActivadas Empresa[]         @relation("EmpresaActivadaPor")
-  solicitudes          Solicitud[]    @relation("SolicitudDe")
-  solicitudesResueltas Solicitud[]    @relation("SolicitudResueltaPor")
+  empresa              Empresa?           @relation("UsuariosDeEmpresa", fields: [empresaId], references: [id], onDelete: Restrict)
+  area                 Area?              @relation(fields: [areaId], references: [id], onDelete: SetNull)
+  roles                UsuarioRol[]
+  tokens               TokenAcceso[]
+  aceptaciones         AceptacionAviso[]
+  perfil               PerfilCorporativo?
+  intereses            PerfilInteres[]
+  temasCreados         Tema[]             @relation("TemaCreadoPor")
+  empresasCreadas      Empresa[]          @relation("EmpresaCreadaPor")
+  empresasActivadas    Empresa[]          @relation("EmpresaActivadaPor")
+  solicitudes          Solicitud[]        @relation("SolicitudDe")
+  solicitudesResueltas Solicitud[]        @relation("SolicitudResueltaPor")
 
   @@index([empresaId])
   @@map("usuario")
@@ -179,14 +179,19 @@ model UsuarioRol {
 /// auth-service genera los de refresh, pero el hash se calcula y se guarda aquí: el
 /// REFRESH_TOKEN_PEPPER no sale de este servicio (ADR-0007).
 model TokenAcceso {
-  id         String    @id @default(uuid(7)) @db.Uuid
-  usuarioId  String    @map("usuario_id") @db.Uuid
-  tipo       TipoToken
-  tokenHash  String    @unique @map("token_hash")
-  expiraAt   DateTime  @map("expira_at") @db.Timestamptz(3)
-  usadoAt    DateTime? @map("usado_at") @db.Timestamptz(3)
-  revocadoAt DateTime? @map("revocado_at") @db.Timestamptz(3)
-  createdAt  DateTime  @default(now()) @map("created_at") @db.Timestamptz(3)
+  id             String    @id @default(uuid(7)) @db.Uuid
+  usuarioId      String    @map("usuario_id") @db.Uuid
+  tipo           TipoToken
+  tokenHash      String    @unique @map("token_hash")
+  /// Solo para los REFRESH: si la cookie sobrevive al cierre del navegador (SPEC §3.9).
+  /// Vive aquí y no en la cookie porque cada refresh emite una nueva, y quien decide si lleva
+  /// vencimiento tiene que ser el servidor: si viniera del navegador, cualquiera convertiría
+  /// una sesión de turno en una de siete días.
+  mantenerSesion Boolean   @default(false) @map("mantener_sesion")
+  expiraAt       DateTime  @map("expira_at") @db.Timestamptz(3)
+  usadoAt        DateTime? @map("usado_at") @db.Timestamptz(3)
+  revocadoAt     DateTime? @map("revocado_at") @db.Timestamptz(3)
+  createdAt      DateTime  @default(now()) @map("created_at") @db.Timestamptz(3)
 
   usuario Usuario @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
 
@@ -206,18 +211,18 @@ model TokenAcceso {
 /// aprender un tema como habilidad y otra persona ofrecerlo como contenido, y de esa diferencia
 /// vive el criterio "dimensiones coincidentes" del score de afinidad.
 model Tema {
-  id                String   @id @default(uuid(7)) @db.Uuid
-  empresaId         String   @map("empresa_id") @db.Uuid
+  id                String    @id @default(uuid(7)) @db.Uuid
+  empresaId         String    @map("empresa_id") @db.Uuid
   nombre            String
-  nombreNormalizado String   @map("nombre_normalizado")
-  creadoPorId       String?  @map("creado_por_id") @db.Uuid
+  nombreNormalizado String    @map("nombre_normalizado")
+  creadoPorId       String?   @map("creado_por_id") @db.Uuid
   /// Fuera del catálogo (2026-11-12). No se borra: de un tema cuelgan las declaraciones de
   /// la gente —con borrado en cascada— y los talleres de learning_db, que lo referencian sin
   /// clave foránea porque viven en otra base. Archivar lo saca de circulación sin llevarse
   /// nada por delante.
   archivadoAt       DateTime? @map("archivado_at") @db.Timestamptz(3)
-  createdAt         DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
-  updatedAt         DateTime @updatedAt @map("updated_at") @db.Timestamptz(3)
+  createdAt         DateTime  @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt         DateTime  @updatedAt @map("updated_at") @db.Timestamptz(3)
 
   empresa   Empresa         @relation(fields: [empresaId], references: [id], onDelete: Cascade)
   creadoPor Usuario?        @relation("TemaCreadoPor", fields: [creadoPorId], references: [id], onDelete: SetNull)

@@ -73,7 +73,7 @@ export class SesionesService {
       ip,
     });
 
-    return this.establecer(usuario.id);
+    return this.establecer(usuario.id, datos.mantenerSesion);
   }
 
   async refrescar(datos: RefrescarInternoInput): Promise<SesionEstablecida> {
@@ -118,7 +118,9 @@ export class SesionesService {
       data: { usadoAt: ahora, revocadoAt: ahora },
     });
 
-    return this.establecer(fila.usuarioId);
+    // La elección del login viaja con la rotación: si no, la primera renovación convertiría una
+    // sesión de turno en una de siete días, o al revés, según lo que trajera el navegador.
+    return this.establecer(fila.usuarioId, fila.mantenerSesion);
   }
 
   async cerrar(token: string): Promise<void> {
@@ -166,8 +168,12 @@ export class SesionesService {
   /**
    * Deja una sesión establecida para una persona ya verificada (login, refresh o activación de
    * invitación): emite el token de refresh y devuelve su valor en claro una sola vez.
+   *
+   * `mantenerSesion` no cambia cuánto vive el token —siempre `REFRESH_TTL_DIAS`—, solo si la
+   * cookie sobrevive al cierre del navegador (SPEC §3.9). Por omisión es `false`, lo seguro:
+   * quien no pidió nada no se queda con la sesión abierta.
    */
-  async establecer(usuarioId: string): Promise<SesionEstablecida> {
+  async establecer(usuarioId: string, mantenerSesion = false): Promise<SesionEstablecida> {
     const usuario = await this.prisma.usuario.findUniqueOrThrow({
       where: { id: usuarioId },
       include: { roles: true },
@@ -181,6 +187,7 @@ export class SesionesService {
         usuarioId: usuario.id,
         tipo: 'REFRESH',
         tokenHash: hashToken(refreshToken),
+        mantenerSesion,
         expiraAt: refreshExpiraAt,
       },
     });
@@ -189,6 +196,7 @@ export class SesionesService {
       usuario: this.mapearSesion(usuario),
       refreshToken,
       refreshExpiraAt: refreshExpiraAt.toISOString(),
+      mantenerSesion,
     };
   }
 

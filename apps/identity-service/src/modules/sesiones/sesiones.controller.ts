@@ -72,6 +72,8 @@ export class SesionesController {
     datos: AceptarInvitacionInternaInput,
   ): Promise<SesionEstablecida> {
     const usuarioId = await this.invitaciones.aceptar(datos, datos.ip ?? null);
+    // Sin «mantener sesión iniciada»: en la activación no se pregunta, y lo que no se pregunta
+    // se resuelve por lo seguro (SPEC §3.9). Quien la quiera la marca en el próximo login.
     return this.sesiones.establecer(usuarioId);
   }
 

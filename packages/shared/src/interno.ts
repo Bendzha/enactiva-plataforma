@@ -27,11 +27,18 @@ export interface SesionEstablecida {
   usuario: UsuarioSesion;
   refreshToken: string;
   refreshExpiraAt: string;
+  /**
+   * Si la cookie debe sobrevivir al cierre del navegador (SPEC §3.9). Lo decide identity a
+   * partir de lo que se guardó al entrar, no auth-service ni el navegador: al rotar el token
+   * hay que volver a emitir la cookie, y la elección tiene que venir de donde está escrita.
+   */
+  mantenerSesion: boolean;
 }
 
 export const loginInternoSchema = z.object({
   email: emailSchema,
   password: z.string().min(1),
+  mantenerSesion: z.boolean().default(false),
   ip: z.string().nullable().optional(),
 });
 export type LoginInternoInput = z.infer<typeof loginInternoSchema>;

@@ -1,0 +1,11 @@
+-- «Mantener sesión iniciada» (SPEC §3.9, Q23).
+--
+-- Hasta hoy la cookie de refresh se emitía SIEMPRE con vencimiento a 7 días, así que la sesión
+-- sobrevivía al cierre del navegador para todo el mundo. Esta columna guarda lo que la persona
+-- eligió al entrar, y el valor por omisión —false— es el seguro: la sesión muere con el
+-- navegador salvo que se pida lo contrario.
+--
+-- Las sesiones que ya existen quedan en false y por eso dejan de sobrevivir al cierre: es
+-- deliberado. Endurecer una sesión abierta no le quita nada a nadie —el token sigue válido los
+-- 7 días— y lo contrario sería dar por supuesto un permiso que nunca se pidió.
+ALTER TABLE "token_acceso" ADD COLUMN "mantener_sesion" BOOLEAN NOT NULL DEFAULT false;

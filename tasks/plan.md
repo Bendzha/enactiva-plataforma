@@ -22,7 +22,8 @@
 - ✅ **RRHH administra y no participa** (2026-11-11): su entorno queda separado del de quien enseña y quien aprende, en el menú **y** en los servicios.
 - ✅ **Slice 12 completo** (T12.1 a T12.5): dos documentos legales con su versión, y re-aceptación al entrar cuando cambian.
 - ✅ **Slice 13 completo** (T13.1 a T13.4): el dashboard del Admin Principal muestra las puntuaciones de los matches y las estrellas promediadas, empresa por empresa. **Con esto los siete criterios de éxito de SPEC §10 están cumplidos.**
-- ⏭️ **Siguiente, por orden:** **endurecer la sesión** y después la **fase M4** (pipeline de CI por servicio y README de despliegue).
+- ✅ **Sesión endurecida** (S.1 a S.3, 2026-11-16): «mantener sesión iniciada» en el login, desmarcada por omisión. Sin marcarla, la sesión muere al cerrar el navegador; antes sobrevivía siempre, para todo el mundo.
+- ⏭️ **Siguiente:** la **fase M4** (pipeline de CI por servicio y README de despliegue).
 - 🟠 **El 2026-10-29 la clienta corrigió sobre el sistema funcionando** (`docs/reuniones/2026-10-29-reunion-karina.md`). No cambia la forma del producto: ajusta reglas y pantallas. Lo que trajo trabajo nuevo son las **solicitudes a RRHH** y la **personalización por empresa** (ADR-0011), que **revierte** una decisión del equipo que estaba en «Fuera de alcance».
 - ✅ **El criterio 5 de SPEC §10 era el único de los siete sin cumplir; el Slice 13 lo cerró el 2026-11-16.** Reescrito el 2026-11-10 con lo que contestó la clienta: el dashboard va **dentro del admin de Karina** y **no se exporta**. Importa para la defensa.
 - 📄 **Los dos textos legales son borradores del equipo** y necesitan revisión legal: el aviso de privacidad y los términos y condiciones, los dos en `2026-11-borrador` (Slice 12). El aviso ya declara las referencias y los tokens, que la SPEC §3.5 exige y el Slice 8 guarda.
@@ -553,19 +554,20 @@ dashboard se ve dentro de el admin de Karina, nada de exportar todavía»*.
 | T13.4 | Web: las dos secciones nuevas en Métricas | ✅ sin cifras de ejemplo cuando no hay datos |
 | ~~T13.5~~ | ~~Exportar a PDF y Excel~~ | ⛔ **Fuera de alcance por ahora** (2026-11-10). El «todavía» es de la clienta |
 
-## Endurecer la sesión («mantener sesión iniciada») — no es un slice
+## Endurecer la sesión («mantener sesión iniciada») — no es un slice ✅
 **Pedido en el boceto del login; la clienta pidió** *«lo más seguro que se pueda de momento»*
 (2026-11-10). Reglas en SPEC §3.9.
 
 | # | Tarea | Criterio de aceptación |
 |---|---|---|
-| S.1 | La cookie de refresh se emite **sin vencimiento** salvo que se marque la casilla | sin marcar, la sesión muere al cerrar el navegador |
-| S.2 | La casilla **no alarga** nada: marcada, dura los 7 días que ya dura el refresh | no se toca `REFRESH_TTL_DIAS` |
-| S.3 | Web: la casilla en el login, desmarcada por omisión | el valor por omisión es el seguro |
+| S.1 | La cookie de refresh se emite **sin vencimiento** salvo que se marque la casilla | ✅ sin marcar, es cookie de sesión y muere con el navegador |
+| S.2 | La casilla **no alarga** nada: marcada, dura los 7 días que ya dura el refresh | ✅ `REFRESH_TTL_DIAS` sin tocar; un test compara los dos vencimientos |
+| S.3 | Web: la casilla en el login, desmarcada por omisión | ✅ el valor por omisión es el seguro |
 
-**Ojo con esto:** hoy no existe la casilla y la cookie se emite **siempre** con vencimiento a 7
-días, así que la sesión sobrevive al cierre del navegador para todo el mundo. Es la opción menos
-segura y es la actual: esta tarea la **endurece**, no agrega una comodidad.
+**Lo que esto cambió:** hasta el 2026-11-16 no existía la casilla y la cookie se emitía **siempre**
+con vencimiento a 7 días, así que la sesión sobrevivía al cierre del navegador para todo el mundo.
+Era la opción menos segura y era la que estaba: esto la **endureció**, no agregó una comodidad.
+La elección viaja con la rotación del refresh y **la pone el servidor**, nunca quien pide.
 
 ---
 

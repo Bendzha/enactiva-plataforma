@@ -13,6 +13,15 @@ export const loginSchema = z.object({
   email: emailSchema,
   // En el login no se aplica la política de largo: solo se exige que venga algo.
   password: z.string().min(1, 'La contraseña es obligatoria'),
+  /**
+   * «Mantener sesión iniciada» (SPEC §3.9). **No alarga nada**: decide si la cookie de refresh
+   * sobrevive al cierre del navegador o muere con él.
+   *
+   * Por omisión `false`, que es lo seguro. Importa por dónde se usa esto: en un turno de planta
+   * el computador se comparte, y una sesión que sigue abierta para el turno siguiente es la
+   * cuenta de otra persona.
+   */
+  mantenerSesion: z.boolean().default(false),
 });
 export type LoginInput = z.infer<typeof loginSchema>;
 

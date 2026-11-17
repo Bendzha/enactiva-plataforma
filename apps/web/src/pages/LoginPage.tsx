@@ -60,6 +60,8 @@ export function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [ejemplo, setEjemplo] = useState<string>('conocimientos');
+  // Desmarcada por omisión: el valor por omisión es el seguro (SPEC §3.9).
+  const [mantenerSesion, setMantenerSesion] = useState(false);
   const [puerta, setPuerta] = useState<Puerta>('trabajador');
   const [errores, setErrores] = useState<Record<string, string>>({});
   const [errorGeneral, setErrorGeneral] = useState<string | null>(null);
@@ -74,7 +76,7 @@ export function LoginPage() {
     setErrorGeneral(null);
 
     // Mismo esquema de validación que usa la API (packages/shared).
-    const validacion = loginSchema.safeParse({ email, password });
+    const validacion = loginSchema.safeParse({ email, password, mantenerSesion });
     if (!validacion.success) {
       const porCampo: Record<string, string> = {};
       for (const issue of validacion.error.issues) {
@@ -87,7 +89,7 @@ export function LoginPage() {
     setErrores({});
     setEnviando(true);
     try {
-      const persona = await iniciarSesion(validacion.data.email, validacion.data.password);
+      const persona = await iniciarSesion(validacion.data);
       // Si venía de una pantalla protegida, esa manda: es a donde quería llegar.
       const desde = (ubicacion.state as { desde?: string } | null)?.desde;
       const destino = desde ?? destinoElegido(puerta, persona) ?? destinoDe(persona);
@@ -209,11 +211,33 @@ export function LoginPage() {
               )}
             </div>
 
-            <div className="flex justify-end">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <div className="flex items-center gap-2">
+                <input
+                  id="mantener-sesion"
+                  name="mantenerSesion"
+                  type="checkbox"
+                  checked={mantenerSesion}
+                  onChange={(e) => setMantenerSesion(e.target.checked)}
+                  className="size-4 rounded border-borde accent-[var(--color-marca)]"
+                  aria-describedby="ayuda-mantener-sesion"
+                />
+                <Label htmlFor="mantener-sesion" className="mb-0 font-normal">
+                  Mantener sesión iniciada
+                </Label>
+              </div>
               <Link to="/recuperar" className="text-sm font-semibold text-marca hover:underline">
                 ¿Olvidaste tu contraseña?
               </Link>
             </div>
+            {/*
+              Se dice lo que hace y lo que no. Quien comparte el computador del turno necesita
+              saber que dejarla marcada deja su cuenta abierta para quien venga después.
+            */}
+            <p id="ayuda-mantener-sesion" className="-mt-2 text-xs text-texto-suave">
+              Sin marcar, tu sesión se cierra al cerrar el navegador. Márcala solo en un equipo que
+              uses tú.
+            </p>
 
             {errorGeneral && <Alert>{errorGeneral}</Alert>}
 

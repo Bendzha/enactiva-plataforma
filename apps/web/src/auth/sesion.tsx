@@ -1,6 +1,7 @@
 import {
   permisosDe,
   type AceptarInvitacionInput,
+  type LoginInput,
   type Permiso,
   type RespuestaLogin,
   type UsuarioSesion,
@@ -21,7 +22,7 @@ interface ContextoSesion {
   usuario: UsuarioSesion | null;
   cargando: boolean;
   puede: (permiso: Permiso) => boolean;
-  iniciarSesion: (email: string, password: string) => Promise<UsuarioSesion>;
+  iniciarSesion: (entrada: LoginInput) => Promise<UsuarioSesion>;
   activarCuenta: (datos: AceptarInvitacionInput) => Promise<UsuarioSesion>;
   cerrarSesion: () => Promise<void>;
 }
@@ -48,10 +49,10 @@ export function SesionProvider({ children }: { children: ReactNode }) {
     };
   }, []);
 
-  const iniciarSesion = useCallback(async (email: string, password: string) => {
+  const iniciarSesion = useCallback(async (entrada: LoginInput) => {
     const datos = await pedir<RespuestaLogin>('/auth/login', {
       method: 'POST',
-      body: JSON.stringify({ email, password }),
+      body: JSON.stringify(entrada),
     });
     guardarToken(datos.accessToken);
     setUsuario(datos.usuario);

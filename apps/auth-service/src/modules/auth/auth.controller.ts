@@ -32,7 +32,7 @@ export class AuthController {
     @Res({ passthrough: true }) res: Response,
   ): Promise<RespuestaLogin> {
     const sesion = await this.auth.login(datos, req.ip);
-    ponerCookieRefresh(res, sesion.refreshToken, sesion.refreshExpiraAt);
+    ponerCookieRefresh(res, sesion.refreshToken, sesion.refreshExpiraAt, sesion.mantenerSesion);
     return sesion.respuesta;
   }
 
@@ -44,7 +44,7 @@ export class AuthController {
     @Res({ passthrough: true }) res: Response,
   ): Promise<RespuestaLogin> {
     const sesion = await this.auth.refrescar(leerCookieRefresh(req), req.ip);
-    ponerCookieRefresh(res, sesion.refreshToken, sesion.refreshExpiraAt);
+    ponerCookieRefresh(res, sesion.refreshToken, sesion.refreshExpiraAt, sesion.mantenerSesion);
     return sesion.respuesta;
   }
 
@@ -71,7 +71,7 @@ export class AuthController {
     @Res({ passthrough: true }) res: Response,
   ): Promise<RespuestaLogin> {
     const sesion = await this.auth.aceptarInvitacion(datos, req.ip);
-    ponerCookieRefresh(res, sesion.refreshToken, sesion.refreshExpiraAt);
+    ponerCookieRefresh(res, sesion.refreshToken, sesion.refreshExpiraAt, sesion.mantenerSesion);
     return sesion.respuesta;
   }
 
