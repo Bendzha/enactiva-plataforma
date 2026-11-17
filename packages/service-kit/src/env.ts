@@ -40,6 +40,20 @@ export const esquemaEnvBase = z.object({
   NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
   /** Origen del frontend autorizado a llamar con cookies. */
   WEB_ORIGIN: z.string().min(1).default('http://localhost:5173'),
+  /**
+   * Cuántos proxies hay **delante del gateway** (un Nginx o Caddy que termina TLS). En local no
+   * hay ninguno, así que cero.
+   *
+   * De aquí sale cuántos saltos confía cada proceso al leer `X-Forwarded-For`, y de ahí sale la
+   * IP que ve la aplicación. Importa en dos lados: la IP que guarda la auditoría, y el límite de
+   * intentos de login, que es **por IP**. Si todas las peticiones parecen venir del mismo lugar,
+   * ese límite deja de proteger a una cuenta y pasa a dejar fuera a toda la empresa.
+   *
+   * Confiar en la cabecera de más saltos de los que hay es peor que no confiar en ninguno:
+   * cualquiera la escribe y se inventa la IP que quiera. Por eso el valor por omisión es el
+   * conservador y subirlo es una decisión del despliegue.
+   */
+  PROXIES_DELANTE_DEL_GATEWAY: z.coerce.number().int().min(0).max(10).default(0),
 });
 
 /** El secreto del access token: lo comparten auth-service y todos los que verifican tokens. */

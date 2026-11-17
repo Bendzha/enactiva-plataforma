@@ -1,5 +1,5 @@
 import { type DynamicModule, Module, type Provider } from '@nestjs/common';
-import { APP_GUARD } from '@nestjs/core';
+import { APP_GUARD, HttpAdapterHost } from '@nestjs/core';
 import { JwtModule } from '@nestjs/jwt';
 import { AuthGuard } from './auth.guard.js';
 import { ContextoModule } from './contexto.module.js';
@@ -8,6 +8,7 @@ import {
   PROVEEDOR_ESTADO_SESION,
   type ProveedorEstadoSesion,
 } from './estado-sesion.js';
+import { ConfiguradorDeProxies } from './proxies.js';
 import { SECRETO_INTERNO } from './secreto-interno.js';
 
 export interface OpcionesServiceKit {
@@ -22,6 +23,11 @@ export interface OpcionesServiceKit {
    * servicios que atienden rutas internas anteriores al login.
    */
   secretoInterno?: string;
+  /**
+   * Cuántos proxies hay delante del gateway (`PROXIES_DELANTE_DEL_GATEWAY`). De ahí sale cuánto
+   * de `X-Forwarded-For` se puede creer este servicio, y con eso la IP que ve la aplicación.
+   */
+  proxiesDelanteDelGateway?: number;
 }
 
 /**
@@ -49,6 +55,12 @@ export class ServiceKitModule {
         },
         // Guard global: toda ruta debe declarar @Publico, @SoloSesion o @RequierePermiso.
         { provide: APP_GUARD, useClass: AuthGuard },
+        {
+          provide: ConfiguradorDeProxies,
+          inject: [HttpAdapterHost],
+          useFactory: (adaptadores: HttpAdapterHost) =>
+            new ConfiguradorDeProxies(adaptadores, opciones.proxiesDelanteDelGateway ?? 0),
+        },
       ],
       exports: [CacheEstadoSesion, JwtModule],
     };

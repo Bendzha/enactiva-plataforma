@@ -167,6 +167,24 @@ describe('Aceptación de los documentos legales (e2e)', () => {
     expect(serializar(registros)).not.toContain('Ley 21.719');
   });
 
+  it('la IP auditada es la de quien pide, no la del gateway', async () => {
+    // El gateway reenvía `X-Forwarded-For` (`xfwd: true`) y este servicio siempre está detrás de
+    // él, así que le cree un salto. Sin eso, la auditoría guardaba la dirección del gateway y
+    // el registro no servía para saber desde dónde se hizo nada (Ley 21.719).
+    await request(app.getHttpServer())
+      .post(RUTA)
+      .set('Authorization', como())
+      .set('X-Forwarded-For', '203.0.113.9')
+      .send({ documentos: ['TERMINOS'] })
+      .expect(201);
+
+    const registro = await prisma.registroAuditoria.findFirstOrThrow({
+      where: { entidad: 'AceptacionAviso', entidadId: persona },
+      orderBy: { id: 'desc' },
+    });
+    expect(registro.ip).toBe('203.0.113.9');
+  });
+
   it('un documento inventado no entra', async () => {
     await aceptar(['LO_QUE_SEA']).expect(400);
     await aceptar([]).expect(400);

@@ -7,6 +7,7 @@ Plataforma de capacitación entre pares para el piloto de ENACTIVA SpA — proye
 - Qué se construye y con qué reglas: [`docs/specs/SPEC.md`](docs/specs/SPEC.md)
 - Decisiones de arquitectura: [`docs/decisions/`](docs/decisions/)
 - Orden de trabajo por slices: [`tasks/plan.md`](tasks/plan.md)
+- Cómo se pone en un servidor: [`docs/despliegue.md`](docs/despliegue.md)
 
 ## Requisitos
 
@@ -16,15 +17,15 @@ Plataforma de capacitación entre pares para el piloto de ENACTIVA SpA — proye
 
 ## Arquitectura
 
-El sistema son cinco procesos: un gateway que es la única puerta de entrada del frontend, y cuatro servicios con su propia base de datos ([ADR-0007](docs/decisions/0007-microservicios.md)). El monolito que había antes ya no existe.
+El sistema son cinco procesos: un gateway que es la única puerta de entrada del frontend y cuatro servicios, tres de ellos con su propia base de datos ([ADR-0007](docs/decisions/0007-microservicios.md)). El monolito que había antes ya no existe.
 
 | Proceso                 | Puerto | Base de datos | Qué hace                                                |
 | ----------------------- | ------ | ------------- | ------------------------------------------------------- |
 | `apps/api-gateway`      | 3000   | —             | Única puerta de entrada. Enruta por prefijo             |
 | `apps/auth-service`     | 3101   | —             | Emite y rota los JWT. Sin base de datos propia          |
 | `apps/identity-service` | 3102   | `identity_db` | Empresas, áreas, personas, invitaciones, temas y correo |
-| `apps/learning-service` | 3103   | `learning_db` | Cursos, rúbricas y mediciones. Se construye en M3       |
-| `apps/matching-service` | 3104   | `matching_db` | Motor de matching. Se construye en M3                   |
+| `apps/learning-service` | 3103   | `learning_db` | Talleres, inscripciones, asistencia y valoraciones      |
+| `apps/matching-service` | 3104   | `matching_db` | Motor de matching: el mazo de Descubrir y su puntuación |
 
 El frontend habla **solo con el gateway**, en `http://localhost:3000`, que enruta por prefijo:
 `/auth/*` a auth-service (conservando el prefijo, porque la cookie de refresh está acotada a
@@ -93,6 +94,7 @@ pnpm dev            # la plataforma completa: web, gateway y los cuatro servicio
 docker compose up -d --wait                 # bases de datos y Mailpit
 pnpm --filter identity-service db:deploy    # solo la primera vez
 pnpm --filter learning-service db:deploy    # idem
+pnpm --filter matching-service db:deploy    # idem
 pnpm --filter identity-service db:seed      # crea el Admin Principal
 pnpm dev                                    # web, gateway y los cuatro servicios
 ```
@@ -112,7 +114,7 @@ curl http://localhost:3102/health     # identity-service
 apps/api-gateway       único punto de entrada del frontend
 apps/auth-service      emite y rota los JWT
 apps/identity-service  empresas, personas, invitaciones, temas y correo
-apps/learning-service  cursos, rúbricas y mediciones
+apps/learning-service  talleres, inscripciones, asistencia, valoraciones y recordatorios
 apps/matching-service  motor de matching
 apps/web               React + Vite
 packages/shared        Zod, tipos, enums y permisos — lo usan el backend y el navegador
@@ -127,8 +129,20 @@ tasks/                 plan de implementación
 
 Una rama por tarea (`slice-N/tN.M-descripcion`) y Pull Request hacia `main`. El CI debe estar en verde antes de mergear.
 
-En cada Pull Request, GitHub Actions levanta Postgres, aplica las migraciones y corre lint, formato, tipos, tests y build — lo mismo que se corre en local:
+Antes de subir nada, lo mismo que corre el CI:
 
 ```bash
 pnpm lint && pnpm format:check && pnpm typecheck && pnpm test && pnpm build
 ```
+
+En cada Pull Request, GitHub Actions lo reparte en varios jobs ([`.github/workflows/ci.yml`](.github/workflows/ci.yml)):
+
+- **Lint, formato, tipos y build**, sin base de datos: arranca en segundos y falla temprano.
+- **Tests de la web y los paquetes**, que tampoco necesitan base.
+- **Un job por servicio**, cada uno con su propio Postgres y su propio Mailpit. Así los e2e no comparten base —que es por qué en local van con `--workspace-concurrency=1`— y cuando algo se rompe, Actions dice de qué servicio es sin abrir el log.
+
+El check que hay que mirar es **CI**: queda verde solo si lo están todos los demás.
+
+## Despliegue
+
+Lo que cambia para poner esto en un servidor —secretos, bases, proxy inverso, respaldos y lo que nunca se sube— está en [docs/despliegue.md](docs/despliegue.md).

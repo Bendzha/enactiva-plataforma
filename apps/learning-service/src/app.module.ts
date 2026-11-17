@@ -24,6 +24,8 @@ import { ValoracionModule } from './modules/valoracion/valoracion.module.js';
   imports: [
     ServiceKitModule.forRoot({
       secretoJwt: env().JWT_ACCESS_SECRET,
+      // Siempre detrás del gateway: la IP de quien pide llega en X-Forwarded-For.
+      proxiesDelanteDelGateway: env().PROXIES_DELANTE_DEL_GATEWAY,
       // No tiene las tablas de usuarios: le pregunta a identity-service y cachea 30 s.
       proveedorEstadoSesion: proveedorEstadoSesionRemoto(env().URL_IDENTITY_SERVICE),
     }),

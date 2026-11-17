@@ -27,6 +27,8 @@ import { SolicitudesModule } from './modules/solicitudes/solicitudes.module.js';
   imports: [
     ServiceKitModule.forRoot({
       secretoJwt: env().JWT_ACCESS_SECRET,
+      // Siempre detrás del gateway: la IP de quien pide llega en X-Forwarded-For.
+      proxiesDelanteDelGateway: env().PROXIES_DELANTE_DEL_GATEWAY,
       secretoInterno: env().INTERNO_SECRETO,
       // Único servicio que resuelve la sesión contra su propia base, sin llamar a nadie.
       proveedorEstadoSesion: {
